@@ -1,8 +1,9 @@
 <?php
 
-namespace Tests\Feature\BagistoApi\GraphQL;
+namespace Webkul\BagistoApi\Tests\Feature\GraphQL;
 
-use Tests\Feature\BagistoApi\GraphQLTestCase;
+use Illuminate\Support\Facades\DB;
+use Webkul\BagistoApi\Tests\GraphQLTestCase;
 use Webkul\Customer\Models\Customer;
 
 class CustomerProfileTest extends GraphQLTestCase
@@ -10,7 +11,7 @@ class CustomerProfileTest extends GraphQLTestCase
     // ── Read Profile (Query) ──────────────────────────────────
 
     /**
-     * Test: Read authenticated customer profile returns all fields
+     * Test: Read authenticated customer profile returns all fields 
      */
     public function test_read_customer_profile_returns_all_fields(): void
     {
@@ -27,8 +28,8 @@ class CustomerProfileTest extends GraphQLTestCase
         ]);
 
         $query = <<<'GQL'
-            query readProfile($id: ID!) {
-              readCustomerProfile(id: $id) {
+            query readProfile {
+              readCustomerProfile {
                 id
                 firstName
                 lastName
@@ -93,15 +94,15 @@ class CustomerProfileTest extends GraphQLTestCase
     }
 
     /**
-     * Test: Read profile returns correct id format
+     * Test: Read profile returns correct id format 
      */
     public function test_read_profile_returns_correct_id_format(): void
     {
         $customer = $this->createCustomer();
 
         $query = <<<'GQL'
-            query readProfile($id: ID!) {
-              readCustomerProfile(id: $id) {
+            query readProfile {
+              readCustomerProfile {
                 id
               }
             }
@@ -120,7 +121,7 @@ class CustomerProfileTest extends GraphQLTestCase
     }
 
     /**
-     * Test: Read profile with selective fields
+     * Test: Read profile with selective fields 
      */
     public function test_read_profile_with_selective_fields(): void
     {
@@ -130,8 +131,8 @@ class CustomerProfileTest extends GraphQLTestCase
         ]);
 
         $query = <<<'GQL'
-            query readProfile($id: ID!) {
-              readCustomerProfile(id: $id) {
+            query readProfile {
+              readCustomerProfile {
                 firstName
                 email
               }
@@ -383,8 +384,8 @@ class CustomerProfileTest extends GraphQLTestCase
         ]);
 
         $readQuery = <<<'GQL'
-            query readProfile($id: ID!) {
-              readCustomerProfile(id: $id) {
+            query readProfile {
+              readCustomerProfile {
                 firstName
                 lastName
               }
@@ -406,7 +407,7 @@ class CustomerProfileTest extends GraphQLTestCase
     // ── Delete Profile (Mutation) ─────────────────────────────
 
     /**
-     * Test: Delete customer profile removes the customer
+     * Test: Delete customer profile removes the customer 
      */
     public function test_delete_customer_profile(): void
     {
@@ -446,7 +447,7 @@ class CustomerProfileTest extends GraphQLTestCase
         $customer->createToken('token-1');
         $customer->createToken('token-2');
 
-        $tokenCount = \DB::table('personal_access_tokens')
+        $tokenCount = DB::table('personal_access_tokens')
             ->where('tokenable_id', $customer->id)
             ->where('tokenable_type', Customer::class)
             ->count();
@@ -465,7 +466,7 @@ class CustomerProfileTest extends GraphQLTestCase
             'input' => [],
         ]);
 
-        $remainingTokens = \DB::table('personal_access_tokens')
+        $remainingTokens = DB::table('personal_access_tokens')
             ->where('tokenable_id', $customer->id)
             ->where('tokenable_type', Customer::class)
             ->count();

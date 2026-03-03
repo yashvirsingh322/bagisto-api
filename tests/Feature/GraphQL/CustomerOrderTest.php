@@ -1,8 +1,8 @@
 <?php
 
-namespace Tests\Feature\BagistoApi\GraphQL;
+namespace Webkul\BagistoApi\Tests\Feature\GraphQL;
 
-use Tests\Feature\BagistoApi\GraphQLTestCase;
+use Webkul\BagistoApi\Tests\GraphQLTestCase;
 use Webkul\Core\Models\Channel;
 use Webkul\Customer\Models\Customer;
 use Webkul\Product\Models\Product;
@@ -287,7 +287,7 @@ class CustomerOrderTest extends GraphQLTestCase
             }
         GQL;
 
-        $response = $this->graphQL($query);
+        $response = $this->authenticatedGraphQL($testData['customer'], $query);
 
         $response->assertOk();
         $data = $response->json('data.customerOrder');
@@ -297,6 +297,60 @@ class CustomerOrderTest extends GraphQLTestCase
         expect($data['customerEmail'])->toBe($testData['customer']->email);
         expect($data['customerFirstName'])->toBe($testData['customer']->first_name);
         expect($data['customerLastName'])->toBe($testData['customer']->last_name);
+    }
+
+    /**
+     * Test: Query single customer order by numeric ID
+     */
+    public function test_get_customer_order_by_numeric_id(): void
+    {
+        $testData = $this->createTestData();
+        $orderId = (string) $testData['order1']->id;
+
+        $query = <<<GQL
+            query getCustomerOrder {
+              customerOrder(id: "{$orderId}") {
+                _id
+                status
+                customerEmail
+              }
+            }
+        GQL;
+
+        $response = $this->authenticatedGraphQL($testData['customer'], $query);
+
+        $response->assertOk();
+        $data = $response->json('data.customerOrder');
+
+        expect($data['_id'])->toBe($testData['order1']->id);
+        expect($data['status'])->toBe('pending');
+        expect($data['customerEmail'])->toBe($testData['customer']->email);
+    }
+
+    /**
+     * Test: Invalid customer order ID format returns validation error
+     */
+    public function test_get_customer_order_with_invalid_id_format_returns_error(): void
+    {
+        $testData = $this->createTestData();
+
+        $query = <<<'GQL'
+            query getCustomerOrder {
+              customerOrder(id: "invalid-id") {
+                _id
+              }
+            }
+        GQL;
+
+        $response = $this->authenticatedGraphQL($testData['customer'], $query);
+
+        $response->assertOk();
+
+        $errors = $response->json('errors');
+        $message = $errors[0]['message'] ?? '';
+
+        expect($errors)->not()->toBeEmpty();
+        expect($message)->toContain('Invalid ID format');
     }
 
     /**
@@ -322,7 +376,7 @@ class CustomerOrderTest extends GraphQLTestCase
             }
         GQL;
 
-        $response = $this->graphQL($query);
+        $response = $this->authenticatedGraphQL($testData['customer'], $query);
 
         $response->assertOk();
         $data = $response->json('data.customerOrder');

@@ -1,8 +1,8 @@
 <?php
 
-namespace Tests\Feature\BagistoApi\Rest;
+namespace Webkul\BagistoApi\Tests\Feature\Rest;
 
-use Tests\Feature\BagistoApi\RestApiTestCase;
+use Webkul\BagistoApi\Tests\RestApiTestCase;
 use Webkul\Customer\Models\CompareItem;
 use Webkul\Product\Models\Product;
 

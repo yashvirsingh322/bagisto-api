@@ -6,7 +6,9 @@ use ApiPlatform\GraphQl\Resolver\Factory\ResolverFactoryInterface;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\Metadata\Property\Factory\PropertyMetadataFactoryInterface;
 use GraphQL\Type\Definition\ResolveInfo;
+use Webkul\BagistoApi\Dto\CartData;
 use Webkul\BagistoApi\Models\Product;
+use Webkul\BagistoApi\Models\ReadCart;
 use Webkul\BagistoApi\State\ProductRelationProvider;
 
 /**
@@ -42,10 +44,19 @@ class ProductRelationResolverFactory implements ResolverFactoryInterface
 
         $capturedOperation = $operation;
 
-        return function (?array $source, array $args, $context, ResolveInfo $info) use ($innerResolver, $capturedOperation) {
+        return function (?array $source, array $args, $context, ResolveInfo $info) use ($innerResolver, $capturedOperation, $resourceClass, $rootClass) {
 
             // Handle CartData items field - fetch items fresh from database to avoid denormalization issues
-            if ($info->fieldName === 'items' && is_array($source) && isset($source['id'])) {
+            $isCartContext = in_array($resourceClass, [ReadCart::class, CartData::class], true)
+                || in_array($rootClass, [ReadCart::class, CartData::class], true);
+
+            if (
+                $isCartContext
+                && $info->fieldName === 'items'
+                && is_array($source)
+                && isset($source['id'])
+                && is_numeric($source['id'])
+            ) {
                 $cartId = $source['id'];
 
                 // Fetch items fresh from database

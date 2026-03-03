@@ -5,6 +5,7 @@ namespace Webkul\BagistoApi\Helper;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Storage;
 use Webkul\BagistoApi\Exception\InvalidInputException;
+use Webkul\BagistoApi\Dto\CustomerProfileOutput;
 use Webkul\BagistoApi\Models\CustomerProfile as CustomerProfileModel;
 use Webkul\Customer\Models\Customer;
 
@@ -35,6 +36,32 @@ class CustomerProfileHelper
         $profile->image = $imageUrl;
 
         return $profile;
+    }
+
+    /**
+     * Map customer model to CustomerProfileOutput DTO
+     */
+    public static function mapCustomerToProfileOutput(Customer $customer): CustomerProfileOutput
+    {
+        $imageUrl = null;
+        if ($customer->image) {
+            $imageUrl = Storage::url($customer->image);
+        }
+
+        return new CustomerProfileOutput(
+            id: (string) $customer->id,
+            firstName: $customer->first_name,
+            lastName: $customer->last_name,
+            email: $customer->email,
+            phone: $customer->phone,
+            gender: $customer->gender,
+            dateOfBirth: $customer->date_of_birth,
+            status: (string) $customer->status,
+            subscribedToNewsLetter: (bool) $customer->subscribed_to_news_letter,
+            isVerified: $customer->is_verified ? 'true' : 'false',
+            isSuspended: $customer->is_suspended ? 'true' : 'false',
+            image: $imageUrl,
+        );
     }
 
     public static function handleImageUpload(string $imageData, Customer $customer): void

@@ -88,6 +88,7 @@ return [
         'customer-profile' => [
             'authentication-required'           => 'Authentication token is required. Please provide token in query input',
             'invalid-token'                     => 'Invalid or expired token',
+            'profile-updated'                  => 'Customer profile updated successfully',
         ],
 
         'customer' => [
@@ -97,6 +98,8 @@ return [
             'id-required'                       => 'Customer ID is required',
             'invalid-id-format'                 => 'Invalid ID format. Expected IRI format like "/api/admin/customers/1" or numeric ID',
             'not-found'                         => 'Customer not found',
+            'phone-special-chars-not-allowed'  => 'Mobile number can only contain digits. Special characters are not allowed',
+            'invalid-gender'                    => 'Invalid gender value ":gender". Allowed values are: :valid',
         ],
 
         'product-review' => [

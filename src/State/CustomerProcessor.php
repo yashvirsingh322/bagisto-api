@@ -35,6 +35,12 @@ class CustomerProcessor implements ProcessorInterface
                     throw $e;
                 }
 
+                // Normalize gender if provided
+                $normalizedGender = $this->validator->validateGender($data->gender ?? null);
+                if ($normalizedGender !== null) {
+                    $data->gender = $normalizedGender;
+                }
+
                 if (! empty($data->password) && ! empty($data->confirm_password)) {
                     if ($data->password !== $data->confirm_password) {
                         throw new InvalidInputException(__('bagistoapi::app.graphql.customer.password-mismatch'));
@@ -99,6 +105,11 @@ class CustomerProcessor implements ProcessorInterface
                 }
 
                 $this->validator->validateForUpdate($data);
+
+                // Normalize gender if provided
+                if (isset($data->gender) && $data->gender !== null) {
+                    $data->gender = $this->validator->validateGender($data->gender);
+                }
 
                 $data->save();
 

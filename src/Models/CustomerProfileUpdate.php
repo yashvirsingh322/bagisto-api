@@ -8,6 +8,7 @@ use ApiPlatform\Metadata\GraphQl\Mutation;
 use ApiPlatform\Metadata\Put;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Webkul\BagistoApi\Dto\CustomerProfileInput;
+use Webkul\BagistoApi\Dto\CustomerProfileOutput;
 use Webkul\BagistoApi\State\CustomerProfileProcessor;
 
 /**
@@ -25,8 +26,11 @@ use Webkul\BagistoApi\State\CustomerProfileProcessor;
         new Mutation(
             name: 'create',
             input: CustomerProfileInput::class,
-            output: false,
+            output: CustomerProfileOutput::class,
             processor: CustomerProfileProcessor::class,
+            normalizationContext: [
+                'groups' => ['mutation'],
+            ],
             denormalizationContext: [
                 'allow_extra_attributes' => true,
                 'groups'                 => ['mutation'],
@@ -41,49 +45,61 @@ class CustomerProfileUpdate
     #[Groups(['mutation'])]
     public ?string $id = null;
 
-    #[ApiProperty(readable: true, writable: false)]
+    #[ApiProperty(readable: true, writable: true)]
     #[Groups(['mutation'])]
-    public ?string $first_name = null;
+    public ?string $firstName = null;
 
-    #[ApiProperty(readable: true, writable: false)]
+    #[ApiProperty(readable: true, writable: true)]
     #[Groups(['mutation'])]
-    public ?string $last_name = null;
+    public ?string $lastName = null;
 
-    #[ApiProperty(readable: true, writable: false)]
+    #[ApiProperty(readable: true, writable: true)]
     #[Groups(['mutation'])]
     public ?string $email = null;
 
-    #[ApiProperty(readable: true, writable: false)]
+    #[ApiProperty(readable: true, writable: true)]
     #[Groups(['mutation'])]
     public ?string $phone = null;
 
-    #[ApiProperty(readable: true, writable: false)]
+    #[ApiProperty(readable: true, writable: true)]
     #[Groups(['mutation'])]
     public ?string $gender = null;
 
-    #[ApiProperty(readable: true, writable: false)]
+    #[ApiProperty(readable: true, writable: true)]
     #[Groups(['mutation'])]
-    public ?string $date_of_birth = null;
+    public ?string $dateOfBirth = null;
 
-    #[ApiProperty(readable: true, writable: false)]
+    #[ApiProperty(readable: true, writable: true)]
+    #[Groups(['mutation'])]
+    public ?string $password = null;
+
+    #[ApiProperty(readable: true, writable: true)]
+    #[Groups(['mutation'])]
+    public ?string $confirmPassword = null;
+
+    #[ApiProperty(readable: true, writable: true)]
     #[Groups(['mutation'])]
     public ?string $status = null;
 
-    #[ApiProperty(readable: true, writable: false)]
+    #[ApiProperty(readable: true, writable: true)]
     #[Groups(['mutation'])]
-    public ?bool $subscribed_to_news_letter = null;
+    public ?bool $subscribedToNewsLetter = null;
 
-    #[ApiProperty(readable: true, writable: false)]
+    #[ApiProperty(readable: true, writable: true)]
     #[Groups(['mutation'])]
-    public ?string $is_verified = null;
+    public ?string $isVerified = null;
 
-    #[ApiProperty(readable: true, writable: false)]
+    #[ApiProperty(readable: true, writable: true)]
     #[Groups(['mutation'])]
-    public ?string $is_suspended = null;
+    public ?string $isSuspended = null;
 
-    #[ApiProperty(readable: true, writable: false)]
+    #[ApiProperty(readable: true, writable: true)]
     #[Groups(['mutation'])]
     public ?string $image = null;
+
+    #[ApiProperty(readable: true, writable: true)]
+    #[Groups(['mutation'])]
+    public ?bool $deleteImage = null;
 
     #[ApiProperty(readable: true, writable: false)]
     #[Groups(['mutation'])]

@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Feature\BagistoApi;
+namespace Webkul\BagistoApi\Tests;
 
 use Illuminate\Testing\TestResponse;
 use Webkul\Customer\Models\Customer;

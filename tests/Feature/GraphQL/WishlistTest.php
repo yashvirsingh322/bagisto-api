@@ -1,8 +1,8 @@
 <?php
 
-namespace Tests\Feature\BagistoApi\GraphQL;
+namespace Webkul\BagistoApi\Tests\Feature\GraphQL;
 
-use Tests\Feature\BagistoApi\GraphQLTestCase;
+use Webkul\BagistoApi\Tests\GraphQLTestCase;
 use Webkul\Customer\Models\Customer;
 use Webkul\Customer\Models\Wishlist;
 use Webkul\Product\Models\Product;

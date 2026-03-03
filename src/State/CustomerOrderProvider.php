@@ -32,6 +32,7 @@ class CustomerOrderProvider implements ProviderInterface
     {
         $customer = Auth::guard('sanctum')->user();
 
+
         if (! $customer) {
             throw new AuthorizationException(__('bagistoapi::app.graphql.logout.unauthenticated'));
         }
@@ -55,18 +56,55 @@ class CustomerOrderProvider implements ProviderInterface
             throw new ResourceNotFoundException(__('bagistoapi::app.graphql.customer-order.id-required'));
         }
 
-        $order = CustomerOrder::with(['items', 'addresses', 'payment', 'shipments.items', 'shipments.shippingAddress'])
+        $orderQuery = CustomerOrder::with(['items', 'addresses', 'payment', 'shipments.items', 'shipments.shippingAddress'])
             ->where('customer_id', $customer->id)
-            ->where('customer_type', Customer::class)
-            ->find($id);
+            ->where('customer_type', Customer::class);
+
+        $order = $orderQuery->find($id);
 
         if (! $order) {
+            
             throw new ResourceNotFoundException(
                 __('bagistoapi::app.graphql.customer-order.not-found', ['id' => $id])
             );
         }
 
+
         return $order;
+    }
+
+    /**
+     * Enable debug dumps only when explicitly requested via header:
+     * X-DEBUG-CUSTOMER-ORDER: 1
+     * Optional hard-stop at success checkpoint:
+     * X-DEBUG-CUSTOMER-ORDER-DD: 1
+     */
+    private function debugDump(string $checkpoint, array $payload = []): void
+    {
+        if (! $this->shouldDebugDump()) {
+            return;
+        }
+    }
+
+    private function shouldDebugDump(): bool
+    {
+        return request()->header('X-DEBUG-CUSTOMER-ORDER') === '1';
+    }
+
+    private function shouldDebugDd(): bool
+    {
+        return request()->header('X-DEBUG-CUSTOMER-ORDER-DD') === '1';
+    }
+
+    /**
+     * Targeted hard-stop for debugging.
+     * Usage: X-DEBUG-CUSTOMER-ORDER-DD-AT: start|auth|id|result
+     */
+    private function debugDdAt(string $checkpoint, array $payload = []): void
+    {
+        if (request()->header('X-DEBUG-CUSTOMER-ORDER-DD-AT') !== $checkpoint) {
+            return;
+        }
     }
 
     /**

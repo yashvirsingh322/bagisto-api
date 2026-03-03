@@ -9,6 +9,11 @@ use Webkul\Customer\Models\Customer;
 class CustomerValidator
 {
     /**
+     * Valid gender values
+     */
+    private const VALID_GENDERS = ['Male', 'Female', 'Other'];
+
+    /**
      * Validate customer for creation
      *
      * @throws InvalidInputException
@@ -39,6 +44,10 @@ class CustomerValidator
 
             throw new InvalidInputException($errorMessage);
         }
+
+        // Additional custom validations
+        $this->validatePhone($customer->phone);
+        $this->validateGender($customer->gender);
     }
 
     /**
@@ -71,6 +80,13 @@ class CustomerValidator
         if ($customer->phone !== null) {
             $data['phone'] = $customer->phone;
             $rules['phone'] = 'string|unique:customers,phone,'.$customer->id;
+            // Validate phone format
+            $this->validatePhone($customer->phone);
+        }
+
+        // Validate gender if provided
+        if ($customer->gender !== null) {
+            $this->validateGender($customer->gender);
         }
 
         // Only validate password if it's actually being changed
@@ -90,5 +106,53 @@ class CustomerValidator
                 throw new InvalidInputException($errorMessage);
             }
         }
+    }
+
+    /**
+     * Validate phone number - only digits allowed
+     *
+     * @throws InvalidInputException
+     */
+    private function validatePhone(?string $phone): void
+    {
+        if ($phone === null || $phone === '') {
+            return;
+        }
+
+        // Phone should only contain digits - remove all non-digit characters
+        $cleanedPhone = preg_replace('/[^0-9]/', '', $phone);
+        
+        // If the cleaned phone is different from original, it means special characters were present
+        if ($cleanedPhone !== $phone) {
+            throw new InvalidInputException(__('bagistoapi::app.graphql.customer.phone-special-chars-not-allowed'));
+        }
+    }
+
+    /**
+     * Validate and normalize gender value
+     * Only allows Male, Female, or Other (case-insensitive)
+     * Saves with first letter uppercase
+     *
+     * @throws InvalidInputException
+     */
+    public function validateGender(?string $gender): ?string
+    {
+        if ($gender === null || $gender === '') {
+            return null;
+        }
+
+        // Normalize: trim and capitalize first letter
+        $normalized = ucfirst(trim($gender));
+
+        if (! in_array($normalized, self::VALID_GENDERS, true)) {
+            throw new InvalidInputException(
+                __('bagistoapi::app.graphql.customer.invalid-gender', [
+                    'gender' => $gender,
+                    'valid'  => implode(', ', self::VALID_GENDERS)
+                ])
+            );
+        }
+
+        return $normalized;
     }
 }

@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Feature\BagistoApi;
+namespace Webkul\BagistoApi\Tests\Feature;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;

@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Feature\BagistoApi;
+namespace Webkul\BagistoApi\Tests;
 
 use Illuminate\Testing\TestResponse;
 use Webkul\Customer\Models\Customer;
@@ -19,7 +19,7 @@ abstract class GraphQLTestCase extends BagistoApiTestCase
     /**
      * Execute a public GraphQL query (storefront key only, no auth)
      */
-    protected function graphQL(string $query, array $variables = []): TestResponse
+    protected function graphQL(string $query, array $variables = [], array $headers = []): TestResponse
     {
         $payload = ['query' => $query];
 
@@ -27,7 +27,9 @@ abstract class GraphQLTestCase extends BagistoApiTestCase
             $payload['variables'] = $variables;
         }
 
-        return $this->postJson($this->graphqlUrl, $payload, $this->storefrontHeaders());
+        $headers = array_merge($this->storefrontHeaders(), $headers);
+
+        return $this->postJson($this->graphqlUrl, $payload, $headers);
     }
 
     /**

@@ -1,13 +1,15 @@
 <?php
 
-namespace Tests\Feature\BagistoApi;
+namespace Webkul\BagistoApi\Tests;
 
+use Illuminate\Support\Facades\DB;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Testing\TestResponse;
-use Tests\TestCase;
+use Webkul\BagistoApi\Tests\BagistoApiTest;
 use Webkul\Core\Models\Channel;
 use Webkul\Customer\Models\Customer;
 use Webkul\Customer\Models\CustomerGroup;
+use Webkul\Product\Models\Product;
 
 /**
  * Base test case for all BagistoApi tests.
@@ -15,7 +17,7 @@ use Webkul\Customer\Models\CustomerGroup;
  * Provides shared storefront key handling, customer authentication,
  * database seeding, and foreign key constraint management.
  */
-abstract class BagistoApiTestCase extends TestCase
+abstract class BagistoApiTestCase extends BagistoApiTest
 {
     use DatabaseTransactions;
 
@@ -30,12 +32,12 @@ abstract class BagistoApiTestCase extends TestCase
     public function setUp(): void
     {
         parent::setUp();
-        \DB::statement('SET FOREIGN_KEY_CHECKS=0');
+        DB::statement('SET FOREIGN_KEY_CHECKS=0');
     }
 
     public function tearDown(): void
     {
-        \DB::statement('SET FOREIGN_KEY_CHECKS=1');
+        DB::statement('SET FOREIGN_KEY_CHECKS=1');
         parent::tearDown();
     }
 
@@ -98,5 +100,54 @@ abstract class BagistoApiTestCase extends TestCase
         $this->seedRequiredData();
 
         return Customer::factory()->create($attributes);
+    }
+
+    /**
+     * Create a test customer with a valid token for Bearer authentication
+     * Returns an array with customer and token keys
+     */
+    protected function createTestCustomer(): array
+    {
+        // Create customer with a token field (same way it's created during registration)
+        $customer = $this->createCustomer([
+            'token' => md5(uniqid(rand(), true)),
+        ]);
+
+        return [
+            'customer' => $customer,
+            'token'    => $customer->token,
+        ];
+    }
+
+    /**
+     * Get an existing product with inventory from the database for testing
+     * Returns an array with product and inventory_source_id keys
+     */
+    protected function createTestProduct(): array
+    {
+        // Find an existing product that has inventory in the database
+        $productWithInventory = DB::table('product_inventories')
+            ->select('product_id')
+            ->groupBy('product_id')
+            ->havingRaw('SUM(qty) > 0')
+            ->first();
+
+        if (!$productWithInventory) {
+            throw new \Exception('No products with inventory found in database');
+        }
+
+        $productId = $productWithInventory->product_id;
+        
+        // Get the product model
+        $product = Product::find($productId);
+        
+        if (!$product) {
+            throw new \Exception('Product not found with ID: ' . $productId);
+        }
+
+        return [
+            'product' => $product,
+            'inventory_source_id' => 1,
+        ];
     }
 }

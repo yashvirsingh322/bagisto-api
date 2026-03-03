@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Feature\BagistoApi\Rest;
+namespace Webkul\BagistoApi\Tests\Feature\Rest;
 
 use Webkul\Sales\Models\Order;
 use Webkul\Sales\Models\OrderItem;
@@ -10,7 +10,7 @@ use Webkul\Product\Models\Product;
 /**
  * Use the REST test helper to test Cancel and Reorder endpoints.
  */
-uses(\Tests\Feature\BagistoApi\RestApiTestCase::class);
+uses(\Webkul\BagistoApi\Tests\RestApiTestCase::class);
 
 /**
  * Helper to create a test order for a customer.

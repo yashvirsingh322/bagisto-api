@@ -1,8 +1,8 @@
 <?php
 
-namespace Tests\Feature\BagistoApi\RestApi;
+namespace Webkul\BagistoApi\Tests\Feature\RestApi;
 
-use Tests\Feature\BagistoApi\RestApiTestCase;
+use Webkul\BagistoApi\Tests\RestApiTestCase;
 use Webkul\Core\Models\Channel;
 use Webkul\Customer\Models\Wishlist;
 use Webkul\Customer\Models\Customer;

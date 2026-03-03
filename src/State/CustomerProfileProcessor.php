@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Request;
 use Illuminate\Support\Facades\Storage;
 use Webkul\Customer\Models\Customer;
+use Webkul\BagistoApi\Dto\CustomerProfileOutput;
 use Webkul\BagistoApi\Exception\AuthenticationException;
 use Webkul\BagistoApi\Exception\InvalidInputException;
 use Webkul\BagistoApi\Helper\CustomerProfileHelper;
@@ -24,6 +25,20 @@ class CustomerProfileProcessor implements ProcessorInterface
 
     public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = []): mixed
     {
+        // For GraphQL mutations, always prefer context args input as it's the source of truth
+        // The denormalized object may not have all fields properly populated
+        if (isset($context['args']['input']) && is_array($context['args']['input'])) {
+            $inputData = $context['args']['input'];
+            
+            // Merge with existing data, preferring args values
+            if (is_object($data)) {
+                $dataArray = (array)$data;
+                $data = (object)array_merge($dataArray, $inputData);
+            } else {
+                $data = (object)$inputData;
+            }
+        }
+
         $request = Request::instance() ?? ($context['request'] ?? null);
 
         if (! $request) {
@@ -73,7 +88,7 @@ class CustomerProfileProcessor implements ProcessorInterface
     /**
      * Handle customer profile update.
      */
-    private function handleUpdate(mixed $data, Customer $authenticatedCustomer): CustomerProfileModel
+    private function handleUpdate(mixed $data, Customer $authenticatedCustomer): CustomerProfileOutput
     {
         $updateData = [];
 
@@ -96,11 +111,14 @@ class CustomerProfileProcessor implements ProcessorInterface
         }
 
         if (is_object($data) && property_exists($data, 'phone') && ! empty($data->phone)) {
+            // Validate phone - no special characters allowed
+            $this->validatePhone($data->phone);
             $updateData['phone'] = $data->phone;
         }
 
         if (is_object($data) && property_exists($data, 'gender') && ! empty($data->gender)) {
-            $updateData['gender'] = $data->gender;
+            // Validate and normalize gender
+            $updateData['gender'] = $this->validator->validateGender($data->gender);
         }
 
         if (is_object($data) && property_exists($data, 'dateOfBirth') && ! empty($data->dateOfBirth)) {
@@ -122,6 +140,18 @@ class CustomerProfileProcessor implements ProcessorInterface
             $updateData['subscribed_to_news_letter'] = $data->subscribedToNewsLetter;
         }
 
+        if (is_object($data) && property_exists($data, 'status') && ! empty($data->status)) {
+            $updateData['status'] = $data->status;
+        }
+
+        if (is_object($data) && property_exists($data, 'isVerified') && ! empty($data->isVerified)) {
+            $updateData['is_verified'] = $data->isVerified;
+        }
+
+        if (is_object($data) && property_exists($data, 'isSuspended') && ! empty($data->isSuspended)) {
+            $updateData['is_suspended'] = $data->isSuspended;
+        }
+
         Event::dispatch('customer.update.before');
 
         if (! empty($updateData)) {
@@ -141,7 +171,12 @@ class CustomerProfileProcessor implements ProcessorInterface
 
         Event::dispatch('customer.update.after', $authenticatedCustomer);
 
-        return $this->mapCustomerToProfile($authenticatedCustomer);
+        $output = CustomerProfileHelper::mapCustomerToProfileOutput($authenticatedCustomer);
+        $output->success = true;
+        $output->message = __('bagistoapi::app.graphql.customer.profile-updated');
+
+        return $output;
+
     }
 
     /**
@@ -252,6 +287,26 @@ class CustomerProfileProcessor implements ProcessorInterface
             }
         } catch (\Exception $e) {
             throw new InvalidInputException(__('bagistoapi::app.graphql.upload.failed'));
+        }
+    }
+
+    /**
+     * Validate phone number - only digits allowed
+     *
+     * @throws InvalidInputException
+     */
+    private function validatePhone(?string $phone): void
+    {
+        if ($phone === null || $phone === '') {
+            return;
+        }
+
+        // Phone should only contain digits - remove all non-digit characters
+        $cleanedPhone = preg_replace('/[^0-9]/', '', $phone);
+        
+        // If the cleaned phone is different from original, it means special characters were present
+        if ($cleanedPhone !== $phone) {
+            throw new InvalidInputException(__('bagistoapi::app.graphql.customer.phone-special-chars-not-allowed'));
         }
     }
 }
