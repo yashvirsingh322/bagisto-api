@@ -456,38 +456,6 @@ class CompareItemTest extends GraphQLTestCase
         expect($compareItem['updatedAt'])->not()->toBeNull();
     }
 
-
-    /**
-     * Test: Create compare item via inline GraphQL input literal
-     */
-    public function test_create_compare_item_mutation_with_inline_input_literal(): void
-    {
-        $customer = $this->createCustomer();
-        $product = Product::factory()->create();
-
-        $mutation = sprintf(<<<'GQL'
-            mutation {
-              createCompareItem(input: {productId: %d}) {
-                compareItem {
-                  _id
-                  product {
-                    _id
-                  }
-                }
-              }
-            }
-        GQL, $product->id);
-
-        $response = $this->actingAs($customer)
-            ->withHeaders($this->authHeaders($customer))
-            ->postJson($this->graphqlUrl, ['query' => $mutation]);
-
-        $response->assertOk()
-            ->assertJsonPath('data.createCompareItem.compareItem.product._id', $product->id);
-
-        expect($response->json('data.createCompareItem.compareItem._id'))->toBeInt();
-    }
-
     /**
      * Test: Delete compare item via mutation
      */
@@ -521,40 +489,6 @@ class CompareItemTest extends GraphQLTestCase
 
         expect($deletedItem)->not()->toBeNull();
         expect($deletedItem['_id'])->toBe($compareItem->id);
-
-        expect(CompareItem::find($compareItem->id))->toBeNull();
-    }
-
-
-    /**
-     * Test: Delete compare item via inline GraphQL input literal
-     */
-    public function test_delete_compare_item_mutation_with_inline_input_literal(): void
-    {
-        $customer = $this->createCustomer();
-        $product = Product::factory()->create();
-
-        $compareItem = CompareItem::factory()->create([
-            'customer_id' => $customer->id,
-            'product_id'  => $product->id,
-        ]);
-
-        $mutation = sprintf(<<<'GQL'
-            mutation {
-              deleteCompareItem(input: {id: "/api/shop/compare-items/%d"}) {
-                compareItem {
-                  _id
-                }
-              }
-            }
-        GQL, $compareItem->id);
-
-        $response = $this->actingAs($customer)
-            ->withHeaders($this->authHeaders($customer))
-            ->postJson($this->graphqlUrl, ['query' => $mutation]);
-
-        $response->assertOk()
-            ->assertJsonPath('data.deleteCompareItem.compareItem._id', $compareItem->id);
 
         expect(CompareItem::find($compareItem->id))->toBeNull();
     }

@@ -13,7 +13,6 @@ use Webkul\BagistoApi\Models\Wishlist;
 use Webkul\BagistoApi\Models\Product;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Event;
-use Illuminate\Support\Facades\Request as RequestFacade;
 use Illuminate\Http\Request;
 
 /**
@@ -34,15 +33,11 @@ class WishlistProcessor implements ProcessorInterface
         $operationName = $operation->getName();
 
         
-        if (in_array($operationName, ['toggle']) && $data instanceof CreateWishlistInput) {
-            $this->hydrateCreateInputFromContext($data, $context);
-
+        if (in_array($operationName, ['toggle'])) {
             return $this->handleToggle($data, $uriVariables, $context);
         }
 
         if ($data instanceof CreateWishlistInput) {
-            $this->hydrateCreateInputFromContext($data, $context);
-
             return $this->handleCreate($data, $context);
         }
 
@@ -55,8 +50,6 @@ class WishlistProcessor implements ProcessorInterface
         }
 
         if ($data instanceof DeleteWishlistInput) {
-            $this->hydrateDeleteInputFromContext($data, $context);
-
             return $this->handleDeleteFromInput($data, $context);
         }
 
@@ -158,87 +151,7 @@ class WishlistProcessor implements ProcessorInterface
         return $wishlistItem;
     }
 
-
-    private function hydrateCreateInputFromContext(CreateWishlistInput $input, array $context): void
-    {
-        if (! empty($input->product_id)) {
-            return;
-        }
-
-        $productId = $this->extractProductId($context['args']['input'] ?? $context['args'] ?? null);
-
-        if ($productId === null) {
-            $request = $this->request ?? RequestFacade::instance();
-
-            if ($request) {
-                $productId = $this->extractProductId($request->input('variables.input'))
-                    ?? $this->extractProductId($request->input('input'))
-                    ?? $this->extractProductId($request->input('extensions.variables.input'));
-            }
-        }
-
-        if ($productId !== null) {
-            $input->product_id = $productId;
-        }
-    }
-
-    private function hydrateDeleteInputFromContext(DeleteWishlistInput $input, array $context): void
-    {
-        if (! empty($input->id)) {
-            return;
-        }
-
-        $id = $this->extractId($context['args']['input'] ?? $context['args'] ?? null);
-
-        if ($id === null) {
-            $request = $this->request ?? RequestFacade::instance();
-
-            if ($request) {
-                $id = $this->extractId($request->input('variables.input'))
-                    ?? $this->extractId($request->input('input'))
-                    ?? $this->extractId($request->input('extensions.variables.input'));
-            }
-        }
-
-        if ($id !== null) {
-            $input->id = $id;
-        }
-    }
-
-    private function extractProductId(mixed $input): ?int
-    {
-        if (is_array($input)) {
-            $value = $input['product_id'] ?? $input['productId'] ?? null;
-
-            return is_numeric($value) ? (int) $value : null;
-        }
-
-        if (is_object($input)) {
-            $value = $input->product_id ?? $input->productId ?? null;
-
-            return is_numeric($value) ? (int) $value : null;
-        }
-
-        return null;
-    }
-
-    private function extractId(mixed $input): ?string
-    {
-        if (is_array($input)) {
-            $value = $input['id'] ?? null;
-
-            return $value !== null && $value !== '' ? (string) $value : null;
-        }
-
-        if (is_object($input)) {
-            $value = $input->id ?? null;
-
-            return $value !== null && $value !== '' ? (string) $value : null;
-        }
-
-        return null;
-    }
-
+    
     /**
      * Handle delete operation from GraphQL mutation input
      */

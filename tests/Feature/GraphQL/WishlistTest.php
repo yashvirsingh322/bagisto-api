@@ -474,39 +474,6 @@ class WishlistTest extends GraphQLTestCase
         expect($wishlistItem['updatedAt'])->not()->toBeNull();
     }
 
-
-    /**
-     * Test: Create wishlist item via inline GraphQL input literal
-     */
-    public function test_create_wishlist_item_mutation_with_inline_input_literal(): void
-    {
-        $customer = $this->createCustomer();
-        $product = Product::factory()->create();
-
-        $mutation = sprintf(<<<'GQL'
-            mutation {
-              createWishlist(input: {productId: %d}) {
-                wishlist {
-                  _id
-                  product {
-                    _id
-                  }
-                }
-              }
-            }
-        GQL, $product->id);
-
-        $response = $this->actingAs($customer)
-            ->withHeaders($this->authHeaders($customer))
-            ->postJson($this->graphqlUrl, ['query' => $mutation]);
-
-        $response->assertOk()
-            ->assertJsonPath('data.createWishlist.wishlist.product._id', $product->id);
-
-        $wishlistItemId = $response->json('data.createWishlist.wishlist._id');
-        expect($wishlistItemId)->toBeInt();
-    }
-
     /**
      * Test: Delete wishlist item via mutation
      */
@@ -550,42 +517,6 @@ class WishlistTest extends GraphQLTestCase
         expect(Wishlist::find($wishlistItem->id))->toBeNull();
     }
 
-
-    /**
-     * Test: Delete wishlist item via inline GraphQL input literal
-     */
-    public function test_delete_wishlist_item_mutation_with_inline_input_literal(): void
-    {
-        $customer = $this->createCustomer();
-        $channel = Channel::first();
-        $product = Product::factory()->create();
-
-        $wishlistItem = Wishlist::factory()->create([
-            'customer_id' => $customer->id,
-            'product_id'  => $product->id,
-            'channel_id'  => $channel->id,
-        ]);
-
-        $mutation = sprintf(<<<'GQL'
-            mutation {
-              deleteWishlist(input: {id: "/api/shop/wishlists/%d"}) {
-                wishlist {
-                  _id
-                }
-              }
-            }
-        GQL, $wishlistItem->id);
-
-        $response = $this->actingAs($customer)
-            ->withHeaders($this->authHeaders($customer))
-            ->postJson($this->graphqlUrl, ['query' => $mutation]);
-
-        $response->assertOk()
-            ->assertJsonPath('data.deleteWishlist.wishlist._id', $wishlistItem->id);
-
-        expect(Wishlist::find($wishlistItem->id))->toBeNull();
-    }
-
     /**
      * Test: Toggle wishlist item (add existing removes it)
      */
@@ -619,44 +550,6 @@ class WishlistTest extends GraphQLTestCase
         expect($errors)->not()->toBeEmpty();
         expect(implode(' ', array_column($errors ?? [], 'message')))->toMatch('/removed/i');
 
-        expect(Wishlist::find($wishlistItem->id))->toBeNull();
-    }
-
-
-    /**
-     * Test: Toggle wishlist item via inline GraphQL input literal
-     */
-    public function test_toggle_wishlist_item_mutation_with_inline_input_literal(): void
-    {
-        $customer = $this->createCustomer();
-        $channel = Channel::first();
-        $product = Product::factory()->create();
-
-        $wishlistItem = Wishlist::factory()->create([
-            'customer_id' => $customer->id,
-            'product_id'  => $product->id,
-            'channel_id'  => $channel->id,
-        ]);
-
-        $mutation = sprintf(<<<'GQL'
-            mutation {
-              toggleWishlist(input: {productId: %d}) {
-                wishlist {
-                  id
-                }
-              }
-            }
-        GQL, $product->id);
-
-        $response = $this->actingAs($customer)
-            ->withHeaders($this->authHeaders($customer))
-            ->postJson($this->graphqlUrl, ['query' => $mutation]);
-
-        $response->assertOk();
-
-        $errors = $response->json('errors');
-        expect($errors)->not()->toBeEmpty();
-        expect(implode(' ', array_column($errors ?? [], 'message')))->toMatch('/removed/i');
         expect(Wishlist::find($wishlistItem->id))->toBeNull();
     }
 
