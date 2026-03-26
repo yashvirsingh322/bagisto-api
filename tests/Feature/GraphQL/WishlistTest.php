@@ -1454,4 +1454,129 @@ class WishlistTest extends GraphQLTestCase
         expect($data)->not()->toBeNull();
         expect($data['deletedCount'])->toBe(0);
     }
+
+    /**
+     * Test: Create wishlist requires authentication
+     */
+    public function test_create_wishlist_requires_authentication(): void
+    {
+        $this->seedRequiredData();
+        $product = Product::factory()->create();
+
+        $mutation = <<<'GQL'
+            mutation CreateWishlist($input: createWishlistInput!) {
+              createWishlist(input: $input) {
+                wishlist {
+                  id
+                }
+              }
+            }
+        GQL;
+
+        $response = $this->graphQL($mutation, ['input' => ['productId' => $product->id]]);
+
+        $response->assertOk();
+        expect($response->json('errors'))->not()->toBeNull();
+    }
+
+    /**
+     * Test: Create wishlist with non-existent product returns error
+     */
+    public function test_create_wishlist_with_nonexistent_product_returns_error(): void
+    {
+        $this->seedRequiredData();
+        $customer = $this->createCustomer();
+
+        $mutation = <<<'GQL'
+            mutation CreateWishlist($input: createWishlistInput!) {
+              createWishlist(input: $input) {
+                wishlist {
+                  id
+                }
+              }
+            }
+        GQL;
+
+        $response = $this->authenticatedGraphQL($customer, $mutation, ['input' => ['productId' => 999999]]);
+
+        $response->assertOk();
+        expect($response->json('errors'))->not()->toBeNull();
+        expect(implode(' ', array_column($response->json('errors') ?? [], 'message')))
+            ->toMatch('/not found|not exist/i');
+    }
+
+    /**
+     * Test: Delete wishlist item requires authentication
+     */
+    public function test_delete_wishlist_requires_authentication(): void
+    {
+        $this->seedRequiredData();
+
+        $mutation = <<<'GQL'
+            mutation DeleteWishlist($input: deleteWishlistInput!) {
+              deleteWishlist(input: $input) {
+                wishlist {
+                  id
+                }
+              }
+            }
+        GQL;
+
+        $response = $this->graphQL($mutation, ['input' => ['id' => '/api/shop/wishlists/1']]);
+
+        $response->assertOk();
+        expect($response->json('errors'))->not()->toBeNull();
+    }
+
+    /**
+     * Test: Delete non-existent wishlist item returns error
+     */
+    public function test_delete_nonexistent_wishlist_item_returns_error(): void
+    {
+        $this->seedRequiredData();
+        $customer = $this->createCustomer();
+
+        $mutation = <<<'GQL'
+            mutation DeleteWishlist($input: deleteWishlistInput!) {
+              deleteWishlist(input: $input) {
+                wishlist {
+                  id
+                }
+              }
+            }
+        GQL;
+
+        $response = $this->authenticatedGraphQL($customer, $mutation, [
+            'input' => ['id' => '/api/shop/wishlists/999999'],
+        ]);
+
+        $response->assertOk();
+        expect($response->json('errors'))->not()->toBeNull();
+        expect(implode(' ', array_column($response->json('errors') ?? [], 'message')))
+            ->toMatch('/not found|not exist/i');
+    }
+
+    /**
+     * Test: Toggle wishlist requires authentication
+     */
+    public function test_toggle_wishlist_requires_authentication(): void
+    {
+        $this->seedRequiredData();
+        $product = Product::factory()->create();
+
+        $mutation = <<<'GQL'
+            mutation ToggleWishlist($input: toggleWishlistInput!) {
+              toggleWishlist(input: $input) {
+                wishlist {
+                  id
+                }
+              }
+            }
+        GQL;
+
+        $response = $this->graphQL($mutation, ['input' => ['productId' => $product->id]]);
+
+        $response->assertOk();
+        expect($response->json('errors'))->not()->toBeNull();
+    }
 }

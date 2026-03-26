@@ -390,6 +390,214 @@ class CustomerCartTest extends GraphQLTestCase
     }
 
     /**
+     * Update Cart Item - full fields (matches spec)
+     */
+    public function test_update_cart_item_full_fields(): void
+    {
+        $token = $this->loginCustomerAndGetToken();
+        $headers = $this->customerHeaders($token);
+
+        $productData = $this->createTestProduct();
+        $product = $productData['product'];
+
+        $addMutation = <<<'GQL'
+            mutation createAddProductInCart($productId: Int!, $quantity: Int!) {
+              createAddProductInCart(input: {productId: $productId, quantity: $quantity}) {
+                addProductInCart {
+                  items {
+                    edges {
+                      node {
+                        id
+                        productId
+                        quantity
+                      }
+                    }
+                  }
+                }
+              }
+            }
+        GQL;
+
+        $addResponse = $this->graphQL($addMutation, [
+            'productId' => $product->id,
+            'quantity'  => 2,
+        ], $headers);
+
+        $addResponse->assertSuccessful();
+        $cartItemId = $addResponse->json('data.createAddProductInCart.addProductInCart.items.edges.0.node.id');
+        $this->assertNotNull($cartItemId, 'cart item id is missing for update test');
+
+        $updateMutation = <<<'GQL'
+            mutation createUpdateCartItem($cartItemId: Int!, $quantity: Int!) {
+              createUpdateCartItem(input: {cartItemId: $cartItemId, quantity: $quantity}) {
+                updateCartItem {
+                  id
+                  _id
+                  cartToken
+                  customerId
+                  channelId
+                  subtotal
+                  baseSubtotal
+                  discountAmount
+                  baseDiscountAmount
+                  taxAmount
+                  baseTaxAmount
+                  shippingAmount
+                  baseShippingAmount
+                  grandTotal
+                  baseGrandTotal
+                  formattedSubtotal
+                  formattedDiscountAmount
+                  formattedTaxAmount
+                  formattedShippingAmount
+                  formattedGrandTotal
+                  couponCode
+                  items {
+                    totalCount
+                    pageInfo {
+                      startCursor
+                      endCursor
+                      hasNextPage
+                      hasPreviousPage
+                    }
+                    edges {
+                      cursor
+                      node {
+                        id
+                        cartId
+                        productId
+                        name
+                        sku
+                        quantity
+                        price
+                        basePrice
+                        total
+                        baseTotal
+                        discountAmount
+                        baseDiscountAmount
+                        taxAmount
+                        baseTaxAmount
+                        type
+                        formattedPrice
+                        formattedTotal
+                        priceInclTax
+                        basePriceInclTax
+                        formattedPriceInclTax
+                        totalInclTax
+                        baseTotalInclTax
+                        formattedTotalInclTax
+                        productUrlKey
+                        canChangeQty
+                      }
+                    }
+                  }
+                  success
+                  message
+                  sessionToken
+                  isGuest
+                  itemsQty
+                  itemsCount
+                  haveStockableItems
+                  paymentMethod
+                  paymentMethodTitle
+                  subTotalInclTax
+                  baseSubTotalInclTax
+                  formattedSubTotalInclTax
+                  taxTotal
+                  formattedTaxTotal
+                  shippingAmountInclTax
+                  baseShippingAmountInclTax
+                  formattedShippingAmountInclTax
+                }
+              }
+            }
+        GQL;
+
+        $updateResponse = $this->graphQL($updateMutation, [
+            'cartItemId' => (int) $cartItemId,
+            'quantity'   => 1,
+        ], $headers);
+
+        $updateResponse->assertSuccessful();
+
+        $data = $updateResponse->json('data.createUpdateCartItem.updateCartItem');
+
+        $this->assertNotNull($data);
+        $this->assertNotNull($data['customerId'] ?? null);
+        $this->assertGreaterThan(0, (int) ($data['itemsCount'] ?? 0));
+        $this->assertTrue((bool) ($data['success'] ?? false));
+
+        $node = $data['items']['edges'][0]['node'] ?? null;
+        $this->assertNotNull($node);
+        $this->assertSame($product->id, $node['productId'] ?? null);
+        $this->assertSame(1, $node['quantity'] ?? null);
+        $this->assertArrayHasKey('sku', $node);
+        $this->assertArrayHasKey('price', $node);
+        $this->assertArrayHasKey('formattedPrice', $node);
+        $this->assertArrayHasKey('canChangeQty', $node);
+
+        $pageInfo = $data['items']['pageInfo'] ?? null;
+        $this->assertNotNull($pageInfo);
+        $this->assertArrayHasKey('startCursor', $pageInfo);
+        $this->assertArrayHasKey('endCursor', $pageInfo);
+        $this->assertArrayHasKey('hasNextPage', $pageInfo);
+        $this->assertArrayHasKey('hasPreviousPage', $pageInfo);
+    }
+
+    /**
+     * Remove Cart Item - full fields (matches spec)
+     */
+    public function test_remove_cart_item_full_fields(): void
+    {
+        $token = $this->loginCustomerAndGetToken();
+        $cart = $this->createCustomerCartWithItem($token, 2);
+
+        $mutation = <<<'GQL'
+            mutation removeItem($cartItemId: Int!) {
+              createRemoveCartItem(input: {cartItemId: $cartItemId}) {
+                removeCartItem {
+                  id
+                  _id
+                  cartToken
+                  items {
+                    totalCount
+                    edges {
+                      node {
+                        id
+                        cartId
+                        productId
+                        name
+                        sku
+                        quantity
+                        price
+                        basePrice
+                        total
+                        baseTotal
+                        productUrlKey
+                        canChangeQty
+                      }
+                    }
+                  }
+                }
+              }
+            }
+        GQL;
+
+        $response = $this->graphQL($mutation, [
+            'cartItemId' => $cart['cartItemId'],
+        ], $this->customerHeaders($token));
+
+        $response->assertSuccessful();
+
+        $data = $response->json('data.createRemoveCartItem.removeCartItem');
+        $this->assertNotNull($data);
+        $this->assertArrayHasKey('_id', $data);
+        $this->assertArrayHasKey('cartToken', $data);
+        $this->assertArrayHasKey('items', $data);
+        $this->assertArrayHasKey('totalCount', $data['items']);
+    }
+
+    /**
      * Apply Coupon (Customer)
      */
     public function test_apply_coupon_as_customer(): void
@@ -462,5 +670,83 @@ class CustomerCartTest extends GraphQLTestCase
         $data = $response->json('data.createRemoveCoupon.removeCoupon');
         $this->assertNotNull($data);
         $this->assertArrayHasKey('couponCode', $data);
+    }
+
+    /**
+     * Update cart item with zero quantity returns a validation error.
+     */
+    public function test_update_cart_item_with_zero_quantity_returns_error(): void
+    {
+        $token = $this->loginCustomerAndGetToken();
+        $cart = $this->createCustomerCartWithItem($token, 2);
+
+        $mutation = <<<'GQL'
+            mutation createUpdateCartItem($cartItemId: Int!, $quantity: Int!) {
+              createUpdateCartItem(input: {cartItemId: $cartItemId, quantity: $quantity}) {
+                updateCartItem {
+                  id
+                }
+              }
+            }
+        GQL;
+
+        $response = $this->graphQL($mutation, [
+            'cartItemId' => $cart['cartItemId'],
+            'quantity'   => 0,
+        ], $this->customerHeaders($token));
+
+        $response->assertSuccessful();
+        $this->assertNotEmpty($response->json('errors'));
+    }
+
+    /**
+     * Update a non-existent cart item returns an error.
+     */
+    public function test_update_nonexistent_cart_item_returns_error(): void
+    {
+        $token = $this->loginCustomerAndGetToken();
+
+        $mutation = <<<'GQL'
+            mutation createUpdateCartItem($cartItemId: Int!, $quantity: Int!) {
+              createUpdateCartItem(input: {cartItemId: $cartItemId, quantity: $quantity}) {
+                updateCartItem {
+                  id
+                }
+              }
+            }
+        GQL;
+
+        $response = $this->graphQL($mutation, [
+            'cartItemId' => 999999,
+            'quantity'   => 1,
+        ], $this->customerHeaders($token));
+
+        $response->assertSuccessful();
+        $this->assertNotEmpty($response->json('errors'));
+    }
+
+    /**
+     * Remove a non-existent cart item returns an error.
+     */
+    public function test_remove_nonexistent_cart_item_returns_error(): void
+    {
+        $token = $this->loginCustomerAndGetToken();
+
+        $mutation = <<<'GQL'
+            mutation createRemoveCartItem($cartItemId: Int!) {
+              createRemoveCartItem(input: {cartItemId: $cartItemId}) {
+                removeCartItem {
+                  id
+                }
+              }
+            }
+        GQL;
+
+        $response = $this->graphQL($mutation, [
+            'cartItemId' => 999999,
+        ], $this->customerHeaders($token));
+
+        $response->assertSuccessful();
+        $this->assertNotEmpty($response->json('errors'));
     }
 }

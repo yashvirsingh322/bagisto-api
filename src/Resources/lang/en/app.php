@@ -39,6 +39,7 @@ return [
             'estimate-shipping-failed'          => 'Failed to estimate shipping',
 
             'product-added-successfully'         => 'Product added to cart successfully',
+            'cart-item-updated-successfully'     => 'Cart item updated successfully',
             'guest-cart-merged'                  => 'Guest cart merged successfully',
             'using-authenticated-cart'           => 'Using authenticated customer cart',
             'cart-item-not-found'                => 'Cart item not found',

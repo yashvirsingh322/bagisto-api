@@ -350,7 +350,7 @@ class CartTokenProcessor implements ProcessorInterface
         }
 
         if (! $product->status) {
-            throw new \Exception(__('shop::app.checkout.cart.inactive-add'));
+            throw new InvalidInputException(__('shop::app.checkout.cart.inactive-add'));
         }
 
         $groupedQty = $this->normalizeJsonFieldToArray($data->groupedQty, 'groupedQty')
@@ -831,7 +831,11 @@ class CartTokenProcessor implements ProcessorInterface
             throw new ResourceNotFoundException(__('bagistoapi::app.graphql.cart.cart-not-found'));
         }
 
-        return (array) CartData::fromModel($cart);
+        $cartData = CartData::fromModel($cart);
+        $cartData->success = true;
+        $cartData->message = __('bagistoapi::app.graphql.cart.cart-item-updated-successfully');
+
+        return (array) $cartData;
     }
 
     /**

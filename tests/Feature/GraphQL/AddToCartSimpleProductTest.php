@@ -383,4 +383,104 @@ class AddToCartSimpleProductTest extends GraphQLTestCase
             $this->assertFalse((bool) ($data['success'] ?? true));
         }
     }
+
+    /**
+     * Adding a disabled product returns a proper error message (not 500).
+     */
+    public function test_add_disabled_product_to_cart_returns_error(): void
+    {
+        $this->seedRequiredData();
+
+        $token = $this->getGuestCartToken();
+
+        // Create a product and mark it as disabled via the attribute system
+        $product = Product::factory()->create();
+        $this->upsertProductAttributeValue($product->id, 'status', 0, null, 'default');
+
+        $mutation = <<<'GQL'
+            mutation createAddProductInCart($productId: Int!, $quantity: Int!) {
+              createAddProductInCart(input: {productId: $productId, quantity: $quantity}) {
+                addProductInCart {
+                  success
+                  message
+                }
+              }
+            }
+        GQL;
+
+        $response = $this->graphQL($mutation, [
+            'productId' => $product->id,
+            'quantity'  => 1,
+        ], $this->guestHeaders($token));
+
+        // Must be a 200 with a GraphQL error — not a 500
+        $response->assertSuccessful();
+
+        $errors = $response->json('errors');
+        $this->assertNotEmpty($errors, 'Expected a GraphQL error for disabled product, got none');
+
+        // Error message should be meaningful, not an unhandled exception trace
+        $message = $errors[0]['message'] ?? '';
+        $this->assertNotEmpty($message);
+        $this->assertStringNotContainsStringIgnoringCase('internal server error', $message);
+    }
+
+    /**
+     * Zero quantity returns a validation error.
+     */
+    public function test_add_product_with_zero_quantity_returns_error(): void
+    {
+        $token = $this->getGuestCartToken();
+
+        $productData = $this->createTestProduct();
+        $product = $productData['product'];
+
+        $mutation = <<<'GQL'
+            mutation createAddProductInCart($productId: Int!, $quantity: Int!) {
+              createAddProductInCart(input: {productId: $productId, quantity: $quantity}) {
+                addProductInCart {
+                  success
+                  message
+                }
+              }
+            }
+        GQL;
+
+        $response = $this->graphQL($mutation, [
+            'productId' => $product->id,
+            'quantity'  => 0,
+        ], $this->guestHeaders($token));
+
+        $response->assertSuccessful();
+        $this->assertNotEmpty($response->json('errors'));
+    }
+
+    /**
+     * Add to cart without Authorization header returns an error.
+     */
+    public function test_add_product_without_cart_token_returns_error(): void
+    {
+        $productData = $this->createTestProduct();
+        $product = $productData['product'];
+
+        $mutation = <<<'GQL'
+            mutation createAddProductInCart($productId: Int!, $quantity: Int!) {
+              createAddProductInCart(input: {productId: $productId, quantity: $quantity}) {
+                addProductInCart {
+                  success
+                  message
+                }
+              }
+            }
+        GQL;
+
+        // No Authorization header at all
+        $response = $this->graphQL($mutation, [
+            'productId' => $product->id,
+            'quantity'  => 1,
+        ]);
+
+        $response->assertSuccessful();
+        $this->assertNotEmpty($response->json('errors'));
+    }
 }
