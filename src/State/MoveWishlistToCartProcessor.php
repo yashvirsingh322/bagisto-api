@@ -32,9 +32,14 @@ class MoveWishlistToCartProcessor implements ProcessorInterface
     {
         if ($data instanceof MoveWishlistToCartInput) {
             /**
-             * REST fallback: the serializer's name converter may not populate camelCase DTO
-             * properties from snake_case JSON keys. Populate from request if needed.
+             * The serializer's name converter may not populate camelCase DTO properties.
+             * For GraphQL, read from $context['args']['input'] first (same pattern as WishlistProcessor).
+             * For REST, fall back to raw request input.
              */
+            if ($data->wishlistItemId === null) {
+                $this->hydrateInputFromContext($data, $context);
+            }
+
             if ($data->wishlistItemId === null) {
                 $data->wishlistItemId = (int) (request()->input('wishlist_item_id') ?? request()->input('wishlistItemId'));
                 $data->quantity = (int) (request()->input('quantity') ?? 1);
@@ -44,6 +49,43 @@ class MoveWishlistToCartProcessor implements ProcessorInterface
         }
 
         return $this->persistProcessor->process($data, $operation, $uriVariables, $context);
+    }
+
+    /**
+     * Hydrate MoveWishlistToCartInput from GraphQL context args.
+     * Mirrors the pattern used in WishlistProcessor::hydrateCreateInputFromContext().
+     */
+    private function hydrateInputFromContext(MoveWishlistToCartInput $data, array $context): void
+    {
+        $args = $context['args']['input'] ?? $context['args'] ?? null;
+
+        if (is_array($args)) {
+            $id = $args['wishlistItemId'] ?? $args['wishlist_item_id'] ?? null;
+            if (is_numeric($id)) {
+                $data->wishlistItemId = (int) $id;
+            }
+
+            $qty = $args['quantity'] ?? null;
+            if (is_numeric($qty)) {
+                $data->quantity = (int) $qty;
+            }
+
+            return;
+        }
+
+        // Fallback: read from nested GraphQL variables in raw request
+        $input = request()->input('variables.input');
+        if (is_array($input)) {
+            $id = $input['wishlistItemId'] ?? $input['wishlist_item_id'] ?? null;
+            if (is_numeric($id)) {
+                $data->wishlistItemId = (int) $id;
+            }
+
+            $qty = $input['quantity'] ?? null;
+            if (is_numeric($qty)) {
+                $data->quantity = (int) $qty;
+            }
+        }
     }
 
     /**
