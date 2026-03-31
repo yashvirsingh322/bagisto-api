@@ -149,6 +149,7 @@ jobs:
       # Install Playwright
       # -------------------------------
       - name: Install Playwright
+        working-directory: bagisto/packages/Webkul/BagistoApi/tests/e2e-pw
         run: |
           npm install
           npx playwright install --with-deps chromium
