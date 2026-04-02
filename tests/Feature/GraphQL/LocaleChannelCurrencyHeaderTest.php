@@ -395,10 +395,10 @@ class LocaleChannelCurrencyHeaderTest extends GraphQLTestCase
         $dataTarget = $responseTarget->json('data.product');
         $this->assertNotNull($dataTarget, "Product should be returned for {$targetCurrencyCode} currency");
 
-        // Raw numeric prices stay in base currency regardless of X-Currency header
-        $this->assertEqualsWithDelta($basePrice, (float) $dataTarget['price'], 0.01, 'Raw price stays in base currency');
-        $this->assertEqualsWithDelta($basePrice, (float) $dataTarget['minimumPrice'], 0.01, 'Raw minimumPrice stays in base currency');
-        $this->assertEqualsWithDelta($basePrice, (float) $dataTarget['maximumPrice'], 0.01, 'Raw maximumPrice stays in base currency');
+        // Raw numeric prices are converted to the requested currency
+        $this->assertEqualsWithDelta($expectedConverted, (float) $dataTarget['price'], 0.01, 'Raw price should be converted to target currency');
+        $this->assertEqualsWithDelta($expectedConverted, (float) $dataTarget['minimumPrice'], 0.01, 'Raw minimumPrice should be converted to target currency');
+        $this->assertEqualsWithDelta($expectedConverted, (float) $dataTarget['maximumPrice'], 0.01, 'Raw maximumPrice should be converted to target currency');
 
         // Formatted prices should be converted using the exchange rate and use the target currency symbol
         $formattedPrice = $dataTarget['formattedPrice'] ?? '';

@@ -4,7 +4,7 @@ namespace Webkul\BagistoApi\Tests\Feature\GraphQL;
 
 use Webkul\BagistoApi\Tests\GraphQLTestCase;
 use Webkul\Customer\Models\Wishlist;
-use Webkul\Product\Models\Product;
+use Webkul\BagistoApi\Models\Product;
 use Webkul\Core\Models\Channel;
 
 class WishlistTest extends GraphQLTestCase
@@ -18,8 +18,8 @@ class WishlistTest extends GraphQLTestCase
 
         $customer = $this->createCustomer();
         $channel = Channel::first();
-        $product1 = Product::factory()->create();
-        $product2 = Product::factory()->create();
+        $product1 = $this->createBaseProduct('simple');
+        $product2 = $this->createBaseProduct('simple');
 
         $wishlistItem1 = Wishlist::factory()->create([
             'customer_id' => $customer->id,
@@ -602,7 +602,7 @@ class WishlistTest extends GraphQLTestCase
     public function test_create_wishlist_item_mutation(): void
     {
         $customer = $this->createCustomer();
-        $product = Product::factory()->create();
+        $product = $this->createBaseProduct('simple');
 
         $mutation = <<<'GQL'
             mutation CreateWishlist($productId: Int!) {
@@ -654,7 +654,7 @@ class WishlistTest extends GraphQLTestCase
     public function test_create_wishlist_item_mutation_with_input_variable(): void
     {
         $customer = $this->createCustomer();
-        $product = Product::factory()->create();
+        $product = $this->createBaseProduct('simple');
 
         $mutation = <<<'GQL'
             mutation CreateWishlist($input: createWishlistInput!) {
@@ -697,7 +697,7 @@ class WishlistTest extends GraphQLTestCase
     public function test_create_wishlist_item_mutation_with_inline_input_literal(): void
     {
         $customer = $this->createCustomer();
-        $product = Product::factory()->create();
+        $product = $this->createBaseProduct('simple');
 
         $mutation = sprintf(<<<'GQL'
             mutation {
@@ -730,7 +730,7 @@ class WishlistTest extends GraphQLTestCase
     {
         $customer = $this->createCustomer();
         $channel = Channel::first();
-        $product = Product::factory()->create();
+        $product = $this->createBaseProduct('simple');
 
         $wishlistItem = Wishlist::factory()->create([
             'customer_id' => $customer->id,
@@ -774,7 +774,7 @@ class WishlistTest extends GraphQLTestCase
     {
         $customer = $this->createCustomer();
         $channel = Channel::first();
-        $product = Product::factory()->create();
+        $product = $this->createBaseProduct('simple');
 
         $wishlistItem = Wishlist::factory()->create([
             'customer_id' => $customer->id,
@@ -809,7 +809,7 @@ class WishlistTest extends GraphQLTestCase
     {
         $customer = $this->createCustomer();
         $channel = Channel::first();
-        $product = Product::factory()->create();
+        $product = $this->createBaseProduct('simple');
 
         $wishlistItem = Wishlist::factory()->create([
             'customer_id' => $customer->id,
@@ -846,7 +846,7 @@ class WishlistTest extends GraphQLTestCase
     {
         $customer = $this->createCustomer();
         $channel = Channel::first();
-        $product = Product::factory()->create();
+        $product = $this->createBaseProduct('simple');
 
         $wishlistItem = Wishlist::factory()->create([
             'customer_id' => $customer->id,
@@ -882,7 +882,7 @@ class WishlistTest extends GraphQLTestCase
     public function test_toggle_wishlist_add_item_with_input_variable(): void
     {
         $customer = $this->createCustomer();
-        $product = Product::factory()->create();
+        $product = $this->createBaseProduct('simple');
 
         $mutation = <<<'GQL'
             mutation ToggleWishlist($input: toggleWishlistInput!) {
@@ -927,7 +927,7 @@ class WishlistTest extends GraphQLTestCase
     {
         $customer = $this->createCustomer();
         $channel = Channel::first();
-        $product = Product::factory()->create();
+        $product = $this->createBaseProduct('simple');
 
         Wishlist::factory()->create([
             'customer_id' => $customer->id,
@@ -973,7 +973,7 @@ class WishlistTest extends GraphQLTestCase
     {
         $customer = $this->createCustomer();
         $channel = Channel::first();
-        $product = Product::factory()->create();
+        $product = $this->createBaseProduct('simple');
 
         $wishlistItem = Wishlist::factory()->create([
             'customer_id' => $customer->id,
@@ -1016,7 +1016,7 @@ class WishlistTest extends GraphQLTestCase
         $customer1 = $this->createCustomer();
         $customer2 = $this->createCustomer();
         $channel = Channel::first();
-        $product = Product::factory()->create();
+        $product = $this->createBaseProduct('simple');
 
         $wishlistItem = Wishlist::factory()->create([
             'customer_id' => $customer1->id,
@@ -1299,7 +1299,7 @@ class WishlistTest extends GraphQLTestCase
     {
         $customer = $this->createCustomer();
         $channel = Channel::first();
-        $product = Product::factory()->create();
+        $product = $this->createBaseProduct('simple');
 
         $wishlistItem = Wishlist::factory()->create([
             'customer_id' => $customer->id,
@@ -1340,7 +1340,7 @@ class WishlistTest extends GraphQLTestCase
         $customer1 = $this->createCustomer();
         $customer2 = $this->createCustomer();
         $channel = Channel::first();
-        $product = Product::factory()->create();
+        $product = $this->createBaseProduct('simple');
 
         $wishlistItem = Wishlist::factory()->create([
             'customer_id' => $customer1->id,
@@ -1461,7 +1461,7 @@ class WishlistTest extends GraphQLTestCase
     public function test_create_wishlist_requires_authentication(): void
     {
         $this->seedRequiredData();
-        $product = Product::factory()->create();
+        $product = $this->createBaseProduct('simple');
 
         $mutation = <<<'GQL'
             mutation CreateWishlist($input: createWishlistInput!) {
@@ -1562,7 +1562,7 @@ class WishlistTest extends GraphQLTestCase
     public function test_toggle_wishlist_requires_authentication(): void
     {
         $this->seedRequiredData();
-        $product = Product::factory()->create();
+        $product = $this->createBaseProduct('simple');
 
         $mutation = <<<'GQL'
             mutation ToggleWishlist($input: toggleWishlistInput!) {
