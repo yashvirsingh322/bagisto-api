@@ -81,6 +81,10 @@ class WishlistProcessor implements ProcessorInterface
             throw new ResourceNotFoundException(__('bagistoapi::app.graphql.wishlist.product-not-found'));
         }
 
+        if (! $product->status) {
+            throw new InvalidInputException(__('bagistoapi::app.graphql.wishlist.product-disabled'));
+        }
+
         $user = Auth::guard('sanctum')->user();
 
         if (! $user) {
@@ -121,6 +125,10 @@ class WishlistProcessor implements ProcessorInterface
         $product = Product::find($input->product_id);
         if (! $product) {
             throw new ResourceNotFoundException(__('bagistoapi::app.graphql.wishlist.product-not-found'));
+        }
+
+        if (! $product->status) {
+            throw new InvalidInputException(__('bagistoapi::app.graphql.wishlist.product-disabled'));
         }
 
         $user = Auth::guard('sanctum')->user();
