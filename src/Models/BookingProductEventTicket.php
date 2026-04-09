@@ -11,6 +11,7 @@ use Webkul\BookingProduct\Models\BookingProductEventTicket as BaseModel;
 #[ApiResource(routePrefix: '/api/shop', operations: [], graphQlOperations: [])]
 class BookingProductEventTicket extends BaseModel
 {
+    protected $appends = ['formatted_price', 'formatted_special_price'];
     /**
      * Get the translations for the event ticket using BagistoApi model
      */

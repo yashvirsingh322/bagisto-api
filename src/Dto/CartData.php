@@ -308,9 +308,7 @@ class CartData
             $data->appliedTaxes = [];
         }
 
-        $data->haveStockableItems = $cart->items()->whereHas('product', function ($q) {
-            $q->where('type', 'simple');
-        })->count() > 0;
+        $data->haveStockableItems = $cart->haveStockableItems();
 
         if ($cart->selected_shipping_rate) {
             $data->selectedShippingRate = $cart->selected_shipping_rate->method ?? null;

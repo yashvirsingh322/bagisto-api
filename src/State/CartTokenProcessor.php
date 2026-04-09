@@ -903,6 +903,15 @@ class CartTokenProcessor implements ProcessorInterface
             throw new AuthorizationException(__('bagistoapi::app.graphql.cart.unauthorized-access'));
         }
 
+        CartFacade::setCart($cart);
+
+        if ($cart->shipping_method && $cart->shipping_address) {
+            \Webkul\Shipping\Facades\Shipping::collectRates();
+        }
+
+        CartFacade::collectTotals();
+
+        $cart = CartFacade::getCart();
         $cart->load('items.product');
 
         $cartData = CartData::fromModel($cart);
@@ -959,6 +968,8 @@ class CartTokenProcessor implements ProcessorInterface
             ]);
         }
 
+        $guestCart->load('items.child');
+
         foreach ($guestCart->items as $item) {
             try {
                 $cartItem = $customerCart->items()
@@ -971,9 +982,19 @@ class CartTokenProcessor implements ProcessorInterface
                         'quantity' => $cartItem->quantity + $item->quantity,
                     ]);
                 } else {
-                    $item->replicate()
-                        ->fill(['cart_id' => $customerCart->id])
-                        ->save();
+                    $newItem = $item->replicate()
+                        ->fill(['cart_id' => $customerCart->id]);
+                    $newItem->save();
+
+                    // Replicate child item for configurable products
+                    if ($item->type === 'configurable' && $item->child) {
+                        $item->child->replicate()
+                            ->fill([
+                                'cart_id'   => $customerCart->id,
+                                'parent_id' => $newItem->id,
+                            ])
+                            ->save();
+                    }
                 }
             } catch (\Exception $e) {
                 continue;
@@ -981,6 +1002,20 @@ class CartTokenProcessor implements ProcessorInterface
         }
 
         $guestCart->update(['is_active' => 0]);
+
+        // Reload cart with relationships and remove invalid items
+        // (e.g., configurable items without child entries or deleted products)
+        $customerCart = CartModel::with('items.product', 'items.child.product')->find($customerCart->id);
+
+        foreach ($customerCart->items as $item) {
+            if (! $item->product
+                || ($item->type === 'configurable' && ! $item->child)
+            ) {
+                $item->delete();
+            }
+        }
+
+        $customerCart = CartModel::with('items.product')->find($customerCart->id);
 
         CartFacade::setCart($customerCart);
 

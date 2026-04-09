@@ -222,28 +222,21 @@ class CustomerProfileProcessor implements ProcessorInterface
     private function getCustomerFromToken(string $token): ?Customer
     {
         try {
-            $tokenParts = explode('|', $token);
-
-            if (count($tokenParts) !== 2) {
+            if (strpos($token, '|') === false) {
                 return null;
             }
 
-            $tokenId = $tokenParts[0];
-
-            $personalAccessToken = DB::table('personal_access_tokens')
-                ->where('id', $tokenId)
-                ->where('tokenable_type', Customer::class)
-                ->where(function ($query) {
-                    $query->whereNull('expires_at')
-                        ->orWhere('expires_at', '>', now());
-                })
-                ->first();
+            $personalAccessToken = \Laravel\Sanctum\PersonalAccessToken::findToken($token);
 
             if (! $personalAccessToken) {
                 return null;
             }
 
-            return Customer::find($personalAccessToken->tokenable_id);
+            if (! $personalAccessToken->tokenable instanceof Customer) {
+                return null;
+            }
+
+            return $personalAccessToken->tokenable;
         } catch (\Exception $e) {
             return null;
         }

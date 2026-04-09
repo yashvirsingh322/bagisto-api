@@ -338,7 +338,8 @@ class ProductBookingQueryTest extends GraphQLTestCase
     // ─── Event ──────────────────────────────────────────────────────────
 
     /**
-     * Test querying event booking product with full ticket details.
+     * Test querying event booking product with full ticket details,
+     * including translations, formatted prices, and special prices.
      */
     public function test_get_event_booking_product(): void
     {
@@ -357,6 +358,9 @@ class ProductBookingQueryTest extends GraphQLTestCase
                     node {
                       _id
                       type
+                      availableFrom
+                      availableTo
+                      location
                       eventTickets {
                         edges {
                           node {
@@ -368,6 +372,22 @@ class ProductBookingQueryTest extends GraphQLTestCase
                             specialPrice
                             specialPriceFrom
                             specialPriceTo
+                            formattedPrice
+                            formattedSpecialPrice
+                            translation {
+                              locale
+                              name
+                              description
+                            }
+                            translations {
+                              edges {
+                                node {
+                                  locale
+                                  name
+                                  description
+                                }
+                              }
+                            }
                           }
                         }
                       }
@@ -392,6 +412,10 @@ class ProductBookingQueryTest extends GraphQLTestCase
 
         $node = $this->extractBookingNode($data, 'event');
 
+        // Availability fields
+        $this->assertNotNull($node['availableFrom']);
+        $this->assertNotNull($node['availableTo']);
+
         // Event tickets assertions
         $this->assertArrayHasKey('eventTickets', $node);
         $ticketEdges = $node['eventTickets']['edges'] ?? [];
@@ -410,6 +434,118 @@ class ProductBookingQueryTest extends GraphQLTestCase
         $this->assertArrayHasKey('specialPrice', $ticket);
         $this->assertArrayHasKey('specialPriceFrom', $ticket);
         $this->assertArrayHasKey('specialPriceTo', $ticket);
+
+        // Formatted price assertions
+        $this->assertArrayHasKey('formattedPrice', $ticket);
+        $this->assertNotNull($ticket['formattedPrice'], 'formattedPrice should not be null');
+        $this->assertStringContainsString('10', $ticket['formattedPrice']);
+
+        $this->assertArrayHasKey('formattedSpecialPrice', $ticket);
+
+        // Translation (singular - current locale)
+        $this->assertArrayHasKey('translation', $ticket);
+        $translation = $ticket['translation'];
+        $this->assertNotNull($translation, 'translation should not be null');
+        $this->assertSame('en', $translation['locale']);
+        $this->assertSame('Test Ticket', $translation['name']);
+        $this->assertSame('Test Ticket Description', $translation['description']);
+
+        // Translations (plural - all locales)
+        $this->assertArrayHasKey('translations', $ticket);
+        $translationEdges = $ticket['translations']['edges'] ?? [];
+        $this->assertNotEmpty($translationEdges, 'translations.edges should not be empty');
+
+        $firstTranslation = $translationEdges[0]['node'] ?? null;
+        $this->assertNotNull($firstTranslation);
+        $this->assertSame('en', $firstTranslation['locale']);
+        $this->assertSame('Test Ticket', $firstTranslation['name']);
+        $this->assertSame('Test Ticket Description', $firstTranslation['description']);
+    }
+
+    /**
+     * Test event booking product with multiple tickets and translations.
+     */
+    public function test_get_event_booking_product_multiple_tickets(): void
+    {
+        $bookingData = $this->createBookingProductFixture('event');
+
+        // Add a second ticket
+        $ticket2 = BookingProductEventTicket::query()->create([
+            'booking_product_id' => $bookingData['booking']->id,
+            'price'              => 50,
+            'qty'                => 25,
+            'special_price'      => 40,
+            'special_price_from' => Carbon::now()->subDay()->format('Y-m-d H:i:s'),
+            'special_price_to'   => Carbon::now()->addMonth()->format('Y-m-d H:i:s'),
+        ]);
+
+        DB::table('booking_product_event_ticket_translations')->insert([
+            'booking_product_event_ticket_id' => $ticket2->id,
+            'locale'                          => 'en',
+            'name'                            => 'VIP Ticket',
+            'description'                     => 'VIP Access with backstage pass',
+        ]);
+
+        $query = <<<'GQL'
+            query getProduct($id: ID!) {
+              product(id: $id) {
+                id
+                bookingProducts {
+                  edges {
+                    node {
+                      _id
+                      type
+                      eventTickets {
+                        edges {
+                          node {
+                            id
+                            price
+                            qty
+                            specialPrice
+                            formattedPrice
+                            formattedSpecialPrice
+                            translation {
+                              name
+                              description
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+        GQL;
+
+        $response = $this->graphQL($query, [
+            'id' => (string) $bookingData['product']->id,
+        ]);
+
+        $response->assertSuccessful();
+
+        $json = $response->json();
+        $this->assertArrayNotHasKey('errors', $json, 'GraphQL errors: '.json_encode($json['errors'] ?? []));
+
+        $node = $this->extractBookingNode($response->json('data.product'), 'event');
+        $ticketEdges = $node['eventTickets']['edges'] ?? [];
+
+        $this->assertCount(2, $ticketEdges, 'Should have exactly 2 event tickets');
+
+        // Verify both tickets have formatted prices and translations
+        foreach ($ticketEdges as $edge) {
+            $t = $edge['node'];
+            $this->assertNotNull($t['formattedPrice'], 'Each ticket should have formattedPrice');
+            $this->assertNotNull($t['translation'], 'Each ticket should have a translation');
+            $this->assertNotEmpty($t['translation']['name'], 'Each ticket translation should have a name');
+        }
+
+        // Verify second ticket values
+        $vipTicket = collect($ticketEdges)->firstWhere('node.translation.name', 'VIP Ticket')['node'] ?? null;
+        $this->assertNotNull($vipTicket, 'VIP ticket should exist');
+        $this->assertSame(50.0, (float) $vipTicket['price']);
+        $this->assertSame(25, (int) $vipTicket['qty']);
+        $this->assertSame(40.0, (float) $vipTicket['specialPrice']);
     }
 
     /**

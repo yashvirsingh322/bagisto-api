@@ -95,30 +95,23 @@ class CustomerAddressProvider implements ProviderInterface
     private function getCustomerIdFromToken(string $token): ?int
     {
         try {
-            $tokenParts = explode('|', $token);
-
-            if (count($tokenParts) !== 2) {
+            if (strpos($token, '|') === false) {
                 return null;
             }
 
-            $tokenId = $tokenParts[0];
-
-            $personalAccessToken = DB::table('personal_access_tokens')
-                ->where('id', $tokenId)
-                ->where('tokenable_type', Customer::class)
-                ->where(function ($query) {
-                    $query->whereNull('expires_at')
-                        ->orWhere('expires_at', '>', now());
-                })
-                ->first();
+            $personalAccessToken = \Laravel\Sanctum\PersonalAccessToken::findToken($token);
 
             if (! $personalAccessToken) {
                 return null;
             }
 
-            $customer = Customer::find($personalAccessToken->tokenable_id);
+            if (! $personalAccessToken->tokenable instanceof Customer) {
+                return null;
+            }
 
-            if (! $customer || $customer->is_suspended) {
+            $customer = $personalAccessToken->tokenable;
+
+            if ($customer->is_suspended) {
                 return null;
             }
 
