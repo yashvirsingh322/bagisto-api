@@ -115,13 +115,18 @@ class MoveWishlistToCartProcessor implements ProcessorInterface
         }
 
         try {
-            // Get the current cart first (if exists)
-            $cart = Cart::getCart();
+            // Find the customer's existing active cart directly via repository
+            // because Cart::getCart() uses the default web guard (not sanctum)
+            // and returns null for API requests, causing a new empty cart to be created.
+            $cartRepository = app('Webkul\Checkout\Repositories\CartRepository');
+            $cart = $cartRepository->findOneWhere([
+                'customer_id' => $user->id,
+                'is_active'   => 1,
+            ]);
 
-            // If no cart exists, create one
+            // Create a new cart only if the customer genuinely has none
             if (! $cart) {
                 $channel = core()->getCurrentChannel();
-                $cartRepository = app('Webkul\Checkout\Repositories\CartRepository');
                 $cart = $cartRepository->create([
                     'customer_id' => $user->id,
                     'channel_id'  => $channel->id,
