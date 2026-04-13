@@ -111,6 +111,52 @@ jobs:
           '
           composer dump-autoload --no-interaction
 
+      # ------------------------------------------------------------------
+      # Diagnostic: show exactly what API Platform registered and what a
+      # real request to one of the failing endpoints returns. This lets us
+      # see the `Location:` header on the 302 redirects that pest is
+      # reporting and trace the middleware that produced them.
+      # ------------------------------------------------------------------
+      - name: Diagnostic — list API routes and probe one endpoint
+        working-directory: bagisto
+        run: |
+          echo "======= ROUTES UNDER /api ======="
+          php artisan route:list --path=api --columns=method,uri,name,middleware || true
+          echo
+          echo "======= ROUTES UNDER /graphql ======="
+          php artisan route:list --path=graphql --columns=method,uri,name,middleware || true
+          echo
+          echo "======= GLOBAL MIDDLEWARE + GROUPS ======="
+          php artisan route:list --path=/ --columns=uri,middleware 2>/dev/null | head -40 || true
+          echo
+          echo "======= STARTING LARAVEL SERVER ======="
+          php artisan serve --host=127.0.0.1 --port=8000 > /tmp/laravel.log 2>&1 &
+          SERVER_PID=$!
+          sleep 3
+          echo "Server PID: $SERVER_PID"
+          echo
+          echo "======= PROBE: GET /api/shop/products (no headers) ======="
+          curl -isS http://127.0.0.1:8000/api/shop/products | head -30 || true
+          echo
+          echo "======= PROBE: GET /api/shop/products (Accept: application/json) ======="
+          curl -isS -H 'Accept: application/json' http://127.0.0.1:8000/api/shop/products | head -30 || true
+          echo
+          echo "======= PROBE: GET /api/shop/products (with test storefront key) ======="
+          curl -isS \
+            -H 'Accept: application/json' \
+            -H 'X-STOREFRONT-KEY: pk_test_WaZh0x0FlbKF1suYmDD37YTfkRKm6BJ1' \
+            http://127.0.0.1:8000/api/shop/products | head -30 || true
+          echo
+          echo "======= PROBE: GET /api/shop/compare-items ======="
+          curl -isS \
+            -H 'Accept: application/json' \
+            -H 'X-STOREFRONT-KEY: pk_test_WaZh0x0FlbKF1suYmDD37YTfkRKm6BJ1' \
+            http://127.0.0.1:8000/api/shop/compare-items | head -30 || true
+          echo
+          echo "======= LARAVEL SERVER LOG (tail) ======="
+          tail -40 /tmp/laravel.log || true
+          kill $SERVER_PID 2>/dev/null || true
+
       - name: Run Pest (plugin suite)
         working-directory: bagisto
         run: vendor/bin/pest --colors=always vendor/bagisto/bagisto-api/tests
