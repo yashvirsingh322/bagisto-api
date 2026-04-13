@@ -3,7 +3,6 @@
 namespace Webkul\BagistoApi\State;
 
 use ApiPlatform\Laravel\Eloquent\Paginator;
-use ApiPlatform\Laravel\Eloquent\PartialPaginator;
 use ApiPlatform\Laravel\Eloquent\State\LinksHandlerInterface;
 use ApiPlatform\Laravel\Eloquent\State\Options;
 use ApiPlatform\Metadata\Exception\RuntimeException;
@@ -11,8 +10,8 @@ use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\Pagination\Pagination;
 use ApiPlatform\State\ProviderInterface;
 use ApiPlatform\State\Util\StateOptionsTrait;
-use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Request;
 use Psr\Container\ContainerInterface;
 use Webkul\BagistoApi\Exception\AuthenticationException;
@@ -78,17 +77,48 @@ class GetCheckoutAddressCollectionProvider implements ProviderInterface
             return $query->get();
         }
 
-        $isPartial = $operation->getPaginationPartial();
-        $collection = $query
-            ->{$isPartial ? 'simplePaginate' : 'paginate'}(
-                perPage: $this->pagination->getLimit($operation, $context),
-                page: $this->pagination->getPage($context),
-            );
+        $first  = isset($args['first']) ? (int) $args['first'] : null;
+        $last   = isset($args['last']) ? (int) $args['last'] : null;
+        $after  = $args['after'] ?? null;
+        $before = $args['before'] ?? null;
 
-        if ($isPartial) {
-            return new PartialPaginator($collection);
+        $perPage = $first ?? $last ?? 10;
+        $offset  = 0;
+
+        if ($after) {
+            $decoded = base64_decode($after, true);
+            $offset  = ctype_digit((string) $decoded) ? ((int) $decoded + 1) : 0;
         }
 
-        return new Paginator($collection);
+        if ($before) {
+            $decoded = base64_decode($before, true);
+            $cursor  = ctype_digit((string) $decoded) ? (int) $decoded : 0;
+            $offset  = max(0, $cursor - $perPage);
+        }
+
+        $query->orderBy('id', 'asc');
+
+        $total = (clone $query)->count();
+
+        if ($offset > $total) {
+            $offset = max(0, $total - $perPage);
+        }
+
+        $items = $query
+            ->offset($offset)
+            ->limit($perPage)
+            ->get();
+
+        $currentPage = $total > 0 ? (int) floor($offset / $perPage) + 1 : 1;
+
+        return new Paginator(
+            new LengthAwarePaginator(
+                $items,
+                $total,
+                $perPage,
+                $currentPage,
+                ['path' => request()->url()]
+            )
+        );
     }
 }

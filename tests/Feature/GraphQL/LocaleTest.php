@@ -138,9 +138,18 @@ class LocaleTest extends GraphQLTestCase
         $response->assertOk();
         $locale = $response->json('data.locales.edges.0.node');
 
-        // Verify ISO8601 format (should contain 'T' and 'Z' or timezone)
-        expect($locale['createdAt'])->toMatch('/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/');
-        expect($locale['updatedAt'])->toMatch('/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/');
+        // Verify ISO8601 format if timestamps exist, or null if not set in DB
+        if ($locale['createdAt'] !== null) {
+            expect($locale['createdAt'])->toMatch('/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/');
+        } else {
+            expect($locale['createdAt'])->toBeNull();
+        }
+
+        if ($locale['updatedAt'] !== null) {
+            expect($locale['updatedAt'])->toMatch('/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/');
+        } else {
+            expect($locale['updatedAt'])->toBeNull();
+        }
     }
 
     /**

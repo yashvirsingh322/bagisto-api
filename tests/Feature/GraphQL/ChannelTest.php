@@ -676,6 +676,107 @@ class ChannelTest extends GraphQLTestCase
     }
 
     /**
+     * Get Channel By ID with locales, currencies, defaultLocale, and baseCurrency relations.
+     */
+    public function test_get_channel_with_locales_currencies_and_defaults(): void
+    {
+        $query = <<<'GQL'
+            query getChannelByID($id: ID!) {
+              channel(id: $id) {
+                id
+                _id
+                code
+                hostname
+                theme
+                timezone
+                homeSeo
+                logoUrl
+                faviconUrl
+                locales {
+                  edges { node { id, _id, code, name, direction } }
+                }
+                currencies {
+                  edges { node { id, _id, code, name, symbol } }
+                }
+                defaultLocale {
+                  id, _id, code, name, direction
+                }
+                baseCurrency {
+                  id, _id, code, name, symbol
+                }
+              }
+            }
+        GQL;
+
+        $variables = ['id' => '/api/shop/channels/1'];
+
+        $response = $this->graphQL($query, $variables);
+
+        $response->assertSuccessful();
+
+        $node = $response->json('data.channel');
+
+        $this->assertNotNull($node, 'channel response is null');
+        $this->assertArrayHasKey('id', $node);
+        $this->assertArrayHasKey('_id', $node);
+        $this->assertArrayHasKey('code', $node);
+        $this->assertArrayHasKey('hostname', $node);
+        $this->assertArrayHasKey('theme', $node);
+        $this->assertArrayHasKey('timezone', $node);
+        $this->assertArrayHasKey('homeSeo', $node);
+        $this->assertArrayHasKey('logoUrl', $node);
+        $this->assertArrayHasKey('faviconUrl', $node);
+
+        // Locales (BelongsToMany)
+        $this->assertArrayHasKey('locales', $node);
+        $localeEdges = $node['locales']['edges'] ?? [];
+        $this->assertNotEmpty($localeEdges, 'Channel should have at least one locale');
+        foreach ($localeEdges as $edge) {
+            $locale = $edge['node'] ?? null;
+            $this->assertNotNull($locale);
+            $this->assertArrayHasKey('id', $locale);
+            $this->assertArrayHasKey('_id', $locale);
+            $this->assertArrayHasKey('code', $locale);
+            $this->assertArrayHasKey('name', $locale);
+            $this->assertArrayHasKey('direction', $locale);
+        }
+
+        // Currencies (BelongsToMany)
+        $this->assertArrayHasKey('currencies', $node);
+        $currencyEdges = $node['currencies']['edges'] ?? [];
+        $this->assertNotEmpty($currencyEdges, 'Channel should have at least one currency');
+        foreach ($currencyEdges as $edge) {
+            $currency = $edge['node'] ?? null;
+            $this->assertNotNull($currency);
+            $this->assertArrayHasKey('id', $currency);
+            $this->assertArrayHasKey('_id', $currency);
+            $this->assertArrayHasKey('code', $currency);
+            $this->assertArrayHasKey('name', $currency);
+            $this->assertArrayHasKey('symbol', $currency);
+        }
+
+        // Default Locale (BelongsTo)
+        $this->assertArrayHasKey('defaultLocale', $node);
+        $defaultLocale = $node['defaultLocale'];
+        $this->assertNotNull($defaultLocale, 'Channel should have a default locale');
+        $this->assertArrayHasKey('id', $defaultLocale);
+        $this->assertArrayHasKey('_id', $defaultLocale);
+        $this->assertArrayHasKey('code', $defaultLocale);
+        $this->assertArrayHasKey('name', $defaultLocale);
+        $this->assertArrayHasKey('direction', $defaultLocale);
+
+        // Base Currency (BelongsTo)
+        $this->assertArrayHasKey('baseCurrency', $node);
+        $baseCurrency = $node['baseCurrency'];
+        $this->assertNotNull($baseCurrency, 'Channel should have a base currency');
+        $this->assertArrayHasKey('id', $baseCurrency);
+        $this->assertArrayHasKey('_id', $baseCurrency);
+        $this->assertArrayHasKey('code', $baseCurrency);
+        $this->assertArrayHasKey('name', $baseCurrency);
+        $this->assertArrayHasKey('symbol', $baseCurrency);
+    }
+
+    /**
      * Get Channel with all Translations
      */
     public function test_get_channel_with_all_translations(): void

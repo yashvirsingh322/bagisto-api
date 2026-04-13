@@ -404,6 +404,416 @@ class CustomerCheckoutTest extends GraphQLTestCase
     }
 
     /**
+     * Get checkout addresses without token returns error.
+     */
+    public function test_get_checkout_addresses_without_token_returns_error(): void
+    {
+        $query = <<<'GQL'
+            query collectionGetCheckoutAddresses {
+              collectionGetCheckoutAddresses {
+                edges {
+                  node {
+                    id
+                    firstName
+                    lastName
+                  }
+                }
+              }
+            }
+        GQL;
+
+        // No Authorization header
+        $response = $this->graphQL($query);
+
+        $response->assertSuccessful();
+        $this->assertNotEmpty($response->json('errors'));
+    }
+
+    /**
+     * Get checkout addresses returns empty list when customer has no addresses set.
+     */
+    public function test_get_checkout_addresses_empty_when_none_set(): void
+    {
+        $customerData = $this->createTestCustomer();
+        $token = $customerData['token'];
+
+        $this->addProductToCart($token);
+
+        $query = <<<'GQL'
+            query collectionGetCheckoutAddresses {
+              collectionGetCheckoutAddresses {
+                edges {
+                  node {
+                    id
+                    firstName
+                    lastName
+                  }
+                }
+              }
+            }
+        GQL;
+
+        $response = $this->graphQL($query, [], $this->customerHeaders($token));
+
+        $response->assertSuccessful();
+        $data = $response->json('data.collectionGetCheckoutAddresses');
+        $this->assertNotNull($data);
+        $this->assertIsArray($data['edges']);
+    }
+
+    /**
+     * Set billing address only with separate shipping address.
+     */
+    public function test_set_checkout_address_billing_only_with_separate_shipping(): void
+    {
+        $customerData = $this->createTestCustomer();
+        $token = $customerData['token'];
+        $this->addProductToCart($token);
+
+        $mutation = <<<'GQL'
+            mutation createCheckoutAddress(
+                $billingFirstName: String!
+                $billingLastName: String!
+                $billingEmail: String!
+                $billingAddress: String!
+                $billingCity: String!
+                $billingCountry: String!
+                $billingState: String!
+                $billingPostcode: String!
+                $billingPhoneNumber: String!
+                $useForShipping: Boolean
+                $shippingFirstName: String
+                $shippingLastName: String
+                $shippingEmail: String
+                $shippingAddress: String
+                $shippingCity: String
+                $shippingCountry: String
+                $shippingState: String
+                $shippingPostcode: String
+                $shippingPhoneNumber: String
+            ) {
+              createCheckoutAddress(
+                input: {
+                  billingFirstName: $billingFirstName
+                  billingLastName: $billingLastName
+                  billingEmail: $billingEmail
+                  billingAddress: $billingAddress
+                  billingCity: $billingCity
+                  billingCountry: $billingCountry
+                  billingState: $billingState
+                  billingPostcode: $billingPostcode
+                  billingPhoneNumber: $billingPhoneNumber
+                  useForShipping: $useForShipping
+                  shippingFirstName: $shippingFirstName
+                  shippingLastName: $shippingLastName
+                  shippingEmail: $shippingEmail
+                  shippingAddress: $shippingAddress
+                  shippingCity: $shippingCity
+                  shippingCountry: $shippingCountry
+                  shippingState: $shippingState
+                  shippingPostcode: $shippingPostcode
+                  shippingPhoneNumber: $shippingPhoneNumber
+                }
+              ) {
+                checkoutAddress {
+                  _id
+                  success
+                  message
+                  shippingFirstName
+                  shippingLastName
+                  shippingCity
+                }
+              }
+            }
+        GQL;
+
+        $variables = [
+            'billingFirstName'   => 'Jane',
+            'billingLastName'    => 'Smith',
+            'billingEmail'       => 'jane@example.com',
+            'billingAddress'     => '456 Other Ave',
+            'billingCity'        => 'Mumbai',
+            'billingCountry'     => 'IN',
+            'billingState'       => 'MH',
+            'billingPostcode'    => '400001',
+            'billingPhoneNumber' => '9876543210',
+            'useForShipping'     => false,
+            'shippingFirstName'  => 'Jane',
+            'shippingLastName'   => 'Smith',
+            'shippingEmail'      => 'jane@example.com',
+            'shippingAddress'    => '789 Ship Rd',
+            'shippingCity'       => 'Delhi',
+            'shippingCountry'    => 'IN',
+            'shippingState'      => 'DL',
+            'shippingPostcode'   => '110001',
+            'shippingPhoneNumber'=> '9876543211',
+        ];
+
+        $response = $this->graphQL($mutation, $variables, $this->customerHeaders($token));
+
+        $response->assertSuccessful();
+
+        $json = $response->json();
+        if (isset($json['errors'])) {
+            $this->fail('GraphQL errors: '.json_encode($json['errors']));
+        }
+
+        $data = $response->json('data.createCheckoutAddress.checkoutAddress');
+        $this->assertNotNull($data);
+        $this->assertArrayHasKey('success', $data);
+    }
+
+    /**
+     * Set checkout address without token returns error.
+     */
+    public function test_set_checkout_address_without_token_returns_error(): void
+    {
+        $mutation = <<<'GQL'
+            mutation createCheckoutAddress(
+                $billingFirstName: String!
+                $billingLastName: String!
+                $billingEmail: String!
+                $billingAddress: String!
+                $billingCity: String!
+                $billingCountry: String!
+                $billingState: String!
+                $billingPostcode: String!
+                $billingPhoneNumber: String!
+            ) {
+              createCheckoutAddress(
+                input: {
+                  billingFirstName: $billingFirstName
+                  billingLastName: $billingLastName
+                  billingEmail: $billingEmail
+                  billingAddress: $billingAddress
+                  billingCity: $billingCity
+                  billingCountry: $billingCountry
+                  billingState: $billingState
+                  billingPostcode: $billingPostcode
+                  billingPhoneNumber: $billingPhoneNumber
+                }
+              ) {
+                checkoutAddress { _id success message }
+              }
+            }
+        GQL;
+
+        $variables = [
+            'billingFirstName'   => 'John',
+            'billingLastName'    => 'Doe',
+            'billingEmail'       => 'john@example.com',
+            'billingAddress'     => '123 Main St',
+            'billingCity'        => 'LA',
+            'billingCountry'     => 'IN',
+            'billingState'       => 'UP',
+            'billingPostcode'    => '201301',
+            'billingPhoneNumber' => '2125551234',
+        ];
+
+        // No Authorization header
+        $response = $this->graphQL($mutation, $variables);
+
+        $response->assertSuccessful();
+        $this->assertNotEmpty($response->json('errors'));
+    }
+
+    /**
+     * Set an invalid shipping method returns error.
+     */
+    public function test_set_invalid_shipping_method_returns_error(): void
+    {
+        $customerData = $this->createTestCustomer();
+        $token = $customerData['token'];
+        $this->addProductToCart($token);
+        $this->setCheckoutAddress($token);
+
+        $mutation = <<<'GQL'
+            mutation createCheckoutShippingMethod($shippingMethod: String!) {
+              createCheckoutShippingMethod(input: {shippingMethod: $shippingMethod}) {
+                checkoutShippingMethod { success message }
+              }
+            }
+        GQL;
+
+        $response = $this->graphQL($mutation, [
+            'shippingMethod' => 'nonexistent_method',
+        ], $this->customerHeaders($token));
+
+        $response->assertSuccessful();
+
+        $errors = $response->json('errors');
+        $data   = $response->json('data.createCheckoutShippingMethod.checkoutShippingMethod');
+
+        $hasError = ! empty($errors) || ($data !== null && ! ($data['success'] ?? true));
+        $this->assertTrue($hasError, 'Expected an error for invalid shipping method');
+    }
+
+    /**
+     * Set shipping method without token returns error.
+     */
+    public function test_set_shipping_method_without_token_returns_error(): void
+    {
+        $mutation = <<<'GQL'
+            mutation createCheckoutShippingMethod($shippingMethod: String!) {
+              createCheckoutShippingMethod(input: {shippingMethod: $shippingMethod}) {
+                checkoutShippingMethod { success message }
+              }
+            }
+        GQL;
+
+        // No Authorization header
+        $response = $this->graphQL($mutation, ['shippingMethod' => 'flatrate_flatrate']);
+
+        $response->assertSuccessful();
+        $this->assertNotEmpty($response->json('errors'));
+    }
+
+    /**
+     * Set an invalid payment method returns error.
+     */
+    public function test_set_invalid_payment_method_returns_error(): void
+    {
+        $customerData = $this->createTestCustomer();
+        $token = $customerData['token'];
+        $this->addProductToCart($token);
+        $this->setCheckoutAddress($token);
+        $this->setShippingMethod($token);
+
+        $mutation = <<<'GQL'
+            mutation createCheckoutPaymentMethod($paymentMethod: String!) {
+              createCheckoutPaymentMethod(input: {paymentMethod: $paymentMethod}) {
+                checkoutPaymentMethod { success message }
+              }
+            }
+        GQL;
+
+        $response = $this->graphQL($mutation, [
+            'paymentMethod' => 'nonexistent_payment_method',
+        ], $this->customerHeaders($token));
+
+        $response->assertSuccessful();
+
+        $errors = $response->json('errors');
+        $data   = $response->json('data.createCheckoutPaymentMethod.checkoutPaymentMethod');
+
+        $hasError = ! empty($errors) || ($data !== null && ! ($data['success'] ?? true));
+        $this->assertTrue($hasError, 'Expected an error for invalid payment method');
+    }
+
+    /**
+     * Set payment method without token returns error.
+     */
+    public function test_set_payment_method_without_token_returns_error(): void
+    {
+        $mutation = <<<'GQL'
+            mutation createCheckoutPaymentMethod($paymentMethod: String!) {
+              createCheckoutPaymentMethod(input: {paymentMethod: $paymentMethod}) {
+                checkoutPaymentMethod { success message }
+              }
+            }
+        GQL;
+
+        // No Authorization header
+        $response = $this->graphQL($mutation, ['paymentMethod' => 'moneytransfer']);
+
+        $response->assertSuccessful();
+        $this->assertNotEmpty($response->json('errors'));
+    }
+
+    /**
+     * Place order without token returns error.
+     */
+    public function test_place_order_without_token_returns_error(): void
+    {
+        $mutation = <<<'GQL'
+            mutation createCheckoutOrder {
+              createCheckoutOrder(input:{}) {
+                checkoutOrder { id orderId }
+              }
+            }
+        GQL;
+
+        // No Authorization header
+        $response = $this->graphQL($mutation);
+
+        $response->assertSuccessful();
+        $this->assertNotEmpty($response->json('errors'));
+    }
+
+    /**
+     * Place order with empty cart returns error.
+     */
+    public function test_place_order_with_empty_cart_returns_error(): void
+    {
+        $customerData = $this->createTestCustomer();
+        $token = $customerData['token'];
+
+        // Do NOT add any product to cart
+        $mutation = <<<'GQL'
+            mutation createCheckoutOrder {
+              createCheckoutOrder(input:{}) {
+                checkoutOrder { id orderId }
+              }
+            }
+        GQL;
+
+        $response = $this->graphQL($mutation, [], $this->customerHeaders($token));
+
+        $response->assertSuccessful();
+        $this->assertNotEmpty($response->json('errors'));
+    }
+
+    /**
+     * Place order without billing address returns error.
+     */
+    public function test_place_order_without_billing_address_returns_error(): void
+    {
+        $customerData = $this->createTestCustomer();
+        $token = $customerData['token'];
+        $this->addProductToCart($token);
+        // Deliberately skip setCheckoutAddress
+
+        $mutation = <<<'GQL'
+            mutation createCheckoutOrder {
+              createCheckoutOrder(input:{}) {
+                checkoutOrder { id orderId }
+              }
+            }
+        GQL;
+
+        $response = $this->graphQL($mutation, [], $this->customerHeaders($token));
+
+        $response->assertSuccessful();
+        $this->assertNotEmpty($response->json('errors'));
+    }
+
+    /**
+     * Place order without payment method returns error.
+     */
+    public function test_place_order_without_payment_method_returns_error(): void
+    {
+        $customerData = $this->createTestCustomer();
+        $token = $customerData['token'];
+        $this->addProductToCart($token);
+        $this->setCheckoutAddress($token);
+        $this->setShippingMethod($token);
+        // Deliberately skip setPaymentMethod
+
+        $mutation = <<<'GQL'
+            mutation createCheckoutOrder {
+              createCheckoutOrder(input:{}) {
+                checkoutOrder { id orderId }
+              }
+            }
+        GQL;
+
+        $response = $this->graphQL($mutation, [], $this->customerHeaders($token));
+
+        $response->assertSuccessful();
+        $this->assertNotEmpty($response->json('errors'));
+    }
+
+    /**
      * Helper to set checkout address
      */
     private function setCheckoutAddress(string $token): void

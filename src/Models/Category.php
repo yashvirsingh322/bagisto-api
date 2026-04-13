@@ -10,6 +10,7 @@ use ApiPlatform\Metadata\GraphQl\Query;
 use ApiPlatform\Metadata\GraphQl\QueryCollection;
 use Webkul\BagistoApi\Resolver\BaseQueryItemResolver;
 use Webkul\BagistoApi\Resolver\CategoryCollectionResolver;
+use Webkul\BagistoApi\State\CursorAwareCollectionProvider;
 use Webkul\BagistoApi\State\RestCategoryTreeProvider;
 use Webkul\Category\Models\Category as BaseCategory;
 
@@ -25,7 +26,7 @@ use Webkul\Category\Models\Category as BaseCategory;
     ],
     graphQlOperations: [
         new Query(resolver: BaseQueryItemResolver::class),
-        new QueryCollection,
+        new QueryCollection(provider: CursorAwareCollectionProvider::class),
         new QueryCollection(
             name: 'tree',
             args: [

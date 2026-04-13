@@ -4,7 +4,6 @@ namespace Webkul\BagistoApi\Tests\Feature\GraphQL;
 
 use Webkul\BagistoApi\Tests\GraphQLTestCase;
 use Webkul\Core\Models\Channel;
-use Webkul\Customer\Models\Customer;
 use Webkul\Product\Models\Product;
 use Webkul\Sales\Models\Order;
 use Webkul\Sales\Models\OrderItem;
@@ -22,9 +21,12 @@ class CustomerOrderReorderSimplifiedTest extends GraphQLTestCase
         $customer = $this->createCustomer();
         $channel = Channel::first();
         
-        // Create products
-        $product1 = Product::factory()->create(['sku' => 'REORDER-PROD-1']);
-        $product2 = Product::factory()->create(['sku' => 'REORDER-PROD-2']);
+        // Create products and make them saleable
+        $product1 = $this->createBaseProduct('simple', ['sku' => 'REORDER-PROD-1']);
+        $this->ensureInventory($product1);
+
+        $product2 = $this->createBaseProduct('simple', ['sku' => 'REORDER-PROD-2']);
+        $this->ensureInventory($product2);
 
         // Create a completed order with multiple items
         $order = Order::factory()->create([
@@ -61,7 +63,7 @@ class CustomerOrderReorderSimplifiedTest extends GraphQLTestCase
         $testData = $this->createTestData();
 
         $mutation = <<<'GQL'
-            mutation ReorderOrder($input: ReorderInput!) {
+            mutation ReorderOrder($input: createReorderOrderInput!) {
                 createReorderOrder(input: $input) {
                     reorderOrder {
                         success
@@ -103,7 +105,7 @@ class CustomerOrderReorderSimplifiedTest extends GraphQLTestCase
         $testData = $this->createTestData();
 
         $mutation = <<<'GQL'
-            mutation ReorderOrder($input: ReorderInput!) {
+            mutation ReorderOrder($input: createReorderOrderInput!) {
                 createReorderOrder(input: $input) {
                     reorderOrder {
                         success
@@ -140,7 +142,7 @@ class CustomerOrderReorderSimplifiedTest extends GraphQLTestCase
         $customer = $this->createCustomer();
 
         $mutation = <<<'GQL'
-            mutation ReorderOrder($input: ReorderInput!) {
+            mutation ReorderOrder($input: createReorderOrderInput!) {
                 createReorderOrder(input: $input) {
                     reorderOrder {
                         success
@@ -168,7 +170,7 @@ class CustomerOrderReorderSimplifiedTest extends GraphQLTestCase
         $otherCustomer = $this->createCustomer();
 
         $mutation = <<<'GQL'
-            mutation ReorderOrder($input: ReorderInput!) {
+            mutation ReorderOrder($input: createReorderOrderInput!) {
                 createReorderOrder(input: $input) {
                     reorderOrder {
                         success
@@ -194,7 +196,7 @@ class CustomerOrderReorderSimplifiedTest extends GraphQLTestCase
     {
         $this->seedRequiredData();
         $customer = $this->createCustomer();
-        $product = Product::factory()->create();
+        $product = $this->createBaseProduct('simple');
         $channel = Channel::first();
 
         $order = Order::factory()->create([
@@ -210,7 +212,7 @@ class CustomerOrderReorderSimplifiedTest extends GraphQLTestCase
         OrderPayment::factory()->create(['order_id' => $order->id]);
 
         $mutation = <<<'GQL'
-            mutation ReorderOrder($input: ReorderInput!) {
+            mutation ReorderOrder($input: createReorderOrderInput!) {
                 createReorderOrder(input: $input) {
                     reorderOrder {
                         success
@@ -226,6 +228,34 @@ class CustomerOrderReorderSimplifiedTest extends GraphQLTestCase
     }
 
     /**
+     * Test: Inline GraphQL input object is normalized correctly
+     */
+    public function test_reorder_completed_order_with_inline_input_literal(): void
+    {
+        $testData = $this->createTestData();
+
+        $mutation = sprintf(<<<'GQL'
+            mutation {
+                createReorderOrder(input: { orderId: %d }) {
+                    reorderOrder {
+                        success
+                        message
+                        orderId
+                        itemsAddedCount
+                    }
+                }
+            }
+        GQL, $testData['order']->id);
+
+        $response = $this->actingAs($testData['customer'])
+            ->withHeaders($this->authHeaders($testData['customer']))
+            ->postJson($this->graphqlUrl, ['query' => $mutation]);
+
+        $response->assertJsonPath('data.createReorderOrder.reorderOrder.success', true)
+            ->assertJsonPath('data.createReorderOrder.reorderOrder.orderId', $testData['order']->id);
+    }
+
+    /**
      * Test: Missing order ID parameter returns error
      */
     public function test_missing_order_id_parameter(): void
@@ -234,7 +264,7 @@ class CustomerOrderReorderSimplifiedTest extends GraphQLTestCase
         $customer = $this->createCustomer();
 
         $mutation = <<<'GQL'
-            mutation ReorderOrder($input: ReorderInput!) {
+            mutation ReorderOrder($input: createReorderOrderInput!) {
                 createReorderOrder(input: $input) {
                     reorderOrder {
                         success

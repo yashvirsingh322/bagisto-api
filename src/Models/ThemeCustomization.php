@@ -12,6 +12,7 @@ use ApiPlatform\Metadata\GraphQl\QueryCollection;
 use ApiPlatform\Metadata\QueryParameter;
 use Illuminate\Database\Eloquent\Model;
 use Webkul\BagistoApi\Resolver\BaseQueryItemResolver;
+use Webkul\BagistoApi\State\CursorAwareCollectionProvider;
 
 #[ApiResource(
     routePrefix: '/api/shop',
@@ -35,7 +36,7 @@ use Webkul\BagistoApi\Resolver\BaseQueryItemResolver;
     ],
     graphQlOperations: [
         new Query(resolver: BaseQueryItemResolver::class),
-        new QueryCollection,
+        new QueryCollection(provider: CursorAwareCollectionProvider::class),
     ],
 )]
 #[QueryParameter(key: 'type', filter: EqualsFilter::class)]

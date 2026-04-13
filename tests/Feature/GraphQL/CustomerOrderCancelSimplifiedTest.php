@@ -2,10 +2,9 @@
 
 namespace Webkul\BagistoApi\Tests\Feature\GraphQL;
 
+use Illuminate\Support\Facades\Mail;
 use Webkul\BagistoApi\Tests\GraphQLTestCase;
 use Webkul\Core\Models\Channel;
-use Webkul\Customer\Models\Customer;
-use Webkul\Product\Models\Product;
 use Webkul\Sales\Models\Order;
 use Webkul\Sales\Models\OrderItem;
 use Webkul\Sales\Models\OrderPayment;
@@ -17,11 +16,14 @@ class CustomerOrderCancelSimplifiedTest extends GraphQLTestCase
 {
     private function createTestData(): array
     {
+        Mail::fake();
+
         $this->seedRequiredData();
 
         $customer = $this->createCustomer();
         $channel = Channel::first();
-        $product = Product::factory()->create();
+        $product = $this->createBaseProduct('simple', ['sku' => 'TEST-SKU-CANCEL-SIMPLE-001']);
+        $this->ensureInventory($product, 10);
 
         // Create a pending order that can be canceled
         $order = Order::factory()->create([
@@ -34,9 +36,12 @@ class CustomerOrderCancelSimplifiedTest extends GraphQLTestCase
         ]);
 
         OrderItem::factory()->create([
-            'order_id'    => $order->id,
-            'product_id'  => $product->id,
-            'qty_ordered' => 1,
+            'order_id'     => $order->id,
+            'product_id'   => $product->id,
+            'sku'          => 'TEST-SKU-CANCEL-SIMPLE-001',
+            'type'         => 'simple',
+            'name'         => 'Test Product for Simplified Cancel',
+            'qty_ordered'  => 1,
         ]);
 
         OrderPayment::factory()->create(['order_id' => $order->id]);
@@ -52,7 +57,7 @@ class CustomerOrderCancelSimplifiedTest extends GraphQLTestCase
         $testData = $this->createTestData();
 
         $mutation = <<<'GQL'
-            mutation CancelOrder($input: CancelOrderInput!) {
+            mutation CancelOrder($input: createCancelOrderInput!) {
                 createCancelOrder(input: $input) {
                     cancelOrder {
                         success
@@ -94,7 +99,7 @@ class CustomerOrderCancelSimplifiedTest extends GraphQLTestCase
         $testData = $this->createTestData();
 
         $mutation = <<<'GQL'
-            mutation CancelOrder($input: CancelOrderInput!) {
+            mutation CancelOrder($input: createCancelOrderInput!) {
                 createCancelOrder(input: $input) {
                     cancelOrder {
                         success
@@ -123,7 +128,7 @@ class CustomerOrderCancelSimplifiedTest extends GraphQLTestCase
         $otherCustomer = $this->createCustomer();
 
         $mutation = <<<'GQL'
-            mutation CancelOrder($input: CancelOrderInput!) {
+            mutation CancelOrder($input: createCancelOrderInput!) {
                 createCancelOrder(input: $input) {
                     cancelOrder {
                         success
@@ -149,7 +154,8 @@ class CustomerOrderCancelSimplifiedTest extends GraphQLTestCase
     {
         $this->seedRequiredData();
         $customer = $this->createCustomer();
-        $product = Product::factory()->create();
+        $product = $this->createBaseProduct('simple', ['sku' => 'TEST-SKU-CANCEL-SIMPLE-AUTH']);
+        $this->ensureInventory($product, 10);
         $channel = Channel::first();
 
         $order = Order::factory()->create([
@@ -161,11 +167,18 @@ class CustomerOrderCancelSimplifiedTest extends GraphQLTestCase
             'status'              => 'pending',
         ]);
 
-        OrderItem::factory()->create(['order_id' => $order->id, 'product_id' => $product->id]);
+        OrderItem::factory()->create([
+            'order_id'    => $order->id,
+            'product_id'  => $product->id,
+            'sku'         => 'TEST-SKU-CANCEL-SIMPLE-AUTH',
+            'type'        => 'simple',
+            'name'        => 'Unauthenticated Cancel Product',
+            'qty_ordered' => 1,
+        ]);
         OrderPayment::factory()->create(['order_id' => $order->id]);
 
         $mutation = <<<'GQL'
-            mutation CancelOrder($input: CancelOrderInput!) {
+            mutation CancelOrder($input: createCancelOrderInput!) {
                 createCancelOrder(input: $input) {
                     cancelOrder {
                         success
@@ -181,6 +194,35 @@ class CustomerOrderCancelSimplifiedTest extends GraphQLTestCase
     }
 
     /**
+     * Test: Inline GraphQL input object is normalized correctly
+     */
+    public function test_cancel_pending_order_with_inline_input_literal(): void
+    {
+        $testData = $this->createTestData();
+
+        $mutation = sprintf(<<<'GQL'
+            mutation {
+                createCancelOrder(input: { orderId: %d }) {
+                    cancelOrder {
+                        success
+                        message
+                        orderId
+                        status
+                    }
+                }
+            }
+        GQL, $testData['order']->id);
+
+        $response = $this->actingAs($testData['customer'])
+            ->withHeaders($this->authHeaders($testData['customer']))
+            ->postJson($this->graphqlUrl, ['query' => $mutation]);
+
+        $response->assertJsonPath('data.createCancelOrder.cancelOrder.success', true)
+            ->assertJsonPath('data.createCancelOrder.cancelOrder.orderId', $testData['order']->id)
+            ->assertJsonPath('data.createCancelOrder.cancelOrder.status', 'canceled');
+    }
+
+    /**
      * Test: Missing order ID parameter returns error
      */
     public function test_missing_order_id_parameter(): void
@@ -189,7 +231,7 @@ class CustomerOrderCancelSimplifiedTest extends GraphQLTestCase
         $customer = $this->createCustomer();
 
         $mutation = <<<'GQL'
-            mutation CancelOrder($input: CancelOrderInput!) {
+            mutation CancelOrder($input: createCancelOrderInput!) {
                 createCancelOrder(input: $input) {
                     cancelOrder {
                         success

@@ -4,6 +4,7 @@ namespace Webkul\BagistoApi\Models;
  
 use ApiPlatform\Metadata\ApiProperty;
 use ApiPlatform\Metadata\ApiResource;
+use Illuminate\Database\Eloquent\Model;
 
 #[ApiResource(
     shortName: 'AttributeOption',
@@ -17,6 +18,12 @@ class AttributeOption extends \Webkul\Attribute\Models\AttributeOption
     public function getTranslations()
     {
         return $this->translations;
+    }
+
+    #[ApiProperty(readableLink: true, description: 'Current locale translation')]
+    public function getTranslation(?string $locale = null, ?bool $withFallback = null): ?Model
+    {
+        return $this->translation;
     }
 
     /**

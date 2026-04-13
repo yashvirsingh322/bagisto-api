@@ -32,9 +32,14 @@ class MoveWishlistToCartProcessor implements ProcessorInterface
     {
         if ($data instanceof MoveWishlistToCartInput) {
             /**
-             * REST fallback: the serializer's name converter may not populate camelCase DTO
-             * properties from snake_case JSON keys. Populate from request if needed.
+             * The serializer's name converter may not populate camelCase DTO properties.
+             * For GraphQL, read from $context['args']['input'] first (same pattern as WishlistProcessor).
+             * For REST, fall back to raw request input.
              */
+            if ($data->wishlistItemId === null) {
+                $this->hydrateInputFromContext($data, $context);
+            }
+
             if ($data->wishlistItemId === null) {
                 $data->wishlistItemId = (int) (request()->input('wishlist_item_id') ?? request()->input('wishlistItemId'));
                 $data->quantity = (int) (request()->input('quantity') ?? 1);
@@ -44,6 +49,43 @@ class MoveWishlistToCartProcessor implements ProcessorInterface
         }
 
         return $this->persistProcessor->process($data, $operation, $uriVariables, $context);
+    }
+
+    /**
+     * Hydrate MoveWishlistToCartInput from GraphQL context args.
+     * Mirrors the pattern used in WishlistProcessor::hydrateCreateInputFromContext().
+     */
+    private function hydrateInputFromContext(MoveWishlistToCartInput $data, array $context): void
+    {
+        $args = $context['args']['input'] ?? $context['args'] ?? null;
+
+        if (is_array($args)) {
+            $id = $args['wishlistItemId'] ?? $args['wishlist_item_id'] ?? null;
+            if (is_numeric($id)) {
+                $data->wishlistItemId = (int) $id;
+            }
+
+            $qty = $args['quantity'] ?? null;
+            if (is_numeric($qty)) {
+                $data->quantity = (int) $qty;
+            }
+
+            return;
+        }
+
+        // Fallback: read from nested GraphQL variables in raw request
+        $input = request()->input('variables.input');
+        if (is_array($input)) {
+            $id = $input['wishlistItemId'] ?? $input['wishlist_item_id'] ?? null;
+            if (is_numeric($id)) {
+                $data->wishlistItemId = (int) $id;
+            }
+
+            $qty = $input['quantity'] ?? null;
+            if (is_numeric($qty)) {
+                $data->quantity = (int) $qty;
+            }
+        }
     }
 
     /**
@@ -73,13 +115,18 @@ class MoveWishlistToCartProcessor implements ProcessorInterface
         }
 
         try {
-            // Get the current cart first (if exists)
-            $cart = Cart::getCart();
+            // Find the customer's existing active cart directly via repository
+            // because Cart::getCart() uses the default web guard (not sanctum)
+            // and returns null for API requests, causing a new empty cart to be created.
+            $cartRepository = app('Webkul\Checkout\Repositories\CartRepository');
+            $cart = $cartRepository->findOneWhere([
+                'customer_id' => $user->id,
+                'is_active'   => 1,
+            ]);
 
-            // If no cart exists, create one
+            // Create a new cart only if the customer genuinely has none
             if (! $cart) {
                 $channel = core()->getCurrentChannel();
-                $cartRepository = app('Webkul\Checkout\Repositories\CartRepository');
                 $cart = $cartRepository->create([
                     'customer_id' => $user->id,
                     'channel_id'  => $channel->id,

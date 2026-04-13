@@ -73,6 +73,12 @@ class CartProcessor implements ProcessorInterface
      */
     private function handleUpdateCartItem($data): CartModel
     {
+        $cart = Cart::getCart();
+
+        if ($cart) {
+            $this->guardBookingCartItemUpdate($cart, $data);
+        }
+
         try {
             Cart::updateItems((array) $data);
             Cart::collectTotals();
@@ -80,6 +86,47 @@ class CartProcessor implements ProcessorInterface
             return $this->buildCartResponse(Cart::getCart());
         } catch (\Exception $exception) {
             throw new OperationFailedException($exception->getMessage());
+        }
+    }
+
+    /**
+     * Prevent quantity updates for booking products that don't allow it.
+     *
+     * - Event booking: quantity is determined by ticket selection, not changeable after add-to-cart.
+     * - Appointment booking: always quantity 1, cannot be changed.
+     */
+    private function guardBookingCartItemUpdate($cart, $data): void
+    {
+        $qtyData = is_object($data) ? (array) $data : $data;
+        $qtyUpdates = $qtyData['qty'] ?? [];
+
+        foreach ($qtyUpdates as $cartItemId => $qty) {
+            $cartItem = $cart->items->firstWhere('id', (int) $cartItemId);
+
+            if (! $cartItem || $cartItem->type !== 'booking') {
+                continue;
+            }
+
+            // Check additional.booking.type first, then fall back to DB lookup
+            $bookingType = $cartItem->additional['booking']['type'] ?? null;
+
+            if (! $bookingType) {
+                $bookingType = \Webkul\BookingProduct\Models\BookingProduct::query()
+                    ->where('product_id', $cartItem->product_id)
+                    ->value('type');
+            }
+
+            if ($bookingType === 'event') {
+                throw new InvalidInputException(
+                    'Event booking product quantity cannot be changed. Quantity is determined by ticket selection.'
+                );
+            }
+
+            if ($bookingType === 'appointment') {
+                throw new InvalidInputException(
+                    'Appointment booking product quantity cannot be changed.'
+                );
+            }
         }
     }
 

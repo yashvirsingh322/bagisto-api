@@ -13,6 +13,7 @@ use Webkul\BagistoApi\Models\Wishlist;
 use Webkul\BagistoApi\Models\Product;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Request as RequestFacade;
 use Illuminate\Http\Request;
 
 /**
@@ -33,23 +34,29 @@ class WishlistProcessor implements ProcessorInterface
         $operationName = $operation->getName();
 
         
-        if (in_array($operationName, ['toggle'])) {
+        if (in_array($operationName, ['toggle']) && $data instanceof CreateWishlistInput) {
+            $this->hydrateCreateInputFromContext($data, $context);
+
             return $this->handleToggle($data, $uriVariables, $context);
         }
 
         if ($data instanceof CreateWishlistInput) {
+            $this->hydrateCreateInputFromContext($data, $context);
+
             return $this->handleCreate($data, $context);
         }
 
         /** Handle REST POST — model received instead of DTO */
         if ($data instanceof Wishlist && $operation instanceof \ApiPlatform\Metadata\Post) {
             $input = new CreateWishlistInput();
-            $input->productId = request()->input('product_id') ?? request()->input('productId');
+            $input->product_id = request()->input('product_id') ?? request()->input('productId');
 
             return $this->handleCreate($input, $context);
         }
 
         if ($data instanceof DeleteWishlistInput) {
+            $this->hydrateDeleteInputFromContext($data, $context);
+
             return $this->handleDeleteFromInput($data, $context);
         }
 
@@ -65,13 +72,17 @@ class WishlistProcessor implements ProcessorInterface
      */
     private function handleCreate(CreateWishlistInput $input, array $context = []): Wishlist
     {
-        if (empty($input->productId)) {
+        if (empty($input->product_id)) {
             throw new InvalidInputException(__('bagistoapi::app.graphql.wishlist.product-id-required'));
         }
 
-        $product = Product::find($input->productId);
+        $product = Product::find($input->product_id);
         if (! $product) {
             throw new ResourceNotFoundException(__('bagistoapi::app.graphql.wishlist.product-not-found'));
+        }
+
+        if (! $product->status) {
+            throw new InvalidInputException(__('bagistoapi::app.graphql.wishlist.product-disabled'));
         }
 
         $user = Auth::guard('sanctum')->user();
@@ -84,7 +95,7 @@ class WishlistProcessor implements ProcessorInterface
         $channelId = core()->getCurrentChannel()->id;
 
         $existingItem = Wishlist::where('customer_id', $customerId)
-            ->where('product_id', $input->productId)
+            ->where('product_id', $input->product_id)
             ->where('channel_id', $channelId)
             ->first();
 
@@ -92,10 +103,10 @@ class WishlistProcessor implements ProcessorInterface
             throw new InvalidInputException(__('bagistoapi::app.graphql.wishlist.already-exists'));
         }
 
-        Event::dispatch('customer.wishlist.create.before', $input->productId);
+        Event::dispatch('customer.wishlist.create.before', $input->product_id);
 
         $wishlistItem = Wishlist::create([
-            'product_id'  => $input->productId,
+            'product_id'  => $input->product_id,
             'customer_id' => $customerId,
             'channel_id'  => $channelId,
         ]);
@@ -107,13 +118,17 @@ class WishlistProcessor implements ProcessorInterface
 
     private function handleToggle(CreateWishlistInput $input, array $context = []): Wishlist
     {
-        if (empty($input->productId)) {
+        if (empty($input->product_id)) {
             throw new InvalidInputException(__('bagistoapi::app.graphql.wishlist.product-id-required'));
         }
 
-        $product = Product::find($input->productId);
+        $product = Product::find($input->product_id);
         if (! $product) {
             throw new ResourceNotFoundException(__('bagistoapi::app.graphql.wishlist.product-not-found'));
+        }
+
+        if (! $product->status) {
+            throw new InvalidInputException(__('bagistoapi::app.graphql.wishlist.product-disabled'));
         }
 
         $user = Auth::guard('sanctum')->user();
@@ -126,7 +141,7 @@ class WishlistProcessor implements ProcessorInterface
         $channelId = core()->getCurrentChannel()->id;
 
         $existingItem = Wishlist::where('customer_id', $customerId)
-            ->where('product_id', $input->productId)
+            ->where('product_id', $input->product_id)
             ->where('channel_id', $channelId)
             ->first();
 
@@ -138,10 +153,10 @@ class WishlistProcessor implements ProcessorInterface
             throw new InvalidInputException(__('bagistoapi::app.graphql.wishlist.removed'));
         }
 
-        Event::dispatch('customer.wishlist.create.before', $input->productId);
+        Event::dispatch('customer.wishlist.create.before', $input->product_id);
 
         $wishlistItem = Wishlist::create([
-            'product_id'  => $input->productId,
+            'product_id'  => $input->product_id,
             'customer_id' => $customerId,
             'channel_id'  => $channelId,
         ]);
@@ -151,7 +166,87 @@ class WishlistProcessor implements ProcessorInterface
         return $wishlistItem;
     }
 
-    
+
+    private function hydrateCreateInputFromContext(CreateWishlistInput $input, array $context): void
+    {
+        if (! empty($input->product_id)) {
+            return;
+        }
+
+        $productId = $this->extractProductId($context['args']['input'] ?? $context['args'] ?? null);
+
+        if ($productId === null) {
+            $request = $this->request ?? RequestFacade::instance();
+
+            if ($request) {
+                $productId = $this->extractProductId($request->input('variables.input'))
+                    ?? $this->extractProductId($request->input('input'))
+                    ?? $this->extractProductId($request->input('extensions.variables.input'));
+            }
+        }
+
+        if ($productId !== null) {
+            $input->product_id = $productId;
+        }
+    }
+
+    private function hydrateDeleteInputFromContext(DeleteWishlistInput $input, array $context): void
+    {
+        if (! empty($input->id)) {
+            return;
+        }
+
+        $id = $this->extractId($context['args']['input'] ?? $context['args'] ?? null);
+
+        if ($id === null) {
+            $request = $this->request ?? RequestFacade::instance();
+
+            if ($request) {
+                $id = $this->extractId($request->input('variables.input'))
+                    ?? $this->extractId($request->input('input'))
+                    ?? $this->extractId($request->input('extensions.variables.input'));
+            }
+        }
+
+        if ($id !== null) {
+            $input->id = $id;
+        }
+    }
+
+    private function extractProductId(mixed $input): ?int
+    {
+        if (is_array($input)) {
+            $value = $input['product_id'] ?? $input['productId'] ?? null;
+
+            return is_numeric($value) ? (int) $value : null;
+        }
+
+        if (is_object($input)) {
+            $value = $input->product_id ?? $input->productId ?? null;
+
+            return is_numeric($value) ? (int) $value : null;
+        }
+
+        return null;
+    }
+
+    private function extractId(mixed $input): ?string
+    {
+        if (is_array($input)) {
+            $value = $input['id'] ?? null;
+
+            return $value !== null && $value !== '' ? (string) $value : null;
+        }
+
+        if (is_object($input)) {
+            $value = $input->id ?? null;
+
+            return $value !== null && $value !== '' ? (string) $value : null;
+        }
+
+        return null;
+    }
+
     /**
      * Handle delete operation from GraphQL mutation input
      */

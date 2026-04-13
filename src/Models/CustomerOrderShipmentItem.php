@@ -4,6 +4,10 @@ namespace Webkul\BagistoApi\Models;
 
 use ApiPlatform\Metadata\ApiProperty;
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\GraphQl\Query;
+use ApiPlatform\Metadata\GraphQl\QueryCollection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -15,8 +19,14 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  */
 #[ApiResource(
     shortName: 'CustomerOrderShipmentItem',
-    operations: [],
-    graphQlOperations: [],
+    operations: [
+        new Get(),
+        new GetCollection(),
+    ],
+    graphQlOperations: [
+        new Query(),
+        new QueryCollection(),
+    ],
 )]
 class CustomerOrderShipmentItem extends Model
 {

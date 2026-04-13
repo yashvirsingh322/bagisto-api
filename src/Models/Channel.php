@@ -8,6 +8,8 @@ use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\GraphQl\Query;
 use ApiPlatform\Metadata\GraphQl\QueryCollection;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Webkul\BagistoApi\Resolver\BaseQueryItemResolver;
 use Webkul\BagistoApi\State\ChannelProvider;
 
@@ -34,28 +36,54 @@ class Channel extends \Webkul\Core\Models\Channel
     }
 
     /**
-     * Expose locales relationship as array for API (read-only)
+     * Override locales relationship to return API resource model
      */
-    #[ApiProperty(writable: false, readable: true)]
-    public ?array $_locales = null;
+    public function locales(): BelongsToMany
+    {
+        return $this->belongsToMany(Locale::class, 'channel_locales', 'channel_id', 'locale_id');
+    }
 
     /**
-     * Expose currencies relationship as array for API (read-only)
+     * Override currencies relationship to return API resource model
      */
-    #[ApiProperty(writable: false, readable: true)]
-    public ?array $_currencies = null;
+    public function currencies(): BelongsToMany
+    {
+        return $this->belongsToMany(Currency::class, 'channel_currencies', 'channel_id', 'currency_id');
+    }
 
     /**
-     * Expose default locale for API with custom name
+     * Override default locale relationship to return API resource model
      */
-    #[ApiProperty(writable: false, readable: true)]
-    public ?object $defaultLocaleData = null;
+    public function default_locale(): BelongsTo
+    {
+        return $this->belongsTo(Locale::class);
+    }
 
     /**
-     * Expose base currency for API with custom name
+     * Override base currency relationship to return API resource model
+     */
+    public function base_currency(): BelongsTo
+    {
+        return $this->belongsTo(Currency::class);
+    }
+
+    /**
+     * Expose logo URL for API
      */
     #[ApiProperty(writable: false, readable: true)]
-    public ?object $baseCurrencyData = null;
+    public function getLogoUrl(): ?string
+    {
+        return $this->logo_url();
+    }
+
+    /**
+     * Expose favicon URL for API
+     */
+    #[ApiProperty(writable: false, readable: true)]
+    public function getFaviconUrl(): ?string
+    {
+        return $this->favicon_url();
+    }
 }
 
 

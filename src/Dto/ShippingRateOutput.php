@@ -3,7 +3,6 @@
 namespace Webkul\BagistoApi\Dto;
 
 use ApiPlatform\Metadata\ApiProperty;
-use Symfony\Component\Serializer\Annotation\Groups;
 
 /**
  * ShippingRateOutput - GraphQL Output DTO for Shipping Rates
@@ -12,55 +11,42 @@ use Symfony\Component\Serializer\Annotation\Groups;
  */
 class ShippingRateOutput
 {
-    #[Groups(['query'])]
     #[ApiProperty(identifier: true, readable: true, writable: false)]
     public ?string $id = null;
 
-    #[Groups(['query'])]
     #[ApiProperty(readable: true, writable: false)]
     public ?string $code = null;
 
-    #[Groups(['query'])]
     #[ApiProperty(readable: true, writable: false)]
     public ?string $label = null;
 
-    #[Groups(['query'])]
     #[ApiProperty(readable: true, writable: false)]
     public ?float $price = null;
 
-    #[Groups(['query'])]
     #[ApiProperty(readable: true, writable: false)]
-    public ?string $formattedPrice = null;
+    public ?string $formatted_price = null;
 
-    #[Groups(['query'])]
     #[ApiProperty(readable: true, writable: false)]
     public ?string $description = null;
 
-    #[Groups(['query'])]
     #[ApiProperty(readable: true, writable: false)]
     public ?string $method = null;
 
-    #[Groups(['query'])]
     #[ApiProperty(readable: true, writable: false)]
-    public ?string $methodTitle = null;
+    public ?string $method_title = null;
 
-    #[Groups(['query'])]
     #[ApiProperty(readable: true, writable: false)]
-    public ?string $methodDescription = null;
+    public ?string $method_description = null;
 
-    #[Groups(['query'])]
     #[ApiProperty(readable: true, writable: false)]
-    public ?float $basePrice = null;
+    public ?float $base_price = null;
 
-    #[Groups(['query'])]
     #[ApiProperty(readable: true, writable: false)]
-    public ?string $baseFormattedPrice = null;
+    public ?string $base_formatted_price = null;
 
-    #[Groups(['query'])]
     #[ApiProperty(readable: true, writable: false)]
     public ?string $carrier = null;
 
-    #[Groups(['query'])]
     #[ApiProperty(readable: true, writable: false)]
-    public ?string $carrierTitle = null;
+    public ?string $carrier_title = null;
 }

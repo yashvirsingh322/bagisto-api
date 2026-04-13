@@ -194,7 +194,7 @@ class CustomerProfileTest extends GraphQLTestCase
         $customer = $this->createCustomer([
             'first_name' => 'Old',
             'last_name'  => 'User',
-            'phone'      => '000-0000',
+            'phone'      => '0000000',
         ]);
 
         $mutation = <<<'GQL'
@@ -209,7 +209,7 @@ class CustomerProfileTest extends GraphQLTestCase
             'input' => [
                 'firstName' => 'NewFirst',
                 'lastName'  => 'NewLast',
-                'phone'     => '999-8888',
+                'phone'     => '9998888',
                 'gender'    => 'Male',
             ],
         ]);
@@ -219,7 +219,7 @@ class CustomerProfileTest extends GraphQLTestCase
         $customer->refresh();
         expect($customer->first_name)->toBe('NewFirst')
             ->and($customer->last_name)->toBe('NewLast')
-            ->and($customer->phone)->toBe('999-8888')
+            ->and($customer->phone)->toBe('9998888')
             ->and($customer->gender)->toBe('Male');
     }
 

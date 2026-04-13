@@ -120,36 +120,47 @@ class CartItemData
         $data->type = $item->type;
 
         // Base prices
-        $data->price = (float) ($item->price ?? 0);
+        $data->price = (float) core()->convertPrice($item->base_price ?? 0);
         $data->basePrice = (float) ($item->base_price ?? 0);
-        $data->formattedPrice = core()->formatPrice($item->price ?? 0);
+        $data->formattedPrice = core()->currency($item->base_price ?? 0);
 
         // Prices including tax
-        $data->priceInclTax = (float) ($item->price_incl_tax ?? $item->price ?? 0);
+        $data->priceInclTax = (float) core()->convertPrice($item->base_price_incl_tax ?? $item->base_price ?? 0);
         $data->basePriceInclTax = (float) ($item->base_price_incl_tax ?? $item->base_price ?? 0);
-        $data->formattedPriceInclTax = core()->formatPrice($item->price_incl_tax ?? $item->price ?? 0);
+        $data->formattedPriceInclTax = core()->currency($item->base_price_incl_tax ?? $item->base_price ?? 0);
 
         // Line totals
-        $data->total = (float) ($item->total ?? 0);
+        $data->total = (float) core()->convertPrice($item->base_total ?? 0);
         $data->baseTotal = (float) ($item->base_total ?? 0);
-        $data->formattedTotal = core()->formatPrice($item->total ?? 0);
+        $data->formattedTotal = core()->currency($item->base_total ?? 0);
 
         // Line totals including tax
-        $data->totalInclTax = (float) ($item->total_incl_tax ?? $item->total ?? 0);
+        $data->totalInclTax = (float) core()->convertPrice($item->base_total_incl_tax ?? $item->base_total ?? 0);
         $data->baseTotalInclTax = (float) ($item->base_total_incl_tax ?? $item->base_total ?? 0);
-        $data->formattedTotalInclTax = core()->formatPrice($item->total_incl_tax ?? $item->total ?? 0);
+        $data->formattedTotalInclTax = core()->currency($item->base_total_incl_tax ?? $item->base_total ?? 0);
 
         // Discounts
-        $data->discountAmount = (float) ($item->discount_amount ?? 0);
+        $data->discountAmount = (float) core()->convertPrice($item->base_discount_amount ?? 0);
         $data->baseDiscountAmount = (float) ($item->base_discount_amount ?? 0);
 
         // Tax
-        $data->taxAmount = (float) ($item->tax_amount ?? 0);
+        $data->taxAmount = (float) core()->convertPrice($item->base_tax_amount ?? 0);
         $data->baseTaxAmount = (float) ($item->base_tax_amount ?? 0);
 
-        // Product info
-        $data->options = $item->additional ?
-            (is_string($item->additional) ? json_decode($item->additional, true) : $item->additional) : null;
+        // Product info - extract formatted attributes (bundle options, configurable options, etc.)
+        $additional = $item->additional ?
+            (is_string($item->additional) ? json_decode($item->additional, true) : $item->additional) : [];
+
+        $attributes = ! empty($additional['attributes'])
+            ? array_values($additional['attributes'])
+            : null;
+
+        // For bundle products, enrich options with can_change_qty and is_required from DB
+        if ($attributes && $item->type === 'bundle') {
+            $attributes = self::enrichBundleOptions($attributes, $additional);
+        }
+
+        $data->options = $attributes;
 
         // Base image
         if ($item->product) {
@@ -163,5 +174,31 @@ class CartItemData
         }
 
         return $data;
+    }
+
+    /**
+     * Enrich bundle option attributes with can_change_qty and is_required from DB.
+     *
+     * Checkbox/Multiselect options: qty is fixed by admin (can_change_qty = false)
+     * Radio/Select options: qty can be changed by customer (can_change_qty = true)
+     */
+    private static function enrichBundleOptions(array $attributes, array $additional): array
+    {
+        $optionRepo = app(\Webkul\Product\Repositories\ProductBundleOptionRepository::class);
+
+        foreach ($attributes as &$attribute) {
+            $optionId = $attribute['option_id'] ?? null;
+
+            if (! $optionId) {
+                continue;
+            }
+
+            $bundleOption = $optionRepo->find($optionId);
+
+            $attribute['is_required'] = (bool) ($bundleOption?->is_required ?? false);
+            $attribute['can_change_qty'] = in_array($bundleOption?->type, ['radio', 'select']);
+        }
+
+        return $attributes;
     }
 }

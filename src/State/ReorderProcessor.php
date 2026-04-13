@@ -5,6 +5,7 @@ namespace Webkul\BagistoApi\State;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProcessorInterface;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Request;
 use Webkul\BagistoApi\Dto\ReorderInput;
 use Webkul\BagistoApi\Exception\AuthorizationException;
 use Webkul\BagistoApi\Exception\InvalidInputException;
@@ -34,6 +35,8 @@ class ReorderProcessor implements ProcessorInterface
     public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = []): mixed
     {
         if ($data instanceof ReorderInput) {
+            $this->hydrateInputFromContext($data, $context);
+
             return $this->handleReorder($data);
         }
 
@@ -144,5 +147,47 @@ class ReorderProcessor implements ProcessorInterface
             orderId: $order->id,
             itemsAddedCount: 0,
         );
+    }
+
+    private function hydrateInputFromContext(ReorderInput $data, array $context): void
+    {
+        if (! empty($data->orderId)) {
+            return;
+        }
+
+        $input = $context['args']['input'] ?? $context['args'] ?? null;
+
+        $orderId = $this->extractOrderId($input);
+
+        if ($orderId === null) {
+            $request = Request::instance();
+
+            if ($request) {
+                $orderId = $this->extractOrderId($request->input('variables.input'))
+                    ?? $this->extractOrderId($request->input('input'))
+                    ?? $this->extractOrderId($request->input('extensions.variables.input'));
+            }
+        }
+
+        if ($orderId !== null) {
+            $data->orderId = $orderId;
+        }
+    }
+
+    private function extractOrderId(mixed $input): ?int
+    {
+        if (is_array($input)) {
+            $value = $input['orderId'] ?? $input['order_id'] ?? null;
+
+            return is_numeric($value) ? (int) $value : null;
+        }
+
+        if (is_object($input)) {
+            $value = $input->orderId ?? $input->order_id ?? null;
+
+            return is_numeric($value) ? (int) $value : null;
+        }
+
+        return null;
     }
 }

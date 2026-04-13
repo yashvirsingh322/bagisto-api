@@ -350,7 +350,7 @@ class CartTokenProcessor implements ProcessorInterface
         }
 
         if (! $product->status) {
-            throw new \Exception(__('shop::app.checkout.cart.inactive-add'));
+            throw new InvalidInputException(__('shop::app.checkout.cart.inactive-add'));
         }
 
         $groupedQty = $this->normalizeJsonFieldToArray($data->groupedQty, 'groupedQty')
@@ -464,6 +464,12 @@ class CartTokenProcessor implements ProcessorInterface
             $bundleOptionQty = $this->normalizeJsonFieldToArray($data->bundleOptionQty, 'bundleOptionQty');
             $booking = $this->normalizeJsonFieldToArray($data->booking, 'booking');
 
+            // For bundle products, enforce admin-defined quantities.
+            // Only allow user-provided qty where is_user_defined is true on the bundle option product.
+            if ($product->type === 'bundle' && is_array($bundleOptions) && is_array($bundleOptionQty)) {
+                $bundleOptionQty = $this->sanitizeBundleOptionQty($bundleOptions, $bundleOptionQty);
+            }
+
             $cartData = [
                 'quantity'   => $data->quantity,
                 'product_id' => $product->id,
@@ -557,6 +563,73 @@ class CartTokenProcessor implements ProcessorInterface
         }
 
         return $decoded;
+    }
+
+    /**
+     * Validate and sanitize bundle option quantities.
+     *
+     * Checkbox/Multiselect options: qty is fixed by admin — throws error if customer tries to change
+     * Radio/Select options: qty can be changed by customer
+     *
+     * @param  array  $bundleOptions    [optionId => [optionProductId, ...]]
+     * @param  array  $bundleOptionQty  [optionId => qty]
+     * @return array  Validated bundle option quantities
+     *
+     * @throws InvalidInputException
+     */
+    private function sanitizeBundleOptionQty(array $bundleOptions, array $bundleOptionQty): array
+    {
+        $optionRepo = app(\Webkul\Product\Repositories\ProductBundleOptionRepository::class);
+        $optionProductRepo = app(\Webkul\Product\Repositories\ProductBundleOptionProductRepository::class);
+
+        $sanitized = [];
+
+        foreach ($bundleOptions as $optionId => $optionProductIds) {
+            if (! is_array($optionProductIds)) {
+                continue;
+            }
+
+            $bundleOption = $optionRepo->find($optionId);
+
+            if (! $bundleOption) {
+                continue;
+            }
+
+            // Checkbox/Multiselect: qty fixed by admin; Radio/Select: customer can change
+            $canChangeQty = in_array($bundleOption->type, ['radio', 'select']);
+
+            foreach ($optionProductIds as $optionProductId) {
+                if (! $optionProductId) {
+                    continue;
+                }
+
+                $optionProduct = $optionProductRepo->find($optionProductId);
+
+                if (! $optionProduct) {
+                    continue;
+                }
+
+                if ($canChangeQty) {
+                    $sanitized[$optionId] = $bundleOptionQty[$optionId] ?? $optionProduct->qty;
+                } else {
+                    $userQty = $bundleOptionQty[$optionId] ?? null;
+
+                    // If customer sent a qty that differs from admin-defined qty, throw error
+                    if ($userQty !== null && (int) $userQty !== (int) $optionProduct->qty) {
+                        throw new InvalidInputException(
+                            __('bagistoapi::app.graphql.cart.bundle-qty-not-changeable', [
+                                'option' => $bundleOption->label,
+                                'qty'    => $optionProduct->qty,
+                            ])
+                        );
+                    }
+
+                    $sanitized[$optionId] = $optionProduct->qty;
+                }
+            }
+        }
+
+        return $sanitized;
     }
 
     /**
@@ -731,6 +804,9 @@ class CartTokenProcessor implements ProcessorInterface
             throw new AuthorizationException(__('bagistoapi::app.graphql.cart.unauthorized-access'));
         }
 
+        // Prevent quantity update for event and appointment booking products
+        $this->guardBookingCartItemUpdate($cart, (int) $data->cartItemId);
+
         CartFacade::setCart($cart);
 
         Event::dispatch('cart.item.before.update', ['cartItem' => $data->cartItemId]);
@@ -755,7 +831,11 @@ class CartTokenProcessor implements ProcessorInterface
             throw new ResourceNotFoundException(__('bagistoapi::app.graphql.cart.cart-not-found'));
         }
 
-        return (array) CartData::fromModel($cart);
+        $cartData = CartData::fromModel($cart);
+        $cartData->success = true;
+        $cartData->message = __('bagistoapi::app.graphql.cart.cart-item-updated-successfully');
+
+        return (array) $cartData;
     }
 
     /**
@@ -823,6 +903,15 @@ class CartTokenProcessor implements ProcessorInterface
             throw new AuthorizationException(__('bagistoapi::app.graphql.cart.unauthorized-access'));
         }
 
+        CartFacade::setCart($cart);
+
+        if ($cart->shipping_method && $cart->shipping_address) {
+            \Webkul\Shipping\Facades\Shipping::collectRates();
+        }
+
+        CartFacade::collectTotals();
+
+        $cart = CartFacade::getCart();
         $cart->load('items.product');
 
         $cartData = CartData::fromModel($cart);
@@ -879,6 +968,8 @@ class CartTokenProcessor implements ProcessorInterface
             ]);
         }
 
+        $guestCart->load('items.child');
+
         foreach ($guestCart->items as $item) {
             try {
                 $cartItem = $customerCart->items()
@@ -891,9 +982,19 @@ class CartTokenProcessor implements ProcessorInterface
                         'quantity' => $cartItem->quantity + $item->quantity,
                     ]);
                 } else {
-                    $item->replicate()
-                        ->fill(['cart_id' => $customerCart->id])
-                        ->save();
+                    $newItem = $item->replicate()
+                        ->fill(['cart_id' => $customerCart->id]);
+                    $newItem->save();
+
+                    // Replicate child item for configurable products
+                    if ($item->type === 'configurable' && $item->child) {
+                        $item->child->replicate()
+                            ->fill([
+                                'cart_id'   => $customerCart->id,
+                                'parent_id' => $newItem->id,
+                            ])
+                            ->save();
+                    }
                 }
             } catch (\Exception $e) {
                 continue;
@@ -901,6 +1002,20 @@ class CartTokenProcessor implements ProcessorInterface
         }
 
         $guestCart->update(['is_active' => 0]);
+
+        // Reload cart with relationships and remove invalid items
+        // (e.g., configurable items without child entries or deleted products)
+        $customerCart = CartModel::with('items.product', 'items.child.product')->find($customerCart->id);
+
+        foreach ($customerCart->items as $item) {
+            if (! $item->product
+                || ($item->type === 'configurable' && ! $item->child)
+            ) {
+                $item->delete();
+            }
+        }
+
+        $customerCart = CartModel::with('items.product')->find($customerCart->id);
 
         CartFacade::setCart($customerCart);
 
@@ -1188,6 +1303,42 @@ class CartTokenProcessor implements ProcessorInterface
             return (array) CartData::fromModel(CartFacade::getCart());
         } catch (\Exception $e) {
             throw new OperationFailedException($e->getMessage(), 0, $e);
+        }
+    }
+
+    /**
+     * Prevent quantity updates for booking products that don't allow it.
+     *
+     * - Event booking: quantity is determined by ticket selection, not changeable after add-to-cart.
+     * - Appointment booking: always quantity 1, cannot be changed.
+     */
+    private function guardBookingCartItemUpdate(CartModel $cart, int $cartItemId): void
+    {
+        $cartItem = $cart->items->firstWhere('id', $cartItemId);
+
+        if (! $cartItem || $cartItem->type !== 'booking') {
+            return;
+        }
+
+        // Check additional.booking.type first, then fall back to DB lookup
+        $bookingType = $cartItem->additional['booking']['type'] ?? null;
+
+        if (! $bookingType) {
+            $bookingType = \Webkul\BookingProduct\Models\BookingProduct::query()
+                ->where('product_id', $cartItem->product_id)
+                ->value('type');
+        }
+
+        if ($bookingType === 'event') {
+            throw new InvalidInputException(
+                __('bagistoapi::app.graphql.cart.event-booking-quantity-not-changeable')
+            );
+        }
+
+        if ($bookingType === 'appointment') {
+            throw new InvalidInputException(
+                __('bagistoapi::app.graphql.cart.appointment-booking-quantity-not-changeable')
+            );
         }
     }
 }

@@ -3,10 +3,10 @@
 namespace Webkul\BagistoApi\State;
 
 use ApiPlatform\Laravel\Eloquent\Paginator;
-use ApiPlatform\Laravel\Eloquent\PartialPaginator;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\Pagination\Pagination;
 use ApiPlatform\State\ProviderInterface;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Request;
 use Webkul\BagistoApi\Exception\AuthenticationException;
@@ -41,20 +41,52 @@ class CustomerAddressProvider implements ProviderInterface
             throw new AuthenticationException(__('bagistoapi::app.graphql.customer-addresses.invalid-or-expired-token'));
         }
 
-        $query = CustomerAddress::where('customer_id', $authenticatedCustomerId);
+        $args = $context['args'] ?? [];
 
-        $isPartial = $operation->getPaginationPartial();
-        $collection = $query
-            ->{$isPartial ? 'simplePaginate' : 'paginate'}(
-                perPage: $this->pagination->getLimit($operation, $context),
-                page: $this->pagination->getPage($context),
-            );
+        $first  = isset($args['first']) ? (int) $args['first'] : null;
+        $last   = isset($args['last']) ? (int) $args['last'] : null;
+        $after  = $args['after'] ?? null;
+        $before = $args['before'] ?? null;
 
-        if ($isPartial) {
-            return new PartialPaginator($collection);
+        $perPage = $first ?? $last ?? 10;
+        $offset  = 0;
+
+        if ($after) {
+            $decoded = base64_decode($after, true);
+            $offset  = ctype_digit((string) $decoded) ? ((int) $decoded + 1) : 0;
         }
 
-        return new Paginator($collection);
+        if ($before) {
+            $decoded = base64_decode($before, true);
+            $cursor  = ctype_digit((string) $decoded) ? (int) $decoded : 0;
+            $offset  = max(0, $cursor - $perPage);
+        }
+
+        $query = CustomerAddress::where('customer_id', $authenticatedCustomerId)
+            ->orderBy('id', 'asc');
+
+        $total = (clone $query)->count();
+
+        if ($offset > $total) {
+            $offset = max(0, $total - $perPage);
+        }
+
+        $items = $query
+            ->offset($offset)
+            ->limit($perPage)
+            ->get();
+
+        $currentPage = $total > 0 ? (int) floor($offset / $perPage) + 1 : 1;
+
+        return new Paginator(
+            new LengthAwarePaginator(
+                $items,
+                $total,
+                $perPage,
+                $currentPage,
+                ['path' => request()->url()]
+            )
+        );
     }
 
     /**
@@ -63,30 +95,23 @@ class CustomerAddressProvider implements ProviderInterface
     private function getCustomerIdFromToken(string $token): ?int
     {
         try {
-            $tokenParts = explode('|', $token);
-
-            if (count($tokenParts) !== 2) {
+            if (strpos($token, '|') === false) {
                 return null;
             }
 
-            $tokenId = $tokenParts[0];
-
-            $personalAccessToken = DB::table('personal_access_tokens')
-                ->where('id', $tokenId)
-                ->where('tokenable_type', Customer::class)
-                ->where(function ($query) {
-                    $query->whereNull('expires_at')
-                        ->orWhere('expires_at', '>', now());
-                })
-                ->first();
+            $personalAccessToken = \Laravel\Sanctum\PersonalAccessToken::findToken($token);
 
             if (! $personalAccessToken) {
                 return null;
             }
 
-            $customer = Customer::find($personalAccessToken->tokenable_id);
+            if (! $personalAccessToken->tokenable instanceof Customer) {
+                return null;
+            }
 
-            if (! $customer || $customer->is_suspended) {
+            $customer = $personalAccessToken->tokenable;
+
+            if ($customer->is_suspended) {
                 return null;
             }
 

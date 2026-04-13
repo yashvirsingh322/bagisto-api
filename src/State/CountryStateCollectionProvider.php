@@ -6,6 +6,7 @@ use ApiPlatform\Laravel\Eloquent\Paginator;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\Pagination\Pagination;
 use ApiPlatform\State\ProviderInterface;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Webkul\BagistoApi\Models\CountryState;
 
@@ -57,52 +58,44 @@ class CountryStateCollectionProvider implements ProviderInterface
             $perPage = $defaultPerPage;
         }
 
+        $offset = 0;
+
+        if ($after) {
+            $decoded = base64_decode($after, true);
+            $offset  = ctype_digit((string) $decoded) ? ((int) $decoded + 1) : 0;
+        }
+
+        if ($before) {
+            $decoded = base64_decode($before, true);
+            $cursor  = ctype_digit((string) $decoded) ? (int) $decoded : 0;
+            $offset  = max(0, $cursor - $perPage);
+        }
+
         $query = CountryState::where('country_id', $countryId)
+            ->with('translations')
             ->orderBy('id', 'asc');
 
-        // Handle cursor-based pagination
-        if ($after) {
-            $afterId = (int) base64_decode($after);
-            $query->where('id', '>', $afterId);
-        } elseif ($before) {
-            $beforeId = (int) base64_decode($before);
-            $query->where('id', '<', $beforeId);
-            // For 'before', we need to reverse order, paginate, then reverse results
-            $query->orderBy('id', 'desc');
-            $laravelPaginator = $query->paginate($perPage);
+        $total = (clone $query)->count();
 
-            // Reverse the items to maintain proper cursor order
-            $items = $laravelPaginator->items();
-            $items = array_reverse($items);
-
-            // Load relations
-            foreach ($items as $item) {
-                $item->load('translations');
-            }
-
-            // Create a new paginator with reversed items
-            return new Paginator(
-                $laravelPaginator,
-                (int) $laravelPaginator->currentPage(),
-                $perPage,
-                $laravelPaginator->lastPage(),
-                $laravelPaginator->total(),
-            );
+        if ($offset > $total) {
+            $offset = max(0, $total - $perPage);
         }
 
-        $laravelPaginator = $query->paginate($perPage);
+        $items = $query
+            ->offset($offset)
+            ->limit($perPage)
+            ->get();
 
-        // Load relations for all items
-        foreach ($laravelPaginator->items() as $item) {
-            $item->load('translations');
-        }
+        $currentPage = $total > 0 ? (int) floor($offset / $perPage) + 1 : 1;
 
         return new Paginator(
-            $laravelPaginator,
-            (int) $laravelPaginator->currentPage(),
-            $perPage,
-            $laravelPaginator->lastPage(),
-            $laravelPaginator->total(),
+            new LengthAwarePaginator(
+                $items,
+                $total,
+                $perPage,
+                $currentPage,
+                ['path' => request()->url()]
+            )
         );
     }
 }

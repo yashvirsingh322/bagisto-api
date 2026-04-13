@@ -151,6 +151,9 @@ class AddToCartBookingProductTest extends GraphQLTestCase
         ];
     }
 
+    /**
+     * Get a valid slot timestamp for a booking product on a given date.
+     */
     private function getSlotTimestamp(int $productId, string $date): ?string
     {
         try {
@@ -169,6 +172,40 @@ class AddToCartBookingProductTest extends GraphQLTestCase
             $timestamp = $slots[0]['timestamp'] ?? null;
 
             return is_string($timestamp) ? $timestamp : null;
+        } catch (\Throwable) {
+            return null;
+        }
+    }
+
+    /**
+     * Get a valid rental hourly slot (from/to timestamps) for a booking product on a given date.
+     *
+     * @return array{from:int,to:int}|null
+     */
+    private function getRentalHourlySlot(int $productId, string $date): ?array
+    {
+        try {
+            /** @var BookingProductRepository $bookingProductRepository */
+            $bookingProductRepository = app(BookingProductRepository::class);
+            $bookingProduct = $bookingProductRepository->findOneByField('product_id', $productId);
+
+            if (! $bookingProduct) {
+                return null;
+            }
+
+            /** @var BookingHelper $bookingHelper */
+            $bookingHelper = app(BookingHelper::class);
+            $slots = $bookingHelper->getSlotsByDate($bookingProduct, $date);
+
+            $innerSlot = $slots[0]['slots'][0] ?? null;
+            if (! $innerSlot) {
+                return null;
+            }
+
+            $from = $innerSlot['from_timestamp'] ?? null;
+            $to = $innerSlot['to_timestamp'] ?? null;
+
+            return ($from && $to) ? ['from' => (int) $from, 'to' => (int) $to] : null;
         } catch (\Throwable) {
             return null;
         }
@@ -659,5 +696,688 @@ class AddToCartBookingProductTest extends GraphQLTestCase
 
         $response->assertSuccessful();
         $this->assertCustomerCartSuccess($response->json());
+    }
+
+    /**
+     * Create a rental booking product fixture with hourly slots.
+     */
+    private function createHourlyRentalFixture(): array
+    {
+        $product = $this->createBaseProduct('booking', [
+            'sku' => 'TEST-BOOKING-rental-hourly-'.uniqid(),
+        ]);
+
+        $tomorrow = Carbon::now()->addDay()->format('Y-m-d');
+
+        $booking = BookingProduct::query()->create([
+            'product_id'           => $product->id,
+            'type'                 => 'rental',
+            'qty'                  => 100,
+            'available_every_week' => 1,
+            'available_from'       => null,
+            'available_to'         => null,
+        ]);
+
+        BookingProductRentalSlot::query()->create([
+            'booking_product_id' => $booking->id,
+            'renting_type'       => 'hourly',
+            'daily_price'        => 0,
+            'hourly_price'       => 5,
+            'same_slot_all_days' => 1,
+            'slots'              => [
+                ['from' => '09:00', 'to' => '17:00'],
+            ],
+        ]);
+
+        return [
+            'product'      => $product,
+            'booking'      => $booking,
+            'tomorrowDate' => $tomorrow,
+        ];
+    }
+
+    /**
+     * Full add-to-cart mutation matching the complete API spec for booking products.
+     */
+    private function fullBookingMutation(): string
+    {
+        return <<<'GQL'
+            mutation createAddProductInCart(
+              $productId: Int!
+              $booking: String!
+              $quantity: Int
+              $specialNote: String
+            ) {
+              createAddProductInCart(
+                input: {
+                  productId: $productId
+                  quantity: $quantity
+                  booking: $booking
+                  bookingNote: $specialNote
+                }
+              ) {
+                addProductInCart {
+                  id
+                  _id
+                  cartToken
+                  customerId
+                  channelId
+                  subtotal
+                  baseSubtotal
+                  discountAmount
+                  baseDiscountAmount
+                  taxAmount
+                  baseTaxAmount
+                  shippingAmount
+                  baseShippingAmount
+                  grandTotal
+                  baseGrandTotal
+                  formattedSubtotal
+                  formattedDiscountAmount
+                  formattedTaxAmount
+                  formattedShippingAmount
+                  formattedGrandTotal
+                  couponCode
+                  items {
+                    totalCount
+                    pageInfo {
+                      startCursor
+                      endCursor
+                      hasNextPage
+                      hasPreviousPage
+                    }
+                    edges {
+                      cursor
+                      node {
+                        id
+                        cartId
+                        productId
+                        name
+                        sku
+                        quantity
+                        price
+                        basePrice
+                        total
+                        baseTotal
+                        discountAmount
+                        baseDiscountAmount
+                        taxAmount
+                        baseTaxAmount
+                        type
+                        formattedPrice
+                        formattedTotal
+                        priceInclTax
+                        basePriceInclTax
+                        formattedPriceInclTax
+                        totalInclTax
+                        baseTotalInclTax
+                        formattedTotalInclTax
+                        productUrlKey
+                        canChangeQty
+                        options
+                      }
+                    }
+                  }
+                  success
+                  message
+                  sessionToken
+                  isGuest
+                  itemsQty
+                  itemsCount
+                  haveStockableItems
+                  paymentMethod
+                  paymentMethodTitle
+                  subTotalInclTax
+                  baseSubTotalInclTax
+                  formattedSubTotalInclTax
+                  taxTotal
+                  formattedTaxTotal
+                  shippingAmountInclTax
+                  baseShippingAmountInclTax
+                  formattedShippingAmountInclTax
+                }
+              }
+            }
+        GQL;
+    }
+
+    /**
+     * Assert full cart response structure and values for booking products.
+     */
+    private function assertFullBookingCartResponse(array $data, int $productId, bool $isGuest = true): void
+    {
+        $this->assertNotNull($data);
+        $this->assertTrue((bool) ($data['success'] ?? false));
+
+        if ($isGuest) {
+            $this->assertTrue((bool) ($data['isGuest'] ?? false));
+        } else {
+            $this->assertFalse((bool) ($data['isGuest'] ?? true));
+            $this->assertNotNull($data['customerId'] ?? null);
+        }
+
+        $this->assertNotNull($data['channelId'] ?? null);
+        $this->assertGreaterThan(0, (int) ($data['itemsCount'] ?? 0));
+        $this->assertGreaterThan(0, (int) ($data['itemsQty'] ?? 0));
+        $this->assertArrayHasKey('haveStockableItems', $data);
+
+        // Cart totals
+        $this->assertGreaterThanOrEqual(0, (float) ($data['subtotal'] ?? -1));
+        $this->assertSame((float) $data['subtotal'], (float) $data['baseSubtotal']);
+        $this->assertGreaterThanOrEqual(0, (float) ($data['grandTotal'] ?? -1));
+        $this->assertSame((float) $data['grandTotal'], (float) $data['baseGrandTotal']);
+        $this->assertNotNull($data['formattedSubtotal']);
+        $this->assertNotNull($data['formattedGrandTotal']);
+        $this->assertNotNull($data['formattedDiscountAmount']);
+        $this->assertNotNull($data['formattedTaxAmount']);
+        $this->assertNotNull($data['formattedShippingAmount']);
+
+        // Tax/shipping inclusive fields
+        $this->assertArrayHasKey('subTotalInclTax', $data);
+        $this->assertArrayHasKey('baseSubTotalInclTax', $data);
+        $this->assertArrayHasKey('formattedSubTotalInclTax', $data);
+        $this->assertArrayHasKey('taxTotal', $data);
+        $this->assertArrayHasKey('formattedTaxTotal', $data);
+        $this->assertArrayHasKey('shippingAmountInclTax', $data);
+        $this->assertArrayHasKey('baseShippingAmountInclTax', $data);
+        $this->assertArrayHasKey('formattedShippingAmountInclTax', $data);
+
+        // Nullable fields
+        $this->assertArrayHasKey('couponCode', $data);
+        $this->assertArrayHasKey('paymentMethod', $data);
+        $this->assertArrayHasKey('paymentMethodTitle', $data);
+        $this->assertArrayHasKey('sessionToken', $data);
+
+        // Cart item
+        $this->assertGreaterThan(0, (int) ($data['items']['totalCount'] ?? 0));
+        $edges = $data['items']['edges'] ?? [];
+        $this->assertNotEmpty($edges);
+
+        $item = $edges[0]['node'] ?? null;
+        $this->assertNotNull($item, 'Cart item node is missing');
+        $this->assertSame($productId, (int) ($item['productId'] ?? 0));
+        $this->assertSame('booking', $item['type'] ?? '');
+        $this->assertGreaterThanOrEqual(0, (float) ($item['price'] ?? -1));
+        $this->assertSame((float) $item['price'], (float) $item['basePrice']);
+        $this->assertGreaterThanOrEqual(0, (float) ($item['total'] ?? -1));
+        $this->assertSame((float) $item['total'], (float) $item['baseTotal']);
+        $this->assertNotNull($item['name']);
+        $this->assertNotNull($item['sku']);
+        $this->assertNotNull($item['formattedPrice']);
+        $this->assertNotNull($item['formattedTotal']);
+        $this->assertNotNull($item['formattedPriceInclTax']);
+        $this->assertNotNull($item['formattedTotalInclTax']);
+        $this->assertArrayHasKey('priceInclTax', $item);
+        $this->assertArrayHasKey('basePriceInclTax', $item);
+        $this->assertArrayHasKey('totalInclTax', $item);
+        $this->assertArrayHasKey('baseTotalInclTax', $item);
+        $this->assertArrayHasKey('productUrlKey', $item);
+        $this->assertArrayHasKey('canChangeQty', $item);
+        $this->assertArrayHasKey('options', $item);
+
+        // Pagination
+        $pageInfo = $data['items']['pageInfo'] ?? null;
+        $this->assertNotNull($pageInfo);
+        $this->assertArrayHasKey('startCursor', $pageInfo);
+        $this->assertArrayHasKey('endCursor', $pageInfo);
+        $this->assertArrayHasKey('hasNextPage', $pageInfo);
+        $this->assertArrayHasKey('hasPreviousPage', $pageInfo);
+
+        // Cursor on edge
+        $this->assertArrayHasKey('cursor', $edges[0]);
+    }
+
+    // ─── Full response tests ────────────────────────────────────────────
+
+    /**
+     * Default booking product — full response as guest.
+     */
+    public function test_default_booking_full_response_as_guest(): void
+    {
+        $token = $this->getGuestCartToken();
+        $this->seedRequiredData();
+
+        $fixture = $this->createBookingProductFixture('default');
+        $date = $fixture['tomorrowDate'];
+
+        $slot = $this->getSlotTimestamp((int) $fixture['product']->id, $date);
+        if (! $slot) {
+            $this->markTestSkipped('No valid slot found for default booking product.');
+        }
+
+        $booking = json_encode([
+            'type' => 'default',
+            'date' => $date,
+            'slot' => $slot,
+        ], JSON_UNESCAPED_SLASHES);
+
+        $response = $this->graphQL($this->fullBookingMutation(), [
+            'productId' => (int) $fixture['product']->id,
+            'quantity'  => 1,
+            'booking'   => $booking,
+        ], $this->guestHeaders($token));
+
+        $response->assertSuccessful();
+
+        $json = $response->json();
+        $this->assertArrayNotHasKey('errors', $json, 'GraphQL errors: '.json_encode($json['errors'] ?? []));
+
+        $data = $json['data']['createAddProductInCart']['addProductInCart'];
+        $this->assertFullBookingCartResponse($data, (int) $fixture['product']->id, true);
+    }
+
+    /**
+     * Default booking product — full response as customer.
+     */
+    public function test_default_booking_full_response_as_customer(): void
+    {
+        $token = $this->loginCustomerAndGetToken();
+        $this->seedRequiredData();
+
+        $fixture = $this->createBookingProductFixture('default');
+        $date = $fixture['tomorrowDate'];
+
+        $slot = $this->getSlotTimestamp((int) $fixture['product']->id, $date);
+        if (! $slot) {
+            $this->markTestSkipped('No valid slot found for default booking product.');
+        }
+
+        $booking = json_encode([
+            'type' => 'default',
+            'date' => $date,
+            'slot' => $slot,
+        ], JSON_UNESCAPED_SLASHES);
+
+        $response = $this->graphQL($this->fullBookingMutation(), [
+            'productId' => (int) $fixture['product']->id,
+            'quantity'  => 1,
+            'booking'   => $booking,
+        ], $this->customerHeaders($token));
+
+        $response->assertSuccessful();
+
+        $json = $response->json();
+        $this->assertArrayNotHasKey('errors', $json, 'GraphQL errors: '.json_encode($json['errors'] ?? []));
+
+        $data = $json['data']['createAddProductInCart']['addProductInCart'];
+        $this->assertFullBookingCartResponse($data, (int) $fixture['product']->id, false);
+    }
+
+    /**
+     * Appointment booking product — full response as guest.
+     */
+    public function test_appointment_booking_full_response_as_guest(): void
+    {
+        $token = $this->getGuestCartToken();
+        $this->seedRequiredData();
+
+        $fixture = $this->createBookingProductFixture('appointment');
+        $date = $fixture['tomorrowDate'];
+
+        $slot = $this->getSlotTimestamp((int) $fixture['product']->id, $date);
+        if (! $slot) {
+            $this->markTestSkipped('No valid slot found for appointment booking product.');
+        }
+
+        $booking = json_encode([
+            'type' => 'appointment',
+            'date' => $date,
+            'slot' => $slot,
+        ], JSON_UNESCAPED_SLASHES);
+
+        $response = $this->graphQL($this->fullBookingMutation(), [
+            'productId' => (int) $fixture['product']->id,
+            'booking'   => $booking,
+        ], $this->guestHeaders($token));
+
+        $response->assertSuccessful();
+
+        $json = $response->json();
+        $this->assertArrayNotHasKey('errors', $json, 'GraphQL errors: '.json_encode($json['errors'] ?? []));
+
+        $data = $json['data']['createAddProductInCart']['addProductInCart'];
+        $this->assertFullBookingCartResponse($data, (int) $fixture['product']->id, true);
+    }
+
+    /**
+     * Appointment booking product — full response as customer.
+     */
+    public function test_appointment_booking_full_response_as_customer(): void
+    {
+        $token = $this->loginCustomerAndGetToken();
+        $this->seedRequiredData();
+
+        $fixture = $this->createBookingProductFixture('appointment');
+        $date = $fixture['tomorrowDate'];
+
+        $slot = $this->getSlotTimestamp((int) $fixture['product']->id, $date);
+        if (! $slot) {
+            $this->markTestSkipped('No valid slot found for appointment booking product.');
+        }
+
+        $booking = json_encode([
+            'type' => 'appointment',
+            'date' => $date,
+            'slot' => $slot,
+        ], JSON_UNESCAPED_SLASHES);
+
+        $response = $this->graphQL($this->fullBookingMutation(), [
+            'productId' => (int) $fixture['product']->id,
+            'booking'   => $booking,
+        ], $this->customerHeaders($token));
+
+        $response->assertSuccessful();
+
+        $json = $response->json();
+        $this->assertArrayNotHasKey('errors', $json, 'GraphQL errors: '.json_encode($json['errors'] ?? []));
+
+        $data = $json['data']['createAddProductInCart']['addProductInCart'];
+        $this->assertFullBookingCartResponse($data, (int) $fixture['product']->id, false);
+    }
+
+    /**
+     * Rental booking product (daily) — full response as guest.
+     */
+    public function test_rental_daily_booking_full_response_as_guest(): void
+    {
+        $token = $this->getGuestCartToken();
+        $this->seedRequiredData();
+
+        $fixture = $this->createBookingProductFixture('rental');
+        $dateFrom = $fixture['tomorrowDate'];
+        $dateTo = Carbon::parse($dateFrom)->addDay()->format('Y-m-d');
+
+        $booking = json_encode([
+            'type'         => 'rental',
+            'renting_type' => 'daily',
+            'date_from'    => $dateFrom,
+            'date_to'      => $dateTo,
+        ], JSON_UNESCAPED_SLASHES);
+
+        $response = $this->graphQL($this->fullBookingMutation(), [
+            'productId' => (int) $fixture['product']->id,
+            'quantity'  => 1,
+            'booking'   => $booking,
+        ], $this->guestHeaders($token));
+
+        $response->assertSuccessful();
+
+        $json = $response->json();
+        $this->assertArrayNotHasKey('errors', $json, 'GraphQL errors: '.json_encode($json['errors'] ?? []));
+
+        $data = $json['data']['createAddProductInCart']['addProductInCart'];
+        $this->assertFullBookingCartResponse($data, (int) $fixture['product']->id, true);
+    }
+
+    /**
+     * Rental booking product (daily) — full response as customer.
+     */
+    public function test_rental_daily_booking_full_response_as_customer(): void
+    {
+        $token = $this->loginCustomerAndGetToken();
+        $this->seedRequiredData();
+
+        $fixture = $this->createBookingProductFixture('rental');
+        $dateFrom = $fixture['tomorrowDate'];
+        $dateTo = Carbon::parse($dateFrom)->addDay()->format('Y-m-d');
+
+        $booking = json_encode([
+            'type'         => 'rental',
+            'renting_type' => 'daily',
+            'date_from'    => $dateFrom,
+            'date_to'      => $dateTo,
+        ], JSON_UNESCAPED_SLASHES);
+
+        $response = $this->graphQL($this->fullBookingMutation(), [
+            'productId' => (int) $fixture['product']->id,
+            'quantity'  => 1,
+            'booking'   => $booking,
+        ], $this->customerHeaders($token));
+
+        $response->assertSuccessful();
+
+        $json = $response->json();
+        $this->assertArrayNotHasKey('errors', $json, 'GraphQL errors: '.json_encode($json['errors'] ?? []));
+
+        $data = $json['data']['createAddProductInCart']['addProductInCart'];
+        $this->assertFullBookingCartResponse($data, (int) $fixture['product']->id, false);
+    }
+
+    /**
+     * Rental booking product (hourly) — full response as guest.
+     */
+    public function test_rental_hourly_booking_full_response_as_guest(): void
+    {
+        $token = $this->getGuestCartToken();
+        $this->seedRequiredData();
+
+        $fixture = $this->createHourlyRentalFixture();
+        $date = $fixture['tomorrowDate'];
+
+        $slot = $this->getRentalHourlySlot((int) $fixture['product']->id, $date);
+        if (! $slot) {
+            $this->markTestSkipped('No valid slot found for hourly rental booking product.');
+        }
+
+        $booking = json_encode([
+            'type'         => 'rental',
+            'renting_type' => 'hourly',
+            'date'         => $date,
+            'slot'         => $slot,
+        ], JSON_UNESCAPED_SLASHES);
+
+        $response = $this->graphQL($this->fullBookingMutation(), [
+            'productId' => (int) $fixture['product']->id,
+            'quantity'  => 1,
+            'booking'   => $booking,
+        ], $this->guestHeaders($token));
+
+        $response->assertSuccessful();
+
+        $json = $response->json();
+        $this->assertArrayNotHasKey('errors', $json, 'GraphQL errors: '.json_encode($json['errors'] ?? []));
+
+        $data = $json['data']['createAddProductInCart']['addProductInCart'];
+        $this->assertFullBookingCartResponse($data, (int) $fixture['product']->id, true);
+    }
+
+    /**
+     * Rental booking product (hourly) — full response as customer.
+     */
+    public function test_rental_hourly_booking_full_response_as_customer(): void
+    {
+        $token = $this->loginCustomerAndGetToken();
+        $this->seedRequiredData();
+
+        $fixture = $this->createHourlyRentalFixture();
+        $date = $fixture['tomorrowDate'];
+
+        $slot = $this->getRentalHourlySlot((int) $fixture['product']->id, $date);
+        if (! $slot) {
+            $this->markTestSkipped('No valid slot found for hourly rental booking product.');
+        }
+
+        $booking = json_encode([
+            'type'         => 'rental',
+            'renting_type' => 'hourly',
+            'date'         => $date,
+            'slot'         => $slot,
+        ], JSON_UNESCAPED_SLASHES);
+
+        $response = $this->graphQL($this->fullBookingMutation(), [
+            'productId' => (int) $fixture['product']->id,
+            'quantity'  => 1,
+            'booking'   => $booking,
+        ], $this->customerHeaders($token));
+
+        $response->assertSuccessful();
+
+        $json = $response->json();
+        $this->assertArrayNotHasKey('errors', $json, 'GraphQL errors: '.json_encode($json['errors'] ?? []));
+
+        $data = $json['data']['createAddProductInCart']['addProductInCart'];
+        $this->assertFullBookingCartResponse($data, (int) $fixture['product']->id, false);
+    }
+
+    /**
+     * Event booking product — full response as guest.
+     */
+    public function test_event_booking_full_response_as_guest(): void
+    {
+        $token = $this->getGuestCartToken();
+        $this->seedRequiredData();
+
+        $fixture = $this->createBookingProductFixture('event');
+
+        $ticketIds = DB::table('booking_product_event_tickets')
+            ->where('booking_product_id', (int) $fixture['booking']->id)
+            ->orderBy('id')
+            ->pluck('id')
+            ->map(fn ($id) => (int) $id)
+            ->values()
+            ->all();
+
+        $qty = [];
+        foreach ($ticketIds as $ticketId) {
+            $qty[(string) $ticketId] = 1;
+        }
+
+        $booking = json_encode([
+            'type' => 'event',
+            'qty'  => $qty,
+        ], JSON_UNESCAPED_SLASHES);
+
+        $response = $this->graphQL($this->fullBookingMutation(), [
+            'productId' => (int) $fixture['product']->id,
+            'quantity'  => 1,
+            'booking'   => $booking,
+        ], $this->guestHeaders($token));
+
+        $response->assertSuccessful();
+
+        $json = $response->json();
+        $this->assertArrayNotHasKey('errors', $json, 'GraphQL errors: '.json_encode($json['errors'] ?? []));
+
+        $data = $json['data']['createAddProductInCart']['addProductInCart'];
+        $this->assertFullBookingCartResponse($data, (int) $fixture['product']->id, true);
+    }
+
+    /**
+     * Event booking product — full response as customer.
+     */
+    public function test_event_booking_full_response_as_customer(): void
+    {
+        $token = $this->loginCustomerAndGetToken();
+        $this->seedRequiredData();
+
+        $fixture = $this->createBookingProductFixture('event');
+
+        $ticketIds = DB::table('booking_product_event_tickets')
+            ->where('booking_product_id', (int) $fixture['booking']->id)
+            ->orderBy('id')
+            ->pluck('id')
+            ->map(fn ($id) => (int) $id)
+            ->values()
+            ->all();
+
+        $qty = [];
+        foreach ($ticketIds as $ticketId) {
+            $qty[(string) $ticketId] = 1;
+        }
+
+        $booking = json_encode([
+            'type' => 'event',
+            'qty'  => $qty,
+        ], JSON_UNESCAPED_SLASHES);
+
+        $response = $this->graphQL($this->fullBookingMutation(), [
+            'productId' => (int) $fixture['product']->id,
+            'quantity'  => 1,
+            'booking'   => $booking,
+        ], $this->customerHeaders($token));
+
+        $response->assertSuccessful();
+
+        $json = $response->json();
+        $this->assertArrayNotHasKey('errors', $json, 'GraphQL errors: '.json_encode($json['errors'] ?? []));
+
+        $data = $json['data']['createAddProductInCart']['addProductInCart'];
+        $this->assertFullBookingCartResponse($data, (int) $fixture['product']->id, false);
+    }
+
+    /**
+     * Table booking product — full response as guest with special note.
+     */
+    public function test_table_booking_full_response_as_guest(): void
+    {
+        $token = $this->getGuestCartToken();
+        $this->seedRequiredData();
+
+        $fixture = $this->createBookingProductFixture('table');
+        $date = $fixture['tomorrowDate'];
+
+        $slot = $this->getSlotTimestamp((int) $fixture['product']->id, $date);
+        if (! $slot) {
+            $this->markTestSkipped('No valid slot found for table booking product.');
+        }
+
+        $booking = json_encode([
+            'type' => 'table',
+            'date' => $date,
+            'slot' => $slot,
+        ], JSON_UNESCAPED_SLASHES);
+
+        $response = $this->graphQL($this->fullBookingMutation(), [
+            'productId'   => (int) $fixture['product']->id,
+            'quantity'    => 1,
+            'booking'     => $booking,
+            'specialNote' => 'This is a special note',
+        ], $this->guestHeaders($token));
+
+        $response->assertSuccessful();
+
+        $json = $response->json();
+        $this->assertArrayNotHasKey('errors', $json, 'GraphQL errors: '.json_encode($json['errors'] ?? []));
+
+        $data = $json['data']['createAddProductInCart']['addProductInCart'];
+        $this->assertFullBookingCartResponse($data, (int) $fixture['product']->id, true);
+    }
+
+    /**
+     * Table booking product — full response as customer with special note.
+     */
+    public function test_table_booking_full_response_as_customer(): void
+    {
+        $token = $this->loginCustomerAndGetToken();
+        $this->seedRequiredData();
+
+        $fixture = $this->createBookingProductFixture('table');
+        $date = $fixture['tomorrowDate'];
+
+        $slot = $this->getSlotTimestamp((int) $fixture['product']->id, $date);
+        if (! $slot) {
+            $this->markTestSkipped('No valid slot found for table booking product.');
+        }
+
+        $booking = json_encode([
+            'type' => 'table',
+            'date' => $date,
+            'slot' => $slot,
+        ], JSON_UNESCAPED_SLASHES);
+
+        $response = $this->graphQL($this->fullBookingMutation(), [
+            'productId'   => (int) $fixture['product']->id,
+            'quantity'    => 1,
+            'booking'     => $booking,
+            'specialNote' => 'This is a special note',
+        ], $this->customerHeaders($token));
+
+        $response->assertSuccessful();
+
+        $json = $response->json();
+        $this->assertArrayNotHasKey('errors', $json, 'GraphQL errors: '.json_encode($json['errors'] ?? []));
+
+        $data = $json['data']['createAddProductInCart']['addProductInCart'];
+        $this->assertFullBookingCartResponse($data, (int) $fixture['product']->id, false);
     }
 }

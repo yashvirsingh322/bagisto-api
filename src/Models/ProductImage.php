@@ -66,6 +66,7 @@ use Webkul\BagistoApi\Resolver\BaseQueryItemResolver;
     ],
     graphQlOperations: [
         new QueryCollection(
+            provider: \Webkul\BagistoApi\State\CursorAwareCollectionProvider::class,
             args: [
                 'product_id' => ['type' => 'Int', 'description' => 'Filter by product ID'],
             ]

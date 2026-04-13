@@ -219,6 +219,24 @@ abstract class BagistoApiTestCase extends BagistoApiTest
                 'qty' => $qty,
             ]
         );
+
+        $channelId = (int) (Channel::query()->value('id') ?? 0);
+
+        if (! $channelId) {
+            $this->markTestSkipped('No channels found. Run Bagisto seeders for channels.');
+        }
+
+        DB::table('product_inventory_indices')->updateOrInsert(
+            [
+                'product_id' => $product->id,
+                'channel_id' => $channelId,
+            ],
+            [
+                'qty'        => $qty,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]
+        );
     }
 
     protected function createBaseProduct(string $type, array $overrides = []): Product

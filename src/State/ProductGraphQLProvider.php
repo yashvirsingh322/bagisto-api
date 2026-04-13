@@ -17,11 +17,18 @@ class ProductGraphQLProvider implements ProviderInterface
 
     private ?array $attributeTypeCache = null;
 
+    private ?array $attributeScopeCache = null;
+
     public function provide(Operation $operation, array $uriVariables = [], array $context = []): object|array|null
     {
-        // Cache attribute types once for the entire request
+        // Cache attribute types and scope flags once for the entire request
         $this->attributeTypeCache = \DB::table('attributes')
             ->pluck('type', 'code')
+            ->toArray();
+
+        $this->attributeScopeCache = \DB::table('attributes')
+            ->get(['code', 'value_per_locale', 'value_per_channel'])
+            ->keyBy('code')
             ->toArray();
 
         $args = $context['args'] ?? [];
@@ -44,7 +51,8 @@ class ProductGraphQLProvider implements ProviderInterface
             $query->where(function ($q) use ($searchTerm) {
                 $q->where('sku', 'like', "%{$searchTerm}%")
                   ->orWhereHas('attribute_values', function ($attr) use ($searchTerm) {
-                      $attr->where('text_value', 'like', "%{$searchTerm}%");
+                      $attr->where('attribute_id', 2)
+                           ->where('text_value', 'like', "%{$searchTerm}%");
                   });
             });
         }
@@ -58,21 +66,33 @@ class ProductGraphQLProvider implements ProviderInterface
         switch ($sortKey) {
             case 'TITLE':
             case 'NAME':
-                $query->leftJoin('product_attribute_values as pav_name', function ($join) {
-                    $join->on('products.id', '=', 'pav_name.product_id')
-                         ->where('pav_name.attribute_id', 2);
-                })
-                ->orderBy('pav_name.text_value', $direction)
+                $prefix = \DB::getTablePrefix();
+
+                // Join for requested locale/channel
+                $query->leftJoin('product_attribute_values as pav_name_locale', function ($join) use ($locale, $channel) {
+                    $join->on('products.id', '=', 'pav_name_locale.product_id')
+                         ->where('pav_name_locale.attribute_id', 2);
+
+                    if ($locale) {
+                        $join->where('pav_name_locale.locale', $locale);
+                    }
+
+                    if ($channel) {
+                        $join->where('pav_name_locale.channel', $channel);
+                    }
+                });
+
+                // Fallback join for null locale/channel (default values)
+                $query->leftJoin('product_attribute_values as pav_name_fallback', function ($join) {
+                    $join->on('products.id', '=', 'pav_name_fallback.product_id')
+                         ->where('pav_name_fallback.attribute_id', 2)
+                         ->whereNull('pav_name_fallback.locale')
+                         ->whereNull('pav_name_fallback.channel');
+                });
+
+                $query->orderBy(\DB::raw("COALESCE({$prefix}pav_name_locale.text_value, {$prefix}pav_name_fallback.text_value)"), $direction)
                 ->orderBy('products.id', $direction)
                 ->select('products.*');
-
-                if ($locale) {
-                    $query->where('pav_name.locale', $locale);
-                }
-
-                if ($channel) {
-                    $query->where('pav_name.channel', $channel);
-                }
                 break;
 
             case 'CREATED_AT':
@@ -224,8 +244,8 @@ class ProductGraphQLProvider implements ProviderInterface
                         $matchType = $filterData['matchType'];
                         $attributeType = $this->attributeTypeCache[$attrCode] ?? 'text';
 
-                        $productFilterQuery->where(function ($q) use ($term, $matchType, $locale, $channel, $productAlias, $attributeType) {
-                            $this->applyAttributeFilter($q, $term, $matchType, $locale, $channel, $productAlias, $attributeType);
+                        $productFilterQuery->where(function ($q) use ($term, $matchType, $locale, $channel, $productAlias, $attributeType, $attrCode) {
+                            $this->applyAttributeFilter($q, $term, $matchType, $locale, $channel, $productAlias, $attributeType, $attrCode);
                         });
                     }
                 });
@@ -238,8 +258,8 @@ class ProductGraphQLProvider implements ProviderInterface
                         $matchType = $filterData['matchType'];
                         $attributeType = $this->attributeTypeCache[$attrCode] ?? 'text';
 
-                        $variantFilterQuery->where(function ($q) use ($term, $matchType, $locale, $channel, $variantAlias, $attributeType) {
-                            $this->applyAttributeFilter($q, $term, $matchType, $locale, $channel, $variantAlias, $attributeType);
+                        $variantFilterQuery->where(function ($q) use ($term, $matchType, $locale, $channel, $variantAlias, $attributeType, $attrCode) {
+                            $this->applyAttributeFilter($q, $term, $matchType, $locale, $channel, $variantAlias, $attributeType, $attrCode);
                         });
                     }
                 });
@@ -319,20 +339,23 @@ class ProductGraphQLProvider implements ProviderInterface
     /**
      * Apply attribute filter logic to a query based on attribute type
      */
-    private function applyAttributeFilter($q, $term, $matchType, $locale, $channel, $alias, $attributeType = null)
+    private function applyAttributeFilter($q, $term, $matchType, $locale, $channel, $alias, $attributeType = null, $attrCode = null)
     {
         // Fallback to text_value if attribute type not provided
         if (!$attributeType) {
             $attributeType = 'text';
         }
 
-        // Apply locale filter if provided
-        if ($locale) {
+        // Only constrain locale/channel when the attribute is actually scoped —
+        // non-scoped attributes store NULL in locale/channel columns, so adding
+        // a WHERE locale = 'en' would exclude every match.
+        $scope = $attrCode ? ($this->attributeScopeCache[$attrCode] ?? null) : null;
+
+        if ($locale && ($scope->value_per_locale ?? false)) {
             $q->where($alias . '.locale', $locale);
         }
 
-        // Apply channel filter if provided
-        if ($channel) {
+        if ($channel && ($scope->value_per_channel ?? false)) {
             $q->where($alias . '.channel', $channel);
         }
 

@@ -64,14 +64,14 @@ class ShippingRatesProvider implements ProviderInterface
                     $output->label = (string) ($group['carrier_title'] ?? $carrier);
                     $output->method = (string) ($rate->method ?? $carrier);
                     $output->price = (float) ($rate->price ?? 0);
-                    $output->formattedPrice = (string) core()->formatPrice($rate->price ?? 0);
+                    $output->formatted_price = (string) core()->formatPrice($rate->price ?? 0);
                     $output->description = (string) ($rate->method_description ?? '');
-                    $output->methodTitle = (string) ($rate->method_title ?? $group['carrier_title'] ?? $carrier);
-                    $output->methodDescription = (string) ($rate->method_description ?? '');
-                    $output->basePrice = (float) ($rate->base_price ?? 0);
-                    $output->baseFormattedPrice = (string) ($rate->base_formatted_price ?? core()->currency($rate->base_price ?? 0));
+                    $output->method_title = (string) ($rate->method_title ?? $group['carrier_title'] ?? $carrier);
+                    $output->method_description = (string) ($rate->method_description ?? '');
+                    $output->base_price = (float) ($rate->base_price ?? 0);
+                    $output->base_formatted_price = (string) ($rate->base_formatted_price ?? core()->currency($rate->base_price ?? 0));
                     $output->carrier = (string) $carrier;
-                    $output->carrierTitle = (string) ($group['carrier_title'] ?? $carrier);
+                    $output->carrier_title = (string) ($group['carrier_title'] ?? $carrier);
 
                     $outputs[] = $output;
                 }

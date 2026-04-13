@@ -45,20 +45,32 @@ class ProductBagistoApiProvider implements ProviderInterface
         switch (strtoupper($sortKey)) {
             case 'TITLE':
             case 'NAME':
-                $query->leftJoin('product_attribute_values as pav_name', function ($join) {
-                    $join->on('products.id', '=', 'pav_name.product_id')
-                        ->where('pav_name.attribute_id', '=', 2);
-                })
-                    ->orderBy('pav_name.text_value', $direction)
+                $prefix = \DB::getTablePrefix();
+
+                // Join for requested locale/channel
+                $query->leftJoin('product_attribute_values as pav_name_locale', function ($join) use ($locale, $channel) {
+                    $join->on('products.id', '=', 'pav_name_locale.product_id')
+                        ->where('pav_name_locale.attribute_id', '=', 2);
+
+                    if ($locale) {
+                        $join->where('pav_name_locale.locale', $locale);
+                    }
+
+                    if ($channel) {
+                        $join->where('pav_name_locale.channel', $channel);
+                    }
+                });
+
+                // Fallback join for null locale/channel (default values)
+                $query->leftJoin('product_attribute_values as pav_name_fallback', function ($join) {
+                    $join->on('products.id', '=', 'pav_name_fallback.product_id')
+                        ->where('pav_name_fallback.attribute_id', '=', 2)
+                        ->whereNull('pav_name_fallback.locale')
+                        ->whereNull('pav_name_fallback.channel');
+                });
+
+                $query->orderBy(\DB::raw("COALESCE({$prefix}pav_name_locale.text_value, {$prefix}pav_name_fallback.text_value)"), $direction)
                     ->select('products.*');
-
-                if ($locale) {
-                    $query->where('pav_name.locale', $locale);
-                }
-
-                if ($channel) {
-                    $query->where('pav_name.channel', $channel);
-                }
 
                 break;
 
@@ -73,20 +85,34 @@ class ProductBagistoApiProvider implements ProviderInterface
                 break;
 
             case 'PRICE':
-                $query->leftJoin('product_attribute_values as pav_price', function ($join) {
-                    $join->on('products.id', '=', 'pav_price.product_id')
-                        ->where('pav_price.attribute_id', '=', 11);
-                })
-                    ->orderBy('pav_price.float_value', $direction)
+                if (! isset($prefix)) {
+                    $prefix = \DB::getTablePrefix();
+                }
+
+                // Join for requested locale/channel
+                $query->leftJoin('product_attribute_values as pav_price_locale', function ($join) use ($locale, $channel) {
+                    $join->on('products.id', '=', 'pav_price_locale.product_id')
+                        ->where('pav_price_locale.attribute_id', '=', 11);
+
+                    if ($locale) {
+                        $join->where('pav_price_locale.locale', $locale);
+                    }
+
+                    if ($channel) {
+                        $join->where('pav_price_locale.channel', $channel);
+                    }
+                });
+
+                // Fallback join for null locale/channel (default values)
+                $query->leftJoin('product_attribute_values as pav_price_fallback', function ($join) {
+                    $join->on('products.id', '=', 'pav_price_fallback.product_id')
+                        ->where('pav_price_fallback.attribute_id', '=', 11)
+                        ->whereNull('pav_price_fallback.locale')
+                        ->whereNull('pav_price_fallback.channel');
+                });
+
+                $query->orderBy(\DB::raw("COALESCE({$prefix}pav_price_locale.float_value, {$prefix}pav_price_fallback.float_value)"), $direction)
                     ->select('products.*');
-
-                if ($locale) {
-                    $query->where('pav_price.locale', $locale);
-                }
-
-                if ($channel) {
-                    $query->where('pav_price.channel', $channel);
-                }
 
                 break;
 

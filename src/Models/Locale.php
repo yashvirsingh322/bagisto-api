@@ -9,6 +9,7 @@ use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\GraphQl\Query;
 use ApiPlatform\Metadata\GraphQl\QueryCollection;
 use Webkul\BagistoApi\Resolver\BaseQueryItemResolver;
+use Webkul\BagistoApi\State\CursorAwareCollectionProvider;
 
 #[ApiResource(
     routePrefix: '/api/shop',
@@ -18,7 +19,7 @@ use Webkul\BagistoApi\Resolver\BaseQueryItemResolver;
     ],
     graphQlOperations: [
         new Query(resolver: BaseQueryItemResolver::class),
-        new QueryCollection,
+        new QueryCollection(provider: CursorAwareCollectionProvider::class),
     ]
 )
 ]

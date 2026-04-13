@@ -5,11 +5,13 @@ namespace Webkul\BagistoApi\Models;
 use ApiPlatform\Metadata\ApiProperty;
 use ApiPlatform\Metadata\ApiResource;
 use GraphQL\Error\UserError;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Model as EloquentModel;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use ApiPlatform\Metadata\GraphQl\Query;
 use ApiPlatform\Metadata\GraphQl\QueryCollection;
 use Webkul\BagistoApi\Resolver\BaseQueryItemResolver;
+use Webkul\BagistoApi\State\CursorAwareCollectionProvider;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Get;
 
@@ -22,7 +24,7 @@ use ApiPlatform\Metadata\Get;
     description: 'Product attribute resource',
     routePrefix: '/api/shop',
     graphQlOperations: [
-        new QueryCollection(),
+        new QueryCollection(provider: CursorAwareCollectionProvider::class),
         new Query(resolver: BaseQueryItemResolver::class),
     ],
     operations: [
@@ -36,7 +38,11 @@ use ApiPlatform\Metadata\Get;
 )]
 class Attribute extends \Webkul\Attribute\Models\Attribute
 {
-    protected $hidden = ['translation'];
+    #[ApiProperty(readableLink: true, description: 'Current locale translation')]
+    public function getTranslation(?string $locale = null, ?bool $withFallback = null): ?Model
+    {
+        return $this->translation;
+    }
 
     public static function boot()
     {

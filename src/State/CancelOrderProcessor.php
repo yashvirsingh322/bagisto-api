@@ -5,6 +5,7 @@ namespace Webkul\BagistoApi\State;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProcessorInterface;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Request;
 use Webkul\BagistoApi\Dto\CancelOrderInput;
 use Webkul\BagistoApi\Exception\AuthorizationException;
 use Webkul\BagistoApi\Exception\InvalidInputException;
@@ -34,6 +35,8 @@ class CancelOrderProcessor implements ProcessorInterface
     public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = []): mixed
     {
         if ($data instanceof CancelOrderInput) {
+            $this->hydrateInputFromContext($data, $context);
+
             return $this->handleCancel($data);
         }
 
@@ -85,5 +88,52 @@ class CancelOrderProcessor implements ProcessorInterface
             orderId: $order->id,
             status: $order->status,
         );
+    }
+
+    /**
+     * GraphQL input can reach the processor in slightly different shapes depending on
+     * whether the client sends variables or an inline literal. Normalize those shapes
+     * into the DTO before validation.
+     */
+    private function hydrateInputFromContext(CancelOrderInput $data, array $context): void
+    {
+        if (! empty($data->orderId)) {
+            return;
+        }
+
+        $input = $context['args']['input'] ?? $context['args'] ?? null;
+
+        $orderId = $this->extractOrderId($input);
+
+        if ($orderId === null) {
+            $request = Request::instance();
+
+            if ($request) {
+                $orderId = $this->extractOrderId($request->input('variables.input'))
+                    ?? $this->extractOrderId($request->input('input'))
+                    ?? $this->extractOrderId($request->input('extensions.variables.input'));
+            }
+        }
+
+        if ($orderId !== null) {
+            $data->orderId = $orderId;
+        }
+    }
+
+    private function extractOrderId(mixed $input): ?int
+    {
+        if (is_array($input)) {
+            $value = $input['orderId'] ?? $input['order_id'] ?? null;
+
+            return is_numeric($value) ? (int) $value : null;
+        }
+
+        if (is_object($input)) {
+            $value = $input->orderId ?? $input->order_id ?? null;
+
+            return is_numeric($value) ? (int) $value : null;
+        }
+
+        return null;
     }
 }

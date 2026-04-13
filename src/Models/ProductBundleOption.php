@@ -12,13 +12,14 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Webkul\Product\Models\ProductBundleOption as BaseProductBundleOption;
 use Webkul\BagistoApi\Resolver\BaseQueryItemResolver;
+use Webkul\BagistoApi\State\CursorAwareCollectionProvider;
 
 #[ApiResource(
     routePrefix: '/api/shop',
     operations: [
     ],
     graphQlOperations: [
-        new QueryCollection,
+        new QueryCollection(provider: CursorAwareCollectionProvider::class),
         new Query(resolver: BaseQueryItemResolver::class),
     ]
 )]

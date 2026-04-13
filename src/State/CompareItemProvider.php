@@ -6,9 +6,10 @@ use ApiPlatform\Laravel\Eloquent\Paginator;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\Pagination\Pagination;
 use ApiPlatform\State\ProviderInterface;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\Auth;
 use Webkul\BagistoApi\Exception\AuthorizationException;
 use Webkul\BagistoApi\Models\CompareItem;
-use Illuminate\Support\Facades\Auth;
 
 /**
  * CompareItemProvider - Handles retrieval of compare items for authenticated customers
@@ -21,14 +22,6 @@ class CompareItemProvider implements ProviderInterface
         private readonly Pagination $pagination
     ) {}
 
-    /**
-     * Retrieve compare items for the authenticated customer
-     *
-     * @param Operation $operation
-     * @param array $uriVariables
-     * @param array $context
-     * @return object|array|null
-     */
     public function provide(Operation $operation, array $uriVariables = [], array $context = []): object|array|null
     {
         $customer = Auth::guard('sanctum')->user();
@@ -43,53 +36,45 @@ class CompareItemProvider implements ProviderInterface
         $after = $args['after'] ?? null;
         $before = $args['before'] ?? null;
 
-        $defaultPerPage = 30;
+        $perPage = $first ?? $last ?? 30;
+        $offset  = 0;
 
-        // Determine page size
-        if ($first !== null) {
-            $perPage = $first;
-        } elseif ($last !== null) {
-            $perPage = $last;
-        } else {
-            $perPage = $defaultPerPage;
+        if ($after) {
+            $decoded = base64_decode($after, true);
+            $offset  = ctype_digit((string) $decoded) ? ((int) $decoded + 1) : 0;
+        }
+
+        if ($before) {
+            $decoded = base64_decode($before, true);
+            $cursor  = ctype_digit((string) $decoded) ? (int) $decoded : 0;
+            $offset  = max(0, $cursor - $perPage);
         }
 
         $query = CompareItem::where('customer_id', $customer->id)
             ->with(['product', 'customer'])
             ->orderBy('id', 'asc');
 
-        // Handle cursor-based pagination
-        if ($after) {
-            $afterId = (int) base64_decode($after);
-            $query->where('id', '>', $afterId);
-        } elseif ($before) {
-            $beforeId = (int) base64_decode($before);
-            $query->where('id', '<', $beforeId);
-            // For 'before', reverse order, paginate, then reverse results
-            $query->orderBy('id', 'desc');
-            $laravelPaginator = $query->paginate($perPage);
+        $total = (clone $query)->count();
 
-            // Reverse items to maintain proper cursor order
-            $items = $laravelPaginator->items();
-            $items = array_reverse($items);
-
-            return new Paginator(
-                $laravelPaginator,
-                (int) $laravelPaginator->currentPage(),
-                $perPage,
-                $laravelPaginator->lastPage(),
-                $laravelPaginator->total(),
-            );
+        if ($offset > $total) {
+            $offset = max(0, $total - $perPage);
         }
 
-        $laravelPaginator = $query->paginate($perPage);
+        $items = $query
+            ->offset($offset)
+            ->limit($perPage)
+            ->get();
+
+        $currentPage = $total > 0 ? (int) floor($offset / $perPage) + 1 : 1;
 
         return new Paginator(
-            $laravelPaginator,
-            (int) $laravelPaginator->currentPage(),
-            $perPage,
-            $laravelPaginator->lastPage(),
-            $laravelPaginator->total(),
+            new LengthAwarePaginator(
+                $items,
+                $total,
+                $perPage,
+                $currentPage,
+                ['path' => request()->url()]
+            )
         );
     }
 }

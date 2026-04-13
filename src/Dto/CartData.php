@@ -230,35 +230,35 @@ class CartData
 
         $data->items = $items->toArray();
 
-        $data->subtotal = (float) ($cart->sub_total ?? 0);
+        $data->subtotal = (float) core()->convertPrice($cart->base_sub_total ?? 0);
         $data->baseSubtotal = (float) ($cart->base_sub_total ?? 0);
-        $data->formattedSubtotal = core()->formatPrice($cart->sub_total ?? 0);
+        $data->formattedSubtotal = core()->currency($cart->base_sub_total ?? 0);
 
-        $data->subTotalInclTax = (float) ($cart->sub_total_incl_tax ?? $cart->sub_total ?? 0);
+        $data->subTotalInclTax = (float) core()->convertPrice($cart->base_sub_total_incl_tax ?? $cart->base_sub_total ?? 0);
         $data->baseSubTotalInclTax = (float) ($cart->base_sub_total_incl_tax ?? $cart->base_sub_total ?? 0);
-        $data->formattedSubTotalInclTax = core()->formatPrice($cart->sub_total_incl_tax ?? $cart->sub_total ?? 0);
+        $data->formattedSubTotalInclTax = core()->currency($cart->base_sub_total_incl_tax ?? $cart->base_sub_total ?? 0);
 
-        $data->taxAmount = (float) ($cart->tax_amount ?? 0);
+        $data->taxAmount = (float) core()->convertPrice($cart->base_tax_amount ?? 0);
         $data->baseTaxAmount = (float) ($cart->base_tax_amount ?? 0);
-        $data->taxTotal = (float) ($cart->tax_total ?? $cart->tax_amount ?? 0);
-        $data->formattedTaxTotal = core()->formatPrice($cart->tax_total ?? $cart->tax_amount ?? 0);
-        $data->formattedTaxAmount = core()->formatPrice($cart->tax_amount ?? 0);
+        $data->taxTotal = (float) core()->convertPrice($cart->base_tax_total ?? $cart->base_tax_amount ?? 0);
+        $data->formattedTaxTotal = core()->currency($cart->base_tax_total ?? $cart->base_tax_amount ?? 0);
+        $data->formattedTaxAmount = core()->currency($cart->base_tax_amount ?? 0);
 
-        $data->discountAmount = (float) ($cart->discount_amount ?? 0);
+        $data->discountAmount = (float) core()->convertPrice($cart->base_discount_amount ?? 0);
         $data->baseDiscountAmount = (float) ($cart->base_discount_amount ?? 0);
-        $data->formattedDiscountAmount = core()->formatPrice($cart->discount_amount ?? 0);
+        $data->formattedDiscountAmount = core()->currency($cart->base_discount_amount ?? 0);
 
-        $data->shippingAmount = (float) ($cart->shipping_amount ?? 0);
+        $data->shippingAmount = (float) core()->convertPrice($cart->base_shipping_amount ?? 0);
         $data->baseShippingAmount = (float) ($cart->base_shipping_amount ?? 0);
-        $data->formattedShippingAmount = core()->formatPrice($cart->shipping_amount ?? 0);
+        $data->formattedShippingAmount = core()->currency($cart->base_shipping_amount ?? 0);
 
-        $data->shippingAmountInclTax = (float) ($cart->shipping_amount_incl_tax ?? $cart->shipping_amount ?? 0);
+        $data->shippingAmountInclTax = (float) core()->convertPrice($cart->base_shipping_amount_incl_tax ?? $cart->base_shipping_amount ?? 0);
         $data->baseShippingAmountInclTax = (float) ($cart->base_shipping_amount_incl_tax ?? $cart->base_shipping_amount ?? 0);
-        $data->formattedShippingAmountInclTax = core()->formatPrice($cart->shipping_amount_incl_tax ?? $cart->shipping_amount ?? 0);
+        $data->formattedShippingAmountInclTax = core()->currency($cart->base_shipping_amount_incl_tax ?? $cart->base_shipping_amount ?? 0);
 
-        $data->grandTotal = (float) ($cart->grand_total ?? 0);
+        $data->grandTotal = (float) core()->convertPrice($cart->base_grand_total ?? 0);
         $data->baseGrandTotal = (float) ($cart->base_grand_total ?? 0);
-        $data->formattedGrandTotal = core()->formatPrice($cart->grand_total ?? 0);
+        $data->formattedGrandTotal = core()->currency($cart->base_grand_total ?? 0);
 
         $additional = $cart->additional ?
             (is_string($cart->additional) ? json_decode($cart->additional, true) : $cart->additional) : [];
@@ -308,9 +308,7 @@ class CartData
             $data->appliedTaxes = [];
         }
 
-        $data->haveStockableItems = $cart->items()->whereHas('product', function ($q) {
-            $q->where('type', 'simple');
-        })->count() > 0;
+        $data->haveStockableItems = $cart->haveStockableItems();
 
         if ($cart->selected_shipping_rate) {
             $data->selectedShippingRate = $cart->selected_shipping_rate->method ?? null;

@@ -19,12 +19,16 @@ return [
             'cart-item-id-quantity-required'    => 'Cart item ID and quantity are required',
             'cart-item-id-required'             => 'Cart item ID is required',
             'item-ids-required'                 => 'Item IDs array is required',
+
+            'event-booking-quantity-not-changeable'       => 'Event booking product quantity cannot be changed. Quantity is determined by ticket selection.',
+            'appointment-booking-quantity-not-changeable' => 'Appointment booking product quantity cannot be changed.',
             'coupon-code-required'              => 'Coupon code is required',
             'address-data-required'             => 'Country, state, and postcode are required',
             'grouped-qty-required'             => 'Grouped product requires selected quantities. Pass groupedQty as JSON string, e.g. {"101":2,"102":1}.',
             'grouped-qty-must-include-all'     => 'Grouped product requires quantities for all associated products. Missing IDs: :ids.',
             'grouped-qty-invalid-associated'   => 'Grouped product quantities contain invalid associated product IDs: :ids.',
             'grouped-qty-invalid-quantity'     => 'Invalid quantity provided for associated product ID :id. Quantity must be a non-negative integer.',
+            'bundle-qty-not-changeable'        => 'Quantity for bundle option ":option" cannot be changed. The allowed quantity is :qty.',
 
             'add-product-failed'                => 'Failed to add product to cart',
             'update-item-failed'                => 'Failed to update cart item',
@@ -35,6 +39,7 @@ return [
             'estimate-shipping-failed'          => 'Failed to estimate shipping',
 
             'product-added-successfully'         => 'Product added to cart successfully',
+            'cart-item-updated-successfully'     => 'Cart item updated successfully',
             'guest-cart-merged'                  => 'Guest cart merged successfully',
             'using-authenticated-cart'           => 'Using authenticated customer cart',
             'cart-item-not-found'                => 'Cart item not found',
@@ -327,6 +332,7 @@ return [
             'product-id-required'               => 'Product ID is required',
             'customer-id-required'              => 'Customer ID is required',
             'product-not-found'                 => 'Product not found',
+            'product-disabled'                  => 'This product is currently disabled',
             'customer-not-found'                => 'Customer not found',
             'already-exists'                    => 'This product is already in your wishlist',
             'removed'                           => 'Item Successfully Removed From Wishlist',

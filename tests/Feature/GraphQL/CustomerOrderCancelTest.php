@@ -57,11 +57,13 @@ class CustomerOrderCancelTest extends GraphQLTestCase
         ]);
 
         OrderItem::factory()->create([
-            'order_id'   => $completedOrder->id,
-            'product_id' => $product->id,
-            'sku'        => 'TEST-SKU-COMPLETED',
-            'type'       => 'simple',
-            'name'       => 'Completed Order Product',
+            'order_id'      => $completedOrder->id,
+            'product_id'    => $product->id,
+            'sku'           => 'TEST-SKU-COMPLETED',
+            'type'          => 'simple',
+            'name'          => 'Completed Order Product',
+            'qty_ordered'   => 1,
+            'qty_invoiced'  => 1,
         ]);
 
         OrderPayment::factory()->create([
@@ -81,12 +83,14 @@ class CustomerOrderCancelTest extends GraphQLTestCase
         $testData = $this->createTestData();
 
         $mutation = <<<'GQL'
-            mutation cancelOrder($input: CancelOrderInput!) {
-              cancelOrder(input: $input) {
-                success
-                message
-                orderId
-                status
+            mutation CancelOrder($input: createCancelOrderInput!) {
+              createCancelOrder(input: $input) {
+                cancelOrder {
+                  success
+                  message
+                  orderId
+                  status
+                }
               }
             }
         GQL;
@@ -105,9 +109,11 @@ class CustomerOrderCancelTest extends GraphQLTestCase
 
         $response->assertJson([
             'data' => [
-                'cancelOrder' => [
-                    'success' => true,
-                    'orderId' => $testData['order']->id,
+                'createCancelOrder' => [
+                    'cancelOrder' => [
+                        'success' => true,
+                        'orderId' => $testData['order']->id,
+                    ],
                 ],
             ],
         ]);
@@ -125,12 +131,14 @@ class CustomerOrderCancelTest extends GraphQLTestCase
         $testData = $this->createTestData();
 
         $mutation = <<<'GQL'
-            mutation cancelOrder($input: CancelOrderInput!) {
-              cancelOrder(input: $input) {
-                success
-                message
-                orderId
-                status
+            mutation CancelOrder($input: createCancelOrderInput!) {
+              createCancelOrder(input: $input) {
+                cancelOrder {
+                  success
+                  message
+                  orderId
+                  status
+                }
               }
             }
         GQL;
@@ -148,7 +156,8 @@ class CustomerOrderCancelTest extends GraphQLTestCase
         );
 
         // Should fail to cancel
-        $this->assertEquals(false, $response['data']['cancelOrder']['success']);
+        $data = $response->json();
+        $this->assertEquals(false, $data['data']['createCancelOrder']['cancelOrder']['success']);
     }
 
     /**
@@ -159,11 +168,13 @@ class CustomerOrderCancelTest extends GraphQLTestCase
         $testData = $this->createTestData();
 
         $mutation = <<<'GQL'
-            mutation cancelOrder($input: CancelOrderInput!) {
-              cancelOrder(input: $input) {
-                success
-                message
-                orderId
+            mutation CancelOrder($input: createCancelOrderInput!) {
+              createCancelOrder(input: $input) {
+                cancelOrder {
+                  success
+                  message
+                  orderId
+                }
               }
             }
         GQL;
@@ -181,7 +192,7 @@ class CustomerOrderCancelTest extends GraphQLTestCase
         );
 
         // Should return an error
-        $this->assertArrayHasKey('errors', $response);
+        $this->assertArrayHasKey('errors', $response->json());
     }
 
     /**
@@ -193,11 +204,13 @@ class CustomerOrderCancelTest extends GraphQLTestCase
         $otherCustomer = $this->createCustomer();
 
         $mutation = <<<'GQL'
-            mutation cancelOrder($input: CancelOrderInput!) {
-              cancelOrder(input: $input) {
-                success
-                message
-                orderId
+            mutation CancelOrder($input: createCancelOrderInput!) {
+              createCancelOrder(input: $input) {
+                cancelOrder {
+                  success
+                  message
+                  orderId
+                }
               }
             }
         GQL;
@@ -215,7 +228,7 @@ class CustomerOrderCancelTest extends GraphQLTestCase
         );
 
         // Should return an error
-        $this->assertArrayHasKey('errors', $response);
+        $this->assertArrayHasKey('errors', $response->json());
     }
 
     /**
@@ -226,10 +239,12 @@ class CustomerOrderCancelTest extends GraphQLTestCase
         $testData = $this->createTestData();
 
         $mutation = <<<'GQL'
-            mutation cancelOrder($input: CancelOrderInput!) {
-              cancelOrder(input: $input) {
-                success
-                message
+            mutation CancelOrder($input: createCancelOrderInput!) {
+              createCancelOrder(input: $input) {
+                cancelOrder {
+                  success
+                  message
+                }
               }
             }
         GQL;
@@ -245,7 +260,7 @@ class CustomerOrderCancelTest extends GraphQLTestCase
         );
 
         // Should return an error for missing orderId
-        $this->assertArrayHasKey('errors', $response);
+        $this->assertArrayHasKey('errors', $response->json());
     }
 
     /**
@@ -256,10 +271,12 @@ class CustomerOrderCancelTest extends GraphQLTestCase
         $testData = $this->createTestData();
 
         $mutation = <<<'GQL'
-            mutation cancelOrder($input: CancelOrderInput!) {
-              cancelOrder(input: $input) {
-                success
-                message
+            mutation CancelOrder($input: createCancelOrderInput!) {
+              createCancelOrder(input: $input) {
+                cancelOrder {
+                  success
+                  message
+                }
               }
             }
         GQL;
@@ -290,12 +307,14 @@ class CustomerOrderCancelTest extends GraphQLTestCase
         $testData = $this->createTestData();
 
         $mutation = <<<'GQL'
-            mutation cancelOrder($input: CancelOrderInput!) {
-              cancelOrder(input: $input) {
-                success
-                message
-                orderId
-                status
+            mutation CancelOrder($input: createCancelOrderInput!) {
+              createCancelOrder(input: $input) {
+                cancelOrder {
+                  success
+                  message
+                  orderId
+                  status
+                }
               }
             }
         GQL;
@@ -314,12 +333,12 @@ class CustomerOrderCancelTest extends GraphQLTestCase
 
         $data = $response->json();
         $this->assertArrayHasKey('data', $data);
-        $this->assertArrayHasKey('cancelOrder', $data['data']);
-        $this->assertArrayHasKey('success', $data['data']['cancelOrder']);
-        $this->assertArrayHasKey('message', $data['data']['cancelOrder']);
-        $this->assertArrayHasKey('orderId', $data['data']['cancelOrder']);
-        $this->assertArrayHasKey('status', $data['data']['cancelOrder']);
+        $this->assertArrayHasKey('createCancelOrder', $data['data']);
+        $this->assertArrayHasKey('cancelOrder', $data['data']['createCancelOrder']);
+        $this->assertArrayHasKey('success', $data['data']['createCancelOrder']['cancelOrder']);
+        $this->assertArrayHasKey('message', $data['data']['createCancelOrder']['cancelOrder']);
+        $this->assertArrayHasKey('orderId', $data['data']['createCancelOrder']['cancelOrder']);
+        $this->assertArrayHasKey('status', $data['data']['createCancelOrder']['cancelOrder']);
     }
 
 }
-

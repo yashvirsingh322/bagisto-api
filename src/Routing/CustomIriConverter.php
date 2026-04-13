@@ -19,6 +19,19 @@ class CustomIriConverter implements IriConverterInterface
 
     public function getIriFromResource(object|string $resource, int $referenceType = UrlGeneratorInterface::ABS_PATH, ?Operation $operation = null, array $context = []): ?string
     {
+        // Handle non-model API resources that shouldn't generate IRIs
+        if (is_object($resource)) {
+            $className = class_basename($resource::class);
+            if (in_array($className, ['BookingSlot', 'CartToken', 'AddProductInCart'])) {
+                return null;
+            }
+        } elseif (is_string($resource) && class_exists($resource)) {
+            $className = class_basename($resource);
+            if (in_array($className, ['CartToken', 'AddProductInCart', 'BookingSlot'])) {
+                return null;
+            }
+        }
+
         if ($resource instanceof Model || (is_string($resource) && class_exists($resource) && is_subclass_of($resource, Model::class))) {
             try {
                 $resourceClass = is_string($resource) ? $resource : $resource::class;
@@ -51,7 +64,7 @@ class CustomIriConverter implements IriConverterInterface
 
         if ($resourceClass) {
             $className = class_basename($resourceClass);
-            if (in_array($className, ['CartToken', 'AddProductInCart'])) {
+            if (in_array($className, ['CartToken', 'AddProductInCart', 'BookingSlot'])) {
                 return new \stdClass;
             }
         }

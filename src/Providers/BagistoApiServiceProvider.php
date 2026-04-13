@@ -34,6 +34,8 @@ use Webkul\BagistoApi\Serializer\TokenHeaderDenormalizer;
 use Webkul\BagistoApi\Services\CartTokenService;
 use Webkul\BagistoApi\Services\StorefrontKeyService;
 use Webkul\BagistoApi\Services\TokenHeaderService;
+use Webkul\BagistoApi\State\BookingSlotProvider;
+use Webkul\BagistoApi\State\PageProvider;
 use Webkul\BagistoApi\State\AttributeCollectionProvider;
 use Webkul\BagistoApi\State\AttributeOptionCollectionProvider;
 use Webkul\BagistoApi\State\AttributeOptionQueryProvider;
@@ -100,6 +102,8 @@ class BagistoApiServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
+        $this->registerSnakeCaseLinksHandlerFix();
+
         $this->app->singleton(IterableType::class);
         $this->app->tag(IterableType::class, 'api_platform.graphql.type');
 
@@ -277,6 +281,9 @@ class BagistoApiServiceProvider extends ServiceProvider
         $this->app->tag(CountryStateCollectionProvider::class, ProviderInterface::class);
         $this->app->tag(CountryStateQueryProvider::class, ProviderInterface::class);
         $this->app->tag(CategoryTreeProvider::class, ProviderInterface::class);
+        $this->app->tag(BookingSlotProvider::class, ProviderInterface::class);
+        $this->app->tag(\Webkul\BagistoApi\State\CursorAwareCollectionProvider::class, ProviderInterface::class);
+        $this->app->tag(PageProvider::class, ProviderInterface::class);
         $this->app->tag(WishlistProvider::class, ProviderInterface::class);
         $this->app->tag(CompareItemProvider::class, ProviderInterface::class);
         $this->app->tag(CustomerReviewProvider::class, ProviderInterface::class);
@@ -518,6 +525,16 @@ class BagistoApiServiceProvider extends ServiceProvider
             ->where('id', '[0-9]+')
             ->middleware(['Webkul\BagistoApi\Http\Middleware\VerifyStorefrontKey'])
             ->name('bagistoapi.customer-invoice-pdf');
+
+        \Illuminate\Support\Facades\Route::get('/api/downloadable/download-sample/{type}/{id}', \Webkul\BagistoApi\Http\Controllers\DownloadSampleController::class)
+            ->where('type', 'link|sample')
+            ->where('id', '[0-9]+')
+            ->name('bagistoapi.download-sample');
+
+        \Illuminate\Support\Facades\Route::get('/api/shop/customer-downloadable-products/{id}/download', \Webkul\BagistoApi\Http\Controllers\DownloadablePurchasedController::class)
+            ->where('id', '[0-9]+')
+            ->middleware(['Webkul\BagistoApi\Http\Middleware\VerifyStorefrontKey'])
+            ->name('bagistoapi.customer-downloadable-product-download');
     }
 
     /**
@@ -594,6 +611,55 @@ class BagistoApiServiceProvider extends ServiceProvider
             \Webkul\BagistoApi\Console\Commands\ApiKeyManagementCommand::class,
             \Webkul\BagistoApi\Console\Commands\ApiKeyMaintenanceCommand::class,
         ]);
+    }
+
+    /**
+     * Override API Platform's ItemProvider and CollectionProvider to wrap the
+     * LinksHandler with SnakeCaseLinksHandler, fixing the camelCase/snake_case
+     * mismatch between GraphQL field names and Eloquent relationship names.
+     */
+    protected function registerSnakeCaseLinksHandlerFix(): void
+    {
+        $this->app->extend(
+            \ApiPlatform\Laravel\Eloquent\State\ItemProvider::class,
+            function ($original, $app) {
+                $linksHandler = new \Webkul\BagistoApi\State\SnakeCaseLinksHandler(
+                    new \ApiPlatform\Laravel\Eloquent\State\LinksHandler(
+                        $app,
+                        $app->make(\ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface::class)
+                    )
+                );
+
+                $tagged = iterator_to_array($app->tagged(\ApiPlatform\Laravel\Eloquent\State\LinksHandlerInterface::class));
+
+                return new \ApiPlatform\Laravel\Eloquent\State\ItemProvider(
+                    $linksHandler,
+                    new \ApiPlatform\Laravel\ServiceLocator($tagged),
+                    $app->tagged(\ApiPlatform\Laravel\Eloquent\State\QueryExtensionInterface::class)
+                );
+            }
+        );
+
+        $this->app->extend(
+            \ApiPlatform\Laravel\Eloquent\State\CollectionProvider::class,
+            function ($original, $app) {
+                $linksHandler = new \Webkul\BagistoApi\State\SnakeCaseLinksHandler(
+                    new \ApiPlatform\Laravel\Eloquent\State\LinksHandler(
+                        $app,
+                        $app->make(\ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface::class)
+                    )
+                );
+
+                $tagged = iterator_to_array($app->tagged(\ApiPlatform\Laravel\Eloquent\State\LinksHandlerInterface::class));
+
+                return new \ApiPlatform\Laravel\Eloquent\State\CollectionProvider(
+                    $app->make(\ApiPlatform\State\Pagination\Pagination::class),
+                    $linksHandler,
+                    $app->tagged(\ApiPlatform\Laravel\Eloquent\State\QueryExtensionInterface::class),
+                    new \ApiPlatform\Laravel\ServiceLocator($tagged)
+                );
+            }
+        );
     }
 
     /**

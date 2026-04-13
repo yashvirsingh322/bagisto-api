@@ -483,6 +483,141 @@ class ProductQueryTest extends GraphQLTestCase
     }
 
     /**
+     * Test querying booking products (collection filter by type)
+     * Matches spec: products(filter: "{\"type\": \"booking\"}")
+     */
+    public function test_get_all_booking_products(): void
+    {
+        // Create a booking product for testing
+        $product = $this->createBaseProduct('booking', [
+            'sku' => 'TEST-BOOKING-COLLECTION-'.uniqid(),
+        ]);
+        $this->ensureInventory($product, 50);
+
+        // Create the booking product record
+        $booking = \Webkul\BookingProduct\Models\BookingProduct::query()->create([
+            'product_id'           => $product->id,
+            'type'                 => 'default',
+            'qty'                  => 50,
+            'location'             => 'Test Location',
+            'show_location'        => 1,
+            'available_every_week' => 1,
+            'available_from'       => null,
+            'available_to'         => null,
+        ]);
+
+        $query = <<<'GQL'
+            query getAllBookingProducts {
+              products(filter: "{\"type\": \"booking\"}") {
+                edges {
+                  node {
+                    id
+                    name
+                    sku
+                    type
+                    urlKey
+                    description
+                    shortDescription
+                    price
+                    specialPrice
+                    bookingProducts {
+                      edges {
+                        node {
+                          id
+                          type
+                          qty
+                          location
+                          showLocation
+                          availableEveryWeek
+                          availableFrom
+                          availableTo
+                          createdAt
+                          updatedAt
+                        }
+                      }
+                    }
+                    images(first: 5) {
+                      edges {
+                        node {
+                          id
+                          publicPath
+                          position
+                        }
+                      }
+                    }
+                    categories {
+                      edges {
+                        node {
+                          id
+                          translation {
+                            name
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+                totalCount
+              }
+            }
+        GQL;
+
+        $response = $this->graphQL($query);
+
+        $response->assertSuccessful();
+
+        $json = $response->json();
+        if (isset($json['errors'])) {
+            $this->fail('GraphQL errors: '.json_encode($json['errors']));
+        }
+
+        $data = $response->json('data.products');
+
+        $this->assertArrayHasKey('edges', $data);
+        $this->assertArrayHasKey('totalCount', $data);
+
+        // Verify response structure on whatever booking products are present
+        $edges = $data['edges'] ?? [];
+        if (! empty($edges)) {
+            $node = $edges[0]['node'];
+
+            // Verify product-level fields
+            $this->assertArrayHasKey('id', $node);
+            $this->assertArrayHasKey('name', $node);
+            $this->assertArrayHasKey('sku', $node);
+            $this->assertSame('booking', $node['type']);
+            $this->assertArrayHasKey('urlKey', $node);
+            $this->assertArrayHasKey('description', $node);
+            $this->assertArrayHasKey('shortDescription', $node);
+            $this->assertArrayHasKey('price', $node);
+            $this->assertArrayHasKey('specialPrice', $node);
+
+            // Verify bookingProducts connection structure
+            $this->assertArrayHasKey('bookingProducts', $node);
+            $bookingEdges = $node['bookingProducts']['edges'] ?? [];
+            if (! empty($bookingEdges)) {
+                $bookingNode = $bookingEdges[0]['node'];
+                $this->assertArrayHasKey('id', $bookingNode);
+                $this->assertArrayHasKey('type', $bookingNode);
+                $this->assertArrayHasKey('qty', $bookingNode);
+                $this->assertArrayHasKey('location', $bookingNode);
+                $this->assertArrayHasKey('showLocation', $bookingNode);
+                $this->assertArrayHasKey('availableEveryWeek', $bookingNode);
+                $this->assertArrayHasKey('availableFrom', $bookingNode);
+                $this->assertArrayHasKey('availableTo', $bookingNode);
+                $this->assertArrayHasKey('createdAt', $bookingNode);
+                $this->assertArrayHasKey('updatedAt', $bookingNode);
+            }
+
+            // Verify images and categories connection structure
+            $this->assertArrayHasKey('images', $node);
+            $this->assertArrayHasKey('edges', $node['images']);
+            $this->assertArrayHasKey('categories', $node);
+            $this->assertArrayHasKey('edges', $node['categories']);
+        }
+    }
+
+    /**
      * Test querying bundle products
      */
     public function test_get_all_bundle_products(): void

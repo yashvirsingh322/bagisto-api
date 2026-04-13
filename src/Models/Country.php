@@ -9,6 +9,7 @@ use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\GraphQl\Query;
 use ApiPlatform\Metadata\GraphQl\QueryCollection;
 use Webkul\BagistoApi\Resolver\BaseQueryItemResolver;
+use Webkul\BagistoApi\State\CursorAwareCollectionProvider;
 use Webkul\Core\Models\Country as BaseCountry;
 
 #[ApiResource(
@@ -19,7 +20,7 @@ use Webkul\Core\Models\Country as BaseCountry;
     ],
     graphQlOperations: [
         new Query(resolver: BaseQueryItemResolver::class),
-        new QueryCollection,
+        new QueryCollection(provider: CursorAwareCollectionProvider::class),
     ]
 )]
 class Country extends BaseCountry
