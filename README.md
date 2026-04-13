@@ -2,6 +2,14 @@
 
 Comprehensive REST and GraphQL APIs for seamless e-commerce integration and extensibility.
 
+## Requirements
+
+- PHP 8.3+
+- [Bagisto](https://github.com/bagisto/bagisto) 2.4 or newer
+- Composer 2
+- MySQL 8.0+ or PostgreSQL 14+
+- `api-platform/laravel` `v4.1.25` and `api-platform/graphql` `v4.2.3` (installed automatically via `composer require`)
+
 ## Installation
 
 ### Method 1: Quick Start (Composer Installation – Recommended)
@@ -15,7 +23,7 @@ php artisan bagisto-api-platform:install
 
 Your APIs are now ready! Access them at:
 - **REST API Docs**: `https://your-domain.com/api/docs`
-- **GraphQL Playground**: `https://your-domain.com/graphql`
+- **GraphQL Playground**: `https://your-domain.com/graphiql`
  
 ### Method 2: Manual Installation
 
@@ -85,14 +93,15 @@ Once verified, access the APIs at:
 - **GraphQL Playground**: [https://your-domain.com/graphiql](https://api-demo.bagisto.com/api/graphiql)
 
 ## Documentation
-- Bagisto API: [Demo Page](https://api-demo.bagisto.com/api) 
+- Bagisto API: [Demo Page](https://api-demo.bagisto.com/api)
 - API Documentation: [Bagisto API Docs](https://api-docs.bagisto.com/)
 - GraphQL Playground: [Interactive Playground](https://api-demo.bagisto.com/graphiql)
+- Release history: see [`CHANGELOG.md`](CHANGELOG.md)
  
 ## Support
 
 For issues and questions, please visit:
-- [GitHub Issues](https://github.com/bagisto/bagisto-api-platform/issues)
+- [GitHub Issues](https://github.com/bagisto/bagisto-api/issues)
 - [Bagisto Documentation](https://bagisto.com/docs)
 - [Community Forum](https://forum.bagisto.com)
 
