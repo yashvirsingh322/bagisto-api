@@ -2,8 +2,10 @@
 
 namespace Webkul\BagistoApi\Tests\Feature\GraphQL;
 
+use Webkul\Attribute\Models\Attribute;
 use Webkul\BagistoApi\Tests\GraphQLTestCase;
 use Webkul\Product\Models\Product;
+use Webkul\Product\Models\ProductAttributeValue;
 
 /**
  * Products GraphQL API Test Cases
@@ -17,7 +19,6 @@ use Webkul\Product\Models\Product;
  */
 class ProductTest extends GraphQLTestCase
 {
-
     /**
      * Test: Query products sorted A-Z
      */
@@ -250,7 +251,7 @@ class ProductTest extends GraphQLTestCase
             'query' => 'shirt',
             'sortKey' => 'TITLE',
             'reverse' => false,
-            'first' => 10
+            'first' => 10,
         ];
 
         $response = $this->graphQL($query, $variables);
@@ -260,7 +261,7 @@ class ProductTest extends GraphQLTestCase
         // Check if products exist (search might return empty)
         $edges = $response->json('data.products.edges');
 
-        if (!empty($edges)) {
+        if (! empty($edges)) {
             $productNode = $response->json('data.products.edges.0.node');
 
             expect($productNode)->toHaveKeys([
@@ -290,7 +291,7 @@ class ProductTest extends GraphQLTestCase
         GQL;
 
         $variables = [
-            'id' => '1'
+            'id' => '1',
         ];
 
         $response = $this->graphQL($query, $variables);
@@ -326,7 +327,7 @@ class ProductTest extends GraphQLTestCase
         GQL;
 
         $variables = [
-            'sku' => 'COASTALBREEZEMENSHOODIE'
+            'sku' => 'COASTALBREEZEMENSHOODIE',
         ];
 
         $response = $this->graphQL($query, $variables);
@@ -386,7 +387,7 @@ class ProductTest extends GraphQLTestCase
         GQL;
 
         $variables = [
-            'id' => '1'
+            'id' => '1',
         ];
 
         $response = $this->graphQL($query, $variables);
@@ -407,7 +408,7 @@ class ProductTest extends GraphQLTestCase
         // Check variants if they exist
         $variants = $response->json('data.product.variants.edges');
 
-        if (!empty($variants)) {
+        if (! empty($variants)) {
             $variantNode = $response->json('data.product.variants.edges.0.node');
 
             expect($variantNode)->toHaveKeys([
@@ -420,7 +421,7 @@ class ProductTest extends GraphQLTestCase
 
             $attributeValues = $response->json('data.product.variants.edges.0.node.attributeValues.edges');
 
-            if (!empty($attributeValues)) {
+            if (! empty($attributeValues)) {
                 $attributeValueNode = $response->json('data.product.variants.edges.0.node.attributeValues.edges.0.node');
 
                 expect($attributeValueNode)->toHaveKeys([
@@ -501,7 +502,7 @@ class ProductTest extends GraphQLTestCase
         GQL;
 
         $variables = [
-            'id' => '1'
+            'id' => '1',
         ];
 
         $response = $this->graphQL($query, $variables);
@@ -528,7 +529,7 @@ class ProductTest extends GraphQLTestCase
 
             // Check images if they exist
             $images = $response->json('data.product.images.edges');
-            if (!empty($images)) {
+            if (! empty($images)) {
                 $imageNode = $response->json('data.product.images.edges.0.node');
                 expect($imageNode)->toHaveKeys([
                     'id',
@@ -539,7 +540,7 @@ class ProductTest extends GraphQLTestCase
 
             // Check attributes if they exist
             $attributes = $response->json('data.product.attributes');
-            if (!empty($attributes)) {
+            if (! empty($attributes)) {
                 $attribute = $response->json('data.product.attributes.0');
                 expect($attribute)->toHaveKeys([
                     'code',
@@ -549,7 +550,7 @@ class ProductTest extends GraphQLTestCase
 
             // Check variants if they exist
             $variants = $response->json('data.product.variants.edges');
-            if (!empty($variants)) {
+            if (! empty($variants)) {
                 $variantNode = $response->json('data.product.variants.edges.0.node');
                 expect($variantNode)->toHaveKeys([
                     'id',
@@ -562,7 +563,7 @@ class ProductTest extends GraphQLTestCase
 
             // Check categories if they exist
             $categories = $response->json('data.product.categories.edges');
-            if (!empty($categories)) {
+            if (! empty($categories)) {
                 $categoryNode = $response->json('data.product.categories.edges.0.node');
                 expect($categoryNode)->toHaveKeys([
                     'id',
@@ -576,7 +577,7 @@ class ProductTest extends GraphQLTestCase
 
     /**
      * Test: Search Products with Filter - With Test Data
-     * 
+     *
      * This test creates a specific product and verifies the search functionality works.
      * Note: The search uses SKU and attribute text_value for matching.
      */
@@ -636,7 +637,7 @@ class ProductTest extends GraphQLTestCase
             'query' => 'SP-001',  // Use existing SKU from the database
             'sortKey' => 'TITLE',
             'reverse' => false,
-            'first' => 10
+            'first' => 10,
         ];
 
         $response = $this->graphQL($searchQuery, $variables);
@@ -665,7 +666,7 @@ class ProductTest extends GraphQLTestCase
 
     /**
      * Test: Search Products by Category ID with Pagination
-     * 
+     *
      * This test verifies that products can be filtered by category ID
      * with proper pagination support.
      */
@@ -705,7 +706,7 @@ class ProductTest extends GraphQLTestCase
         $variables = [
             'filter' => '{"category_id": "22"}',
             'first' => 2,
-            'after' => 'Mg=='
+            'after' => 'Mg==',
         ];
 
         $response = $this->graphQL($query, $variables);
@@ -728,7 +729,7 @@ class ProductTest extends GraphQLTestCase
 
         // Verify edges structure
         $edges = $response->json('data.products.edges');
-        if (!empty($edges)) {
+        if (! empty($edges)) {
             $firstProduct = $response->json('data.products.edges.0.node');
             $this->assertArrayHasKey('id', $firstProduct);
             $this->assertArrayHasKey('sku', $firstProduct);
@@ -744,7 +745,7 @@ class ProductTest extends GraphQLTestCase
 
     /**
      * Test: Filter Products by Type
-     * 
+     *
      * This test verifies that products can be filtered by type (e.g., configurable, simple, etc.)
      */
     public function test_filter_products_by_type(): void
@@ -768,7 +769,7 @@ class ProductTest extends GraphQLTestCase
 
         // Test with type filter - configurable products
         $variables = [
-            'filter' => '{"type": "configurable"}'
+            'filter' => '{"type": "configurable"}',
         ];
 
         $response = $this->graphQL($query, $variables);
@@ -783,7 +784,7 @@ class ProductTest extends GraphQLTestCase
 
         // Verify edges structure
         $edges = $response->json('data.products.edges');
-        if (!empty($edges)) {
+        if (! empty($edges)) {
             $firstProduct = $response->json('data.products.edges.0.node');
             $this->assertArrayHasKey('id', $firstProduct);
             $this->assertArrayHasKey('sku', $firstProduct);
@@ -877,30 +878,30 @@ class ProductTest extends GraphQLTestCase
         ]);
 
         // Try to find the name attribute
-        $nameAttribute = \Webkul\Attribute\Models\Attribute::where('code', 'name')->first();
-        
+        $nameAttribute = Attribute::where('code', 'name')->first();
+
         if ($nameAttribute) {
             // Create the name attribute value - text type uses text_value field
-            \Webkul\Product\Models\ProductAttributeValue::create([
-                'product_id'    => $product->id,
-                'attribute_id'  => $nameAttribute->id,
-                'locale'        => 'en',
-                'channel'       => 'default',
-                'text_value'    => 'Cotton Shirt',
+            ProductAttributeValue::create([
+                'product_id' => $product->id,
+                'attribute_id' => $nameAttribute->id,
+                'locale' => 'en',
+                'channel' => 'default',
+                'text_value' => 'Cotton Shirt',
             ]);
         }
 
         // Try to find the price attribute
-        $priceAttribute = \Webkul\Attribute\Models\Attribute::where('code', 'price')->first();
-        
+        $priceAttribute = Attribute::where('code', 'price')->first();
+
         if ($priceAttribute) {
             // Create price attribute value - price type uses float_value field
-            \Webkul\Product\Models\ProductAttributeValue::create([
-                'product_id'    => $product->id,
-                'attribute_id'  => $priceAttribute->id,
-                'locale'        => 'en',
-                'channel'       => 'default',
-                'float_value'   => 29.99,
+            ProductAttributeValue::create([
+                'product_id' => $product->id,
+                'attribute_id' => $priceAttribute->id,
+                'locale' => 'en',
+                'channel' => 'default',
+                'float_value' => 29.99,
             ]);
         }
 

@@ -21,21 +21,21 @@ use Webkul\Checkout\Models\CartAddress;
         new QueryCollection(
             name: 'collection',
             provider: GetCheckoutAddressCollectionProvider::class,
-            args: [               
+            args: [
                 'first' => [
-                    'type'        => 'Int',
+                    'type' => 'Int',
                     'description' => 'Limit the number of addresses returned (pagination)',
                 ],
                 'after' => [
-                    'type'        => 'String',
+                    'type' => 'String',
                     'description' => 'Relay cursor for forward pagination',
                 ],
                 'before' => [
-                    'type'        => 'String',
+                    'type' => 'String',
                     'description' => 'Relay cursor for backward pagination',
                 ],
                 'last' => [
-                    'type'        => 'Int',
+                    'type' => 'Int',
                     'description' => 'Return the last N items (used with before cursor)',
                 ],
             ],

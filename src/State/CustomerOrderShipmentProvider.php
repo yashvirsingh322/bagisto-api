@@ -4,6 +4,7 @@ namespace Webkul\BagistoApi\State;
 
 use ApiPlatform\Laravel\Eloquent\Paginator;
 use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\GraphQl\QueryCollection;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\Pagination\Pagination;
 use ApiPlatform\State\ProviderInterface;
@@ -38,7 +39,7 @@ class CustomerOrderShipmentProvider implements ProviderInterface
         }
 
         /** Single item — GET /api/shop/customer-order-shipments/{id} */
-        if (! $operation instanceof GetCollection && ! ($operation instanceof \ApiPlatform\Metadata\GraphQl\QueryCollection)) {
+        if (! $operation instanceof GetCollection && ! ($operation instanceof QueryCollection)) {
             return $this->provideItem($customer, $uriVariables);
         }
 
@@ -96,23 +97,23 @@ class CustomerOrderShipmentProvider implements ProviderInterface
         }
 
         /** Cursor-based pagination (offset-based cursors from API Platform) */
-        $first  = isset($args['first']) ? (int) $args['first'] : null;
-        $last   = isset($args['last']) ? (int) $args['last'] : null;
-        $after  = $args['after'] ?? null;
+        $first = isset($args['first']) ? (int) $args['first'] : null;
+        $last = isset($args['last']) ? (int) $args['last'] : null;
+        $after = $args['after'] ?? null;
         $before = $args['before'] ?? null;
 
         $perPage = $first ?? $last ?? 10;
-        $offset  = 0;
+        $offset = 0;
 
         if ($after) {
             $decoded = base64_decode($after, true);
-            $offset  = ctype_digit((string) $decoded) ? ((int) $decoded + 1) : 0;
+            $offset = ctype_digit((string) $decoded) ? ((int) $decoded + 1) : 0;
         }
 
         if ($before) {
             $decoded = base64_decode($before, true);
-            $cursor  = ctype_digit((string) $decoded) ? (int) $decoded : 0;
-            $offset  = max(0, $cursor - $perPage);
+            $cursor = ctype_digit((string) $decoded) ? (int) $decoded : 0;
+            $offset = max(0, $cursor - $perPage);
         }
 
         $query->orderBy('id', 'desc');

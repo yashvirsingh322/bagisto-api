@@ -23,26 +23,26 @@ class CustomerInvoiceItem extends Model
 
     /** @var array */
     protected $casts = [
-        'id'                    => 'int',
-        'invoice_id'            => 'int',
-        'order_item_id'         => 'int',
-        'parent_id'             => 'int',
-        'sku'                   => 'string',
-        'name'                  => 'string',
-        'description'           => 'string',
-        'qty'                   => 'int',
-        'price'                 => 'float',
-        'base_price'            => 'float',
-        'total'                 => 'float',
-        'base_total'            => 'float',
-        'tax_amount'            => 'float',
-        'base_tax_amount'       => 'float',
-        'discount_percent'      => 'float',
-        'discount_amount'       => 'float',
-        'base_discount_amount'  => 'float',
-        'additional'            => 'array',
-        'created_at'            => 'datetime',
-        'updated_at'            => 'datetime',
+        'id' => 'int',
+        'invoice_id' => 'int',
+        'order_item_id' => 'int',
+        'parent_id' => 'int',
+        'sku' => 'string',
+        'name' => 'string',
+        'description' => 'string',
+        'qty' => 'int',
+        'price' => 'float',
+        'base_price' => 'float',
+        'total' => 'float',
+        'base_total' => 'float',
+        'tax_amount' => 'float',
+        'base_tax_amount' => 'float',
+        'discount_percent' => 'float',
+        'discount_amount' => 'float',
+        'base_discount_amount' => 'float',
+        'additional' => 'array',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
     ];
 
     /**
@@ -62,6 +62,7 @@ class CustomerInvoiceItem extends Model
         $array['base_total'] = $this->base_total;
         $array['tax_amount'] = $this->tax_amount;
         $array['discount_amount'] = $this->discount_amount;
+
         return $array;
     }
 }

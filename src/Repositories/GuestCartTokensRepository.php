@@ -2,6 +2,7 @@
 
 namespace Webkul\BagistoApi\Repositories;
 
+use Illuminate\Support\Str;
 use Webkul\BagistoApi\Models\GuestCartTokens;
 use Webkul\Core\Eloquent\Repository;
 
@@ -44,7 +45,7 @@ class GuestCartTokensRepository extends Repository
     {
         return $this->create([
             'cart_id' => $cartId,
-            'token'   => (string) \Illuminate\Support\Str::uuid(),
+            'token' => (string) Str::uuid(),
         ]);
     }
 
@@ -57,6 +58,7 @@ class GuestCartTokensRepository extends Repository
 
         if ($guestCartToken) {
             $guestCartToken->update(['device_token' => $deviceToken]);
+
             return $guestCartToken;
         }
 

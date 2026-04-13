@@ -4,8 +4,8 @@ namespace Webkul\BagistoApi\Tests\Feature\RestApi;
 
 use Webkul\BagistoApi\Tests\RestApiTestCase;
 use Webkul\Core\Models\Channel;
-use Webkul\Customer\Models\Wishlist;
 use Webkul\Customer\Models\Customer;
+use Webkul\Customer\Models\Wishlist;
 use Webkul\Product\Models\Product;
 
 class WishlistTest extends RestApiTestCase
@@ -26,13 +26,13 @@ class WishlistTest extends RestApiTestCase
 
         $wishlistItem1 = Wishlist::factory()->create([
             'customer_id' => $customer->id,
-            'product_id'  => $product1->id,
-            'channel_id'  => $channel->id,
+            'product_id' => $product1->id,
+            'channel_id' => $channel->id,
         ]);
         $wishlistItem2 = Wishlist::factory()->create([
             'customer_id' => $customer->id,
-            'product_id'  => $product2->id,
-            'channel_id'  => $channel->id,
+            'product_id' => $product2->id,
+            'channel_id' => $channel->id,
         ]);
 
         return compact('customer', 'channel', 'product1', 'product2', 'wishlistItem1', 'wishlistItem2');
@@ -53,10 +53,10 @@ class WishlistTest extends RestApiTestCase
         // API Platform Collection Format
         if (isset($data['hydra:member'])) {
             expect($data['hydra:member'])->not()->toBeEmpty();
-        } else if (isset($data['@type'])) {
+        } elseif (isset($data['@type'])) {
             // Alternative collection format
             expect($data)->toHaveKey('@type');
-        } else if (is_array($data)) {
+        } elseif (is_array($data)) {
             // Fallback: array of items
             expect(count($data))->toBeGreaterThanOrEqual(0);
         }
@@ -114,14 +114,14 @@ class WishlistTest extends RestApiTestCase
     {
         $testData = $this->createTestData();
 
-        $response = $this->publicGet($this->apiUrl . '?itemsPerPage=1');
+        $response = $this->publicGet($this->apiUrl.'?itemsPerPage=1');
 
         $response->assertOk();
         $data = $response->json();
-        
+
         // Handle both Hydra format and plain array format
         $wishlistItem = $data['hydra:member'][0] ?? $data[0] ?? null;
-        
+
         if ($wishlistItem) {
             expect($wishlistItem)->toHaveKey('createdAt');
             expect($wishlistItem)->toHaveKey('updatedAt');
@@ -138,15 +138,15 @@ class WishlistTest extends RestApiTestCase
 
         $payload = [
             'customer_id' => $testData['customer']->id,
-            'product_id'  => $product3->id,
-            'channel_id'  => $testData['channel']->id,
+            'product_id' => $product3->id,
+            'channel_id' => $testData['channel']->id,
         ];
 
         $response = $this->publicPost($this->apiUrl, $payload);
 
         $response->assertCreated();
         $data = $response->json();
-        
+
         // Verify the created item has the expected IDs
         expect($data)->toHaveKey('id');
         expect($data['id'])->toBeGreaterThan(0);
@@ -263,9 +263,9 @@ class WishlistTest extends RestApiTestCase
         $data = $response->json();
 
         // Handle both Hydra format and plain array format
-        if (isset($data['hydra:member']) && !empty($data['hydra:member'])) {
+        if (isset($data['hydra:member']) && ! empty($data['hydra:member'])) {
             expect($data['hydra:member'][0])->toHaveKey('product');
-        } else if (is_array($data) && !empty($data)) {
+        } elseif (is_array($data) && ! empty($data)) {
             expect($data[0])->toHaveKey('product');
         }
     }
@@ -299,7 +299,7 @@ class WishlistTest extends RestApiTestCase
 
         $payload = [
             'wishlistItemId' => $testData['wishlistItem1']->id,
-            'quantity'       => 1,
+            'quantity' => 1,
         ];
 
         $response = $this->authenticatedPost(
@@ -320,7 +320,7 @@ class WishlistTest extends RestApiTestCase
 
         $payload = [
             'wishlistItemId' => 99999,
-            'quantity'       => 1,
+            'quantity' => 1,
         ];
 
         $response = $this->authenticatedPost(
@@ -341,7 +341,7 @@ class WishlistTest extends RestApiTestCase
 
         $payload = [
             'wishlistItemId' => $testData['wishlistItem1']->id,
-            'quantity'       => 1,
+            'quantity' => 1,
         ];
 
         $response = $this->publicPost(
@@ -361,7 +361,7 @@ class WishlistTest extends RestApiTestCase
 
         $payload = [
             'wishlistItemId' => $testData['wishlistItem1']->id,
-            'quantity'       => 3,
+            'quantity' => 3,
         ];
 
         $response = $this->authenticatedPost(
@@ -383,7 +383,7 @@ class WishlistTest extends RestApiTestCase
 
         $payload = [
             'wishlistItemId' => $testData['wishlistItem1']->id,
-            'quantity'       => 1,
+            'quantity' => 1,
         ];
 
         $response = $this->authenticatedPost(

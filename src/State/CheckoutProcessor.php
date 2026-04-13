@@ -19,6 +19,8 @@ use Webkul\Checkout\Models\CartAddress;
 use Webkul\Checkout\Repositories\CartRepository;
 use Webkul\Customer\Repositories\CustomerRepository;
 use Webkul\Sales\Repositories\OrderRepository;
+use Webkul\Sales\Transformers\OrderResource;
+use Webkul\Shipping\Facades\Shipping;
 
 /**
  * Handles checkout operations including address, shipping, payment, and order creation.
@@ -82,11 +84,11 @@ class CheckoutProcessor implements ProcessorInterface
         }
 
         return match ($operationName) {
-            'saveAddress'        => $this->saveAddress($cart, $data),
+            'saveAddress' => $this->saveAddress($cart, $data),
             'saveShippingMethod' => $this->saveShippingMethod($cart, $data),
-            'savePaymentMethod'  => $this->savePaymentMethod($cart, $data),
-            'createOrder'        => $this->createOrder($cart, $data),
-            default              => throw new OperationFailedException(__('bagistoapi::app.graphql.checkout.unknown-operation', ['operation' => $operationName])),
+            'savePaymentMethod' => $this->savePaymentMethod($cart, $data),
+            'createOrder' => $this->createOrder($cart, $data),
+            default => throw new OperationFailedException(__('bagistoapi::app.graphql.checkout.unknown-operation', ['operation' => $operationName])),
         };
     }
 
@@ -100,11 +102,11 @@ class CheckoutProcessor implements ProcessorInterface
         $resourceClassName = $resourceClass ? class_basename($resourceClass) : '';
 
         return match ($resourceClassName) {
-            'CheckoutAddress'        => 'saveAddress',
+            'CheckoutAddress' => 'saveAddress',
             'CheckoutShippingMethod' => 'saveShippingMethod',
-            'CheckoutPaymentMethod'  => 'savePaymentMethod',
-            'CheckoutOrder'          => 'createOrder',
-            default                  => $operationName,
+            'CheckoutPaymentMethod' => 'savePaymentMethod',
+            'CheckoutOrder' => 'createOrder',
+            default => $operationName,
         };
     }
 
@@ -189,10 +191,10 @@ class CheckoutProcessor implements ProcessorInterface
                 throw new OperationFailedException('No billing address was provided');
             }
 
-            \Webkul\Checkout\Facades\Cart::collectTotals();
+            Cart::collectTotals();
 
             if ($cart->haveStockableItems()) {
-                \Webkul\Shipping\Facades\Shipping::collectRates();
+                Shipping::collectRates();
             }
 
             return $this->buildAddressOutput($billingAddress, $shippingAddress);
@@ -213,23 +215,23 @@ class CheckoutProcessor implements ProcessorInterface
                 throw new OperationFailedException(__('bagistoapi::app.graphql.checkout.shipping-method-required'));
             }
 
-            \Webkul\Shipping\Facades\Shipping::collectRates();
+            Shipping::collectRates();
 
-            if (! \Webkul\Shipping\Facades\Shipping::isMethodCodeExists($input->shippingMethod)) {
+            if (! Shipping::isMethodCodeExists($input->shippingMethod)) {
                 throw new OperationFailedException(__('bagistoapi::app.graphql.checkout.invalid-shipping-method'));
             }
 
-            if (! \Webkul\Checkout\Facades\Cart::saveShippingMethod($input->shippingMethod)) {
+            if (! Cart::saveShippingMethod($input->shippingMethod)) {
                 throw new OperationFailedException(__('bagistoapi::app.graphql.checkout.shipping-method-save-failed'));
             }
 
-            \Webkul\Checkout\Facades\Cart::collectTotals();
+            Cart::collectTotals();
 
             return (object) [
-                'id'             => (string) $cart->id,
-                'success'        => true,
-                'message'        => __('bagistoapi::app.graphql.checkout.shipping-method-saved'),
-                'cartToken'      => (string) ($cart->guest_cart_token ?? $cart->customer_id),
+                'id' => (string) $cart->id,
+                'success' => true,
+                'message' => __('bagistoapi::app.graphql.checkout.shipping-method-saved'),
+                'cartToken' => (string) ($cart->guest_cart_token ?? $cart->customer_id),
                 'shippingMethod' => (string) ($cart->shipping_method ?? ''),
             ];
         } catch (\Exception $e) {
@@ -253,19 +255,19 @@ class CheckoutProcessor implements ProcessorInterface
             throw new OperationFailedException(__('bagistoapi::app.graphql.checkout.invalid-payment-method'));
         }
 
-        if (! \Webkul\Checkout\Facades\Cart::savePaymentMethod(['method' => $input->paymentMethod])) {
+        if (! Cart::savePaymentMethod(['method' => $input->paymentMethod])) {
             throw new OperationFailedException(__('bagistoapi::app.graphql.checkout.payment-method-save-failed'));
         }
 
         try {
-            \Webkul\Checkout\Facades\Cart::collectTotals();
-            $cart = \Webkul\Checkout\Facades\Cart::getCart();
+            Cart::collectTotals();
+            $cart = Cart::getCart();
 
             $response = (object) [
-                'success'        => true,
-                'message'        => __('bagistoapi::app.graphql.checkout.payment-method-saved'),
-                'cartToken'      => (string) ($cart->guest_cart_token ?? $cart->customer_id),
-                'paymentMethod'  => (string) ($cart->payment?->method ?? ''),
+                'success' => true,
+                'message' => __('bagistoapi::app.graphql.checkout.payment-method-saved'),
+                'cartToken' => (string) ($cart->guest_cart_token ?? $cart->customer_id),
+                'paymentMethod' => (string) ($cart->payment?->method ?? ''),
             ];
 
             if ($cart->payment) {
@@ -339,9 +341,9 @@ class CheckoutProcessor implements ProcessorInterface
             Event::dispatch('order.created.after', $order);
 
             $response = (object) [
-                'id'        => $cart->id,
+                'id' => $cart->id,
                 'cartToken' => (string) ($cart->guest_cart_token ?? $cart->customer_id),
-                'orderId'   => (string) $order->id,
+                'orderId' => (string) $order->id,
             ];
 
             return $response;
@@ -355,7 +357,7 @@ class CheckoutProcessor implements ProcessorInterface
      */
     private function buildOrderDataFromCart($cart): array
     {
-        $orderResource = new \Webkul\Sales\Transformers\OrderResource($cart);
+        $orderResource = new OrderResource($cart);
 
         return $orderResource->jsonSerialize();
     }
@@ -382,7 +384,7 @@ class CheckoutProcessor implements ProcessorInterface
         }
 
         $minimumOrderAmount = core()->getConfigData('sales.order_settings.minimum_order.minimum_order_amount') ?: 0;
-        if (! \Webkul\Checkout\Facades\Cart::haveMinimumOrderAmount()) {
+        if (! Cart::haveMinimumOrderAmount()) {
             throw new OperationFailedException(__('bagistoapi::app.graphql.checkout.minimum-order-not-met', ['amount' => core()->currency($minimumOrderAmount)]));
         }
 
@@ -477,7 +479,7 @@ class CheckoutProcessor implements ProcessorInterface
     private function fetchAddresses($cart)
     {
         try {
-            $output = new \Webkul\BagistoApi\Dto\CheckoutAddressOutput;
+            $output = new CheckoutAddressOutput;
 
             $output->id = $cart->id;
             $output->cartToken = $cart->guest_cart_token ?? $cart->customer_id;

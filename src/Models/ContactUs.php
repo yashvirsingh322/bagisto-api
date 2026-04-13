@@ -23,7 +23,7 @@ use Webkul\BagistoApi\State\Processor\ContactUsProcessor;
             processor: ContactUsProcessor::class,
             denormalizationContext: [
                 'allow_extra_attributes' => true,
-                'groups'                 => ['mutation'],
+                'groups' => ['mutation'],
             ],
             normalizationContext: [
                 'groups' => ['mutation'],
@@ -39,7 +39,7 @@ use Webkul\BagistoApi\State\Processor\ContactUsProcessor;
             processor: ContactUsProcessor::class,
             denormalizationContext: [
                 'allow_extra_attributes' => true,
-                'groups'                 => ['mutation'],
+                'groups' => ['mutation'],
             ],
             normalizationContext: [
                 'groups' => ['mutation'],

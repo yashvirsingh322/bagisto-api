@@ -27,9 +27,9 @@ class CartReadTest extends TestCase
         $product = Product::factory()->create();
 
         $cartItem = CartItem::factory()->create([
-            'cart_id'    => $cart->id,
+            'cart_id' => $cart->id,
             'product_id' => $product->id,
-            'quantity'   => 2,
+            'quantity' => 2,
         ]);
 
         return compact('customer', 'token', 'cart', 'product', 'cartItem');
@@ -78,7 +78,7 @@ class CartReadTest extends TestCase
         GQL;
 
         return $this->postJson($this->graphqlUrl, [
-            'query'     => $mutation,
+            'query' => $mutation,
             'variables' => compact('token', 'cartId'),
         ])->json();
     }
@@ -109,7 +109,7 @@ class CartReadTest extends TestCase
         GQL;
 
         return $this->postJson($this->graphqlUrl, [
-            'query'     => $mutation,
+            'query' => $mutation,
             'variables' => compact('token'),
         ])->json();
     }
@@ -218,9 +218,9 @@ class CartReadTest extends TestCase
         $cart2 = Cart::factory()->create(['customer_id' => $customer->id]);
         $product2 = Product::factory()->create();
         CartItem::factory()->create([
-            'cart_id'    => $cart2->id,
+            'cart_id' => $cart2->id,
             'product_id' => $product2->id,
-            'quantity'   => 1,
+            'quantity' => 1,
         ]);
 
         $response = $this->getAllCarts($token);
@@ -261,9 +261,9 @@ class CartReadTest extends TestCase
         $product = Product::factory()->create();
 
         CartItem::factory()->create([
-            'cart_id'    => $guestCart->id,
+            'cart_id' => $guestCart->id,
             'product_id' => $product->id,
-            'quantity'   => 1,
+            'quantity' => 1,
         ]);
 
         $response = $this->getCart((string) $guestCart->id, $guestCart->id);

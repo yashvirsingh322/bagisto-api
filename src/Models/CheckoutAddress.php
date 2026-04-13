@@ -35,7 +35,7 @@ use Webkul\BagistoApi\State\CheckoutProcessor;
             provider: CheckoutAddressProvider::class,
             resolver: BaseQueryItemResolver::class,
             normalizationContext: [
-                'groups'                 => ['query'],
+                'groups' => ['query'],
             ],
             description: 'Get billing and shipping addresses for a cart by token',
         ),
@@ -46,10 +46,10 @@ use Webkul\BagistoApi\State\CheckoutProcessor;
             processor: CheckoutProcessor::class,
             denormalizationContext: [
                 'allow_extra_attributes' => true,
-                'groups'                 => ['mutation'],
+                'groups' => ['mutation'],
             ],
             normalizationContext: [
-                'groups'                 => ['mutation'],
+                'groups' => ['mutation'],
             ],
             description: 'Save billing and shipping addresses for checkout. Returns the created address.',
         ),

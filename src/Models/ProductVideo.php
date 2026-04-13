@@ -13,8 +13,9 @@ use ApiPlatform\Metadata\GraphQl\Query;
 use ApiPlatform\Metadata\GraphQl\QueryCollection;
 use ApiPlatform\Metadata\Link;
 use ApiPlatform\Metadata\Patch;
-use Webkul\Product\Models\ProductVideo as BaseProductVideo;
 use Webkul\BagistoApi\Resolver\BaseQueryItemResolver;
+use Webkul\BagistoApi\State\CursorAwareCollectionProvider;
+use Webkul\Product\Models\ProductVideo as BaseProductVideo;
 
 #[ApiResource(
     routePrefix: '/api/shop',
@@ -57,7 +58,7 @@ use Webkul\BagistoApi\Resolver\BaseQueryItemResolver;
     ],
     graphQlOperations: [
         new QueryCollection(
-            provider: \Webkul\BagistoApi\State\CursorAwareCollectionProvider::class,
+            provider: CursorAwareCollectionProvider::class,
             args: [
                 'product_id' => ['type' => 'Int', 'description' => 'Filter by product ID'],
             ]

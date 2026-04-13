@@ -14,14 +14,14 @@ use ApiPlatform\OpenApi\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Webkul\BagistoApi\Http\Requests\Admin\ProductFormRequest;
+use Webkul\BagistoApi\Resolver\BaseQueryItemResolver;
 use Webkul\BagistoApi\Resolver\SingleProductBagistoApiResolver;
-use Webkul\BagistoApi\State\ProductBagistoApiProvider;
 use Webkul\BagistoApi\State\ProductGraphQLProvider;
 use Webkul\BagistoApi\State\ProductProcessor;
 use Webkul\Product\Models\Product as BaseProduct;
-use Webkul\BagistoApi\Resolver\BaseQueryItemResolver;
 
 #[ApiResource(
     routePrefix: '/api/shop',
@@ -42,49 +42,49 @@ use Webkul\BagistoApi\Resolver\BaseQueryItemResolver;
                     content: new \ArrayObject([
                         'application/json' => [
                             'schema' => [
-                                'type'       => 'object',
+                                'type' => 'object',
                                 'properties' => [
                                     'type' => [
-                                        'type'    => 'string',
+                                        'type' => 'string',
                                         'example' => 'simple',
                                     ],
                                     'attribute_family_id' => [
-                                        'type'    => 'integer',
+                                        'type' => 'integer',
                                         'example' => 1,
                                     ],
                                     'sku' => [
-                                        'type'    => 'string',
+                                        'type' => 'string',
                                         'example' => 'furniture',
                                     ],
                                     'super_attributes' => [
-                                        'type'    => 'object',
+                                        'type' => 'object',
                                         'example' => [
                                             'color' => [1],
-                                            'size'  => [6],
+                                            'size' => [6],
                                         ],
                                     ],
                                 ],
                             ],
                             'examples' => [
                                 'simple_product' => [
-                                    'summary'     => 'Simple Product',
+                                    'summary' => 'Simple Product',
                                     'description' => 'Create a standard simple product',
-                                    'value'       => [
-                                        'type'                => 'simple',
+                                    'value' => [
+                                        'type' => 'simple',
                                         'attribute_family_id' => 1,
-                                        'sku'                 => 'furniture',
+                                        'sku' => 'furniture',
                                     ],
                                 ],
                                 'configurable_product' => [
-                                    'summary'     => 'Configurable Product',
+                                    'summary' => 'Configurable Product',
                                     'description' => 'Create a configurable product with variations',
-                                    'value'       => [
-                                        'type'                => 'configurable',
+                                    'value' => [
+                                        'type' => 'configurable',
                                         'attribute_family_id' => 1,
-                                        'sku'                 => 'furniture',
-                                        'super_attributes'    => [
+                                        'sku' => 'furniture',
+                                        'super_attributes' => [
                                             'color' => [1],
-                                            'size'  => [6],
+                                            'size' => [6],
                                         ],
                                     ],
                                 ],
@@ -108,111 +108,111 @@ use Webkul\BagistoApi\Resolver\BaseQueryItemResolver;
                     content: new \ArrayObject([
                         'application/json' => [
                             'schema' => [
-                                'type'       => 'object',
+                                'type' => 'object',
                                 'properties' => [
                                     'type' => [
-                                        'type'    => 'string',
+                                        'type' => 'string',
                                         'example' => 'simple',
                                     ],
                                     'attribute_family_id' => [
-                                        'type'    => 'integer',
+                                        'type' => 'integer',
                                         'example' => 1,
                                     ],
                                     'sku' => [
-                                        'type'    => 'string',
+                                        'type' => 'string',
                                         'example' => 'furniture',
                                     ],
                                     'super_attributes' => [
-                                        'type'    => 'object',
+                                        'type' => 'object',
                                         'example' => [
                                             'color' => [1],
-                                            'size'  => [6],
+                                            'size' => [6],
                                         ],
                                     ],
                                 ],
                             ],
                             'examples' => [
                                 'simple_product' => [
-                                    'summary'     => 'Simple Product',
+                                    'summary' => 'Simple Product',
                                     'description' => 'Create a standard simple product',
-                                    'value'       => [
-                                        'channel'              => 'default',
-                                        'locale'               => 'en',
-                                        'sku'                  => 'furniture',
-                                        'product_number'       => 'ssf-001',
-                                        'name'                 => 'Sofa Set',
-                                        'url_key'              => 'sofa-set-furniture',
-                                        'tax_category_id'      => null,
-                                        'new'                  => 1,
-                                        'featured'             => 1,
-                                        'manage_stock'         => 1,
+                                    'value' => [
+                                        'channel' => 'default',
+                                        'locale' => 'en',
+                                        'sku' => 'furniture',
+                                        'product_number' => 'ssf-001',
+                                        'name' => 'Sofa Set',
+                                        'url_key' => 'sofa-set-furniture',
+                                        'tax_category_id' => null,
+                                        'new' => 1,
+                                        'featured' => 1,
+                                        'manage_stock' => 1,
                                         'visible_individually' => 1,
-                                        'guest_checkout'       => 0,
-                                        'status'               => 1,
-                                        'color'                => 3,
-                                        'size'                 => 9,
-                                        'brand'                => 17,
-                                        'short_description'    => 'What is Lorem Ipsum?',
-                                        'description'          => 'Lorem Ipsum is simply dummy text of the printing and typesetting industry.',
-                                        'meta_title'           => 'Premium sofa sets',
-                                        'meta_description'     => 'Lorem Ipsum is simply dummy text of the printing and typesetting industry.',
-                                        'meta_keywords'        => 'Sofa set',
-                                        'price'                => 10.5,
-                                        'cost'                 => 0,
-                                        'special_price'        => 8.3,
-                                        'special_price_from'   => '2023-05-30',
-                                        'special_price_to'     => '2025-05-22',
-                                        'length'               => 0,
-                                        'width'                => 0,
-                                        'height'               => 0,
-                                        'weight'               => 1,
-                                        'inventories'          => [
+                                        'guest_checkout' => 0,
+                                        'status' => 1,
+                                        'color' => 3,
+                                        'size' => 9,
+                                        'brand' => 17,
+                                        'short_description' => 'What is Lorem Ipsum?',
+                                        'description' => 'Lorem Ipsum is simply dummy text of the printing and typesetting industry.',
+                                        'meta_title' => 'Premium sofa sets',
+                                        'meta_description' => 'Lorem Ipsum is simply dummy text of the printing and typesetting industry.',
+                                        'meta_keywords' => 'Sofa set',
+                                        'price' => 10.5,
+                                        'cost' => 0,
+                                        'special_price' => 8.3,
+                                        'special_price_from' => '2023-05-30',
+                                        'special_price_to' => '2025-05-22',
+                                        'length' => 0,
+                                        'width' => 0,
+                                        'height' => 0,
+                                        'weight' => 1,
+                                        'inventories' => [
                                             '1' => 500,
                                         ],
                                         'images' => [
-                                            'files'    => [],
+                                            'files' => [],
                                             'position' => [1],
                                         ],
                                         'videos' => [
-                                            'files'    => [],
+                                            'files' => [],
                                             'position' => [1],
                                         ],
-                                        'categories'       => [1],
-                                        'channels'         => [1],
-                                        'up_sell'          => [1],
-                                        'cross_sell'       => [1],
+                                        'categories' => [1],
+                                        'channels' => [1],
+                                        'up_sell' => [1],
+                                        'cross_sell' => [1],
                                         'related_products' => [1],
                                     ],
                                 ],
                                 'configurable_product' => [
-                                    'summary'     => 'Configurable Product',
+                                    'summary' => 'Configurable Product',
                                     'description' => 'Update a configurable product with variations',
-                                    'value'       => [
-                                        'channel'               => 'default',
-                                        'locale'                => 'en',
-                                        'sku'                   => 'skipping-rope',
-                                        'product_number'        => 'sr-001',
-                                        'name'                  => 'Skipping Rope',
-                                        'url_key'               => 'skipping-rope',
-                                        'tax_category_id'       => null,
-                                        'new'                   => 1,
-                                        'featured'              => 1,
-                                        'visible_individually'  => 1,
-                                        'guest_checkout'        => 0,
-                                        'status'                => 1,
-                                        'brand'                 => 17,
-                                        'short_description'     => 'What is Lorem Ipsum?',
-                                        'description'           => 'Lorem Ipsum is simply dummy text of the printing and typesetting industry.',
-                                        'meta_title'            => 'Premium sofa sets',
-                                        'meta_description'      => 'Lorem Ipsum is simply dummy text of the printing and typesetting industry.',
-                                        'meta_keywords'         => 'Sofa set',
-                                        'price'                 => 0,
+                                    'value' => [
+                                        'channel' => 'default',
+                                        'locale' => 'en',
+                                        'sku' => 'skipping-rope',
+                                        'product_number' => 'sr-001',
+                                        'name' => 'Skipping Rope',
+                                        'url_key' => 'skipping-rope',
+                                        'tax_category_id' => null,
+                                        'new' => 1,
+                                        'featured' => 1,
+                                        'visible_individually' => 1,
+                                        'guest_checkout' => 0,
+                                        'status' => 1,
+                                        'brand' => 17,
+                                        'short_description' => 'What is Lorem Ipsum?',
+                                        'description' => 'Lorem Ipsum is simply dummy text of the printing and typesetting industry.',
+                                        'meta_title' => 'Premium sofa sets',
+                                        'meta_description' => 'Lorem Ipsum is simply dummy text of the printing and typesetting industry.',
+                                        'meta_keywords' => 'Sofa set',
+                                        'price' => 0,
                                         'customer_group_prices' => [
                                             'customer_group_price_0' => [
                                                 'customer_group_id' => 1,
-                                                'qty'               => 2,
-                                                'value_type'        => 'fixed',
-                                                'value'             => 3.2,
+                                                'qty' => 2,
+                                                'value_type' => 'fixed',
+                                                'value' => 3.2,
                                             ],
                                         ],
                                         'categories' => [
@@ -226,13 +226,13 @@ use Webkul\BagistoApi\Resolver\BaseQueryItemResolver;
                                         ],
                                         'variants' => [
                                             '28' => [
-                                                'sku'         => 'skipping-rope-variant-1-6',
-                                                'name'        => 'Red-S',
-                                                'color'       => 1,
-                                                'size'        => 6,
-                                                'price'       => 10.5,
-                                                'weight'      => 1.2,
-                                                'status'      => 1,
+                                                'sku' => 'skipping-rope-variant-1-6',
+                                                'name' => 'Red-S',
+                                                'color' => 1,
+                                                'size' => 6,
+                                                'price' => 10.5,
+                                                'weight' => 1.2,
+                                                'status' => 1,
                                                 'inventories' => [
                                                     '1' => 500,
                                                 ],
@@ -241,13 +241,13 @@ use Webkul\BagistoApi\Resolver\BaseQueryItemResolver;
                                                 ],
                                             ],
                                             '29' => [
-                                                'sku'         => 'skipping-rope-variant-1-7',
-                                                'name'        => 'Red-M',
-                                                'color'       => 1,
-                                                'size'        => 7,
-                                                'price'       => 15,
-                                                'weight'      => 1,
-                                                'status'      => 1,
+                                                'sku' => 'skipping-rope-variant-1-7',
+                                                'name' => 'Red-M',
+                                                'color' => 1,
+                                                'size' => 7,
+                                                'price' => 15,
+                                                'weight' => 1,
+                                                'status' => 1,
                                                 'inventories' => [
                                                     '1' => 500,
                                                 ],
@@ -259,34 +259,34 @@ use Webkul\BagistoApi\Resolver\BaseQueryItemResolver;
                                     ],
                                 ],
                                 'downloadable_product' => [
-                                    'summary'     => 'Downloadable Product',
+                                    'summary' => 'Downloadable Product',
                                     'description' => 'Update a downloadable product with links and samples',
-                                    'value'       => [
-                                        'channel'               => 'default',
-                                        'locale'                => 'en',
-                                        'sku'                   => 'skipping-rope',
-                                        'product_number'        => 'sr-001',
-                                        'name'                  => 'Skipping Rope',
-                                        'url_key'               => 'skipping-rope',
-                                        'tax_category_id'       => null,
-                                        'new'                   => 1,
-                                        'featured'              => 1,
-                                        'visible_individually'  => 1,
-                                        'guest_checkout'        => 0,
-                                        'status'                => 1,
-                                        'brand'                 => 17,
-                                        'short_description'     => 'What is Lorem Ipsum?',
-                                        'description'           => 'Lorem Ipsum is simply dummy text of the printing and typesetting industry.',
-                                        'meta_title'            => 'Premium sofa sets',
-                                        'meta_description'      => 'Lorem Ipsum is simply dummy text of the printing and typesetting industry.',
-                                        'meta_keywords'         => 'Sofa set',
-                                        'price'                 => 0,
+                                    'value' => [
+                                        'channel' => 'default',
+                                        'locale' => 'en',
+                                        'sku' => 'skipping-rope',
+                                        'product_number' => 'sr-001',
+                                        'name' => 'Skipping Rope',
+                                        'url_key' => 'skipping-rope',
+                                        'tax_category_id' => null,
+                                        'new' => 1,
+                                        'featured' => 1,
+                                        'visible_individually' => 1,
+                                        'guest_checkout' => 0,
+                                        'status' => 1,
+                                        'brand' => 17,
+                                        'short_description' => 'What is Lorem Ipsum?',
+                                        'description' => 'Lorem Ipsum is simply dummy text of the printing and typesetting industry.',
+                                        'meta_title' => 'Premium sofa sets',
+                                        'meta_description' => 'Lorem Ipsum is simply dummy text of the printing and typesetting industry.',
+                                        'meta_keywords' => 'Sofa set',
+                                        'price' => 0,
                                         'customer_group_prices' => [
                                             'customer_group_price_0' => [
                                                 'customer_group_id' => 1,
-                                                'qty'               => 2,
-                                                'value_type'        => 'fixed',
-                                                'value'             => 3.2,
+                                                'qty' => 2,
+                                                'value_type' => 'fixed',
+                                                'value' => 3.2,
                                             ],
                                         ],
                                         'categories' => [
@@ -303,25 +303,25 @@ use Webkul\BagistoApi\Resolver\BaseQueryItemResolver;
                                                 'en' => [
                                                     'title' => 'Link 1',
                                                 ],
-                                                'price'       => 5,
-                                                'type'        => 'url',
-                                                'url'         => 'https://cdn.pixabay.com/photo/2016/03/26/13/08/conceptual-1280533_1280.jpg',
+                                                'price' => 5,
+                                                'type' => 'url',
+                                                'url' => 'https://cdn.pixabay.com/photo/2016/03/26/13/08/conceptual-1280533_1280.jpg',
                                                 'sample_type' => 'url',
-                                                'sample_url'  => 'https://cdn.pixabay.com/photo/2016/11/22/19/11/brick-wall-1850095_1280.jpg',
-                                                'downloads'   => 10,
-                                                'sort_order'  => 1,
+                                                'sample_url' => 'https://cdn.pixabay.com/photo/2016/11/22/19/11/brick-wall-1850095_1280.jpg',
+                                                'downloads' => 10,
+                                                'sort_order' => 1,
                                             ],
                                             'link_1' => [
                                                 'en' => [
                                                     'title' => 'Link 2',
                                                 ],
-                                                'price'       => 10,
-                                                'type'        => 'url',
-                                                'url'         => 'https://cdn.pixabay.com/photo/2016/03/26/13/08/conceptual-1280533_1280.jpg',
+                                                'price' => 10,
+                                                'type' => 'url',
+                                                'url' => 'https://cdn.pixabay.com/photo/2016/03/26/13/08/conceptual-1280533_1280.jpg',
                                                 'sample_type' => 'url',
-                                                'sample_url'  => 'https://cdn.pixabay.com/photo/2016/11/22/19/11/brick-wall-1850095_1280.jpg',
-                                                'downloads'   => 20,
-                                                'sort_order'  => 2,
+                                                'sample_url' => 'https://cdn.pixabay.com/photo/2016/11/22/19/11/brick-wall-1850095_1280.jpg',
+                                                'downloads' => 20,
+                                                'sort_order' => 2,
                                             ],
                                         ],
                                         'downloadable_samples' => [
@@ -329,50 +329,50 @@ use Webkul\BagistoApi\Resolver\BaseQueryItemResolver;
                                                 'en' => [
                                                     'title' => 'Sample 1',
                                                 ],
-                                                'type'       => 'url',
-                                                'url'        => 'https://cdn.pixabay.com/photo/2017/10/04/14/50/staging-2816464_1280.jpg',
+                                                'type' => 'url',
+                                                'url' => 'https://cdn.pixabay.com/photo/2017/10/04/14/50/staging-2816464_1280.jpg',
                                                 'sort_order' => 1,
                                             ],
                                             'sample_1' => [
                                                 'en' => [
                                                     'title' => 'Sample 2',
                                                 ],
-                                                'type'       => 'url',
-                                                'url'        => 'https://cdn.pixabay.com/photo/2015/12/05/23/38/nursery-1078923_1280.jpg',
+                                                'type' => 'url',
+                                                'url' => 'https://cdn.pixabay.com/photo/2015/12/05/23/38/nursery-1078923_1280.jpg',
                                                 'sort_order' => 2,
                                             ],
                                         ],
                                     ],
                                 ],
                                 'grouped_product' => [
-                                    'summary'     => 'Group Product',
+                                    'summary' => 'Group Product',
                                     'description' => 'Update a grouped product along with its associated products',
-                                    'value'       => [
-                                        'channel'               => 'default',
-                                        'locale'                => 'en',
-                                        'sku'                   => 'skipping-rope',
-                                        'product_number'        => 'sr-001',
-                                        'name'                  => 'Skipping Rope',
-                                        'url_key'               => 'skipping-rope',
-                                        'tax_category_id'       => null,
-                                        'new'                   => 1,
-                                        'featured'              => 1,
-                                        'visible_individually'  => 1,
-                                        'guest_checkout'        => 0,
-                                        'status'                => 1,
-                                        'brand'                 => 17,
-                                        'short_description'     => 'What is Lorem Ipsum?',
-                                        'description'           => 'Lorem Ipsum is simply dummy text of the printing and typesetting industry.',
-                                        'meta_title'            => 'Premium sofa sets',
-                                        'meta_description'      => 'Lorem Ipsum is simply dummy text of the printing and typesetting industry.',
-                                        'meta_keywords'         => 'Sofa set',
-                                        'price'                 => 0,
+                                    'value' => [
+                                        'channel' => 'default',
+                                        'locale' => 'en',
+                                        'sku' => 'skipping-rope',
+                                        'product_number' => 'sr-001',
+                                        'name' => 'Skipping Rope',
+                                        'url_key' => 'skipping-rope',
+                                        'tax_category_id' => null,
+                                        'new' => 1,
+                                        'featured' => 1,
+                                        'visible_individually' => 1,
+                                        'guest_checkout' => 0,
+                                        'status' => 1,
+                                        'brand' => 17,
+                                        'short_description' => 'What is Lorem Ipsum?',
+                                        'description' => 'Lorem Ipsum is simply dummy text of the printing and typesetting industry.',
+                                        'meta_title' => 'Premium sofa sets',
+                                        'meta_description' => 'Lorem Ipsum is simply dummy text of the printing and typesetting industry.',
+                                        'meta_keywords' => 'Sofa set',
+                                        'price' => 0,
                                         'customer_group_prices' => [
                                             'customer_group_price_0' => [
                                                 'customer_group_id' => 1,
-                                                'qty'               => 2,
-                                                'value_type'        => 'fixed',
-                                                'value'             => 3.2,
+                                                'qty' => 2,
+                                                'value_type' => 'fixed',
+                                                'value' => 3.2,
                                             ],
                                         ],
                                         'categories' => [
@@ -387,13 +387,13 @@ use Webkul\BagistoApi\Resolver\BaseQueryItemResolver;
                                         'links' => [
                                             'link_0' => [
                                                 'associated_product_id' => 1,
-                                                'qty'                   => 2,
-                                                'sort_order'            => 1,
+                                                'qty' => 2,
+                                                'sort_order' => 1,
                                             ],
                                             'link_1' => [
                                                 'associated_product_id' => 2,
-                                                'qty'                   => 3,
-                                                'sort_order'            => 2,
+                                                'qty' => 3,
+                                                'sort_order' => 2,
                                             ],
                                         ],
                                     ],
@@ -408,22 +408,22 @@ use Webkul\BagistoApi\Resolver\BaseQueryItemResolver;
     graphQlOperations: [
         new Mutation(
             name: 'create',
-            processor: \Webkul\BagistoApi\State\ProductProcessor::class,
+            processor: ProductProcessor::class,
             denormalizationContext: [
                 'allow_extra_attributes' => true,
-                'groups'                 => ['mutation'],
+                'groups' => ['mutation'],
             ],
         ),
         new Mutation(
             name: 'update',
-            processor: \Webkul\BagistoApi\State\ProductProcessor::class,
+            processor: ProductProcessor::class,
         ),
         new Query(
             args: [
-                'id'      => ['type' => 'ID'],
-                'sku'     => ['type' => 'String'],
-                'urlKey'  => ['type' => 'String'],
-                'locale'  => ['type' => 'String', 'description' => 'Locale code for localized data (e.g. "en", "fr")'],
+                'id' => ['type' => 'ID'],
+                'sku' => ['type' => 'String'],
+                'urlKey' => ['type' => 'String'],
+                'locale' => ['type' => 'String', 'description' => 'Locale code for localized data (e.g. "en", "fr")'],
                 'channel' => ['type' => 'String', 'description' => 'Channel code (e.g. "default")'],
             ],
             resolver: SingleProductBagistoApiResolver::class
@@ -442,43 +442,43 @@ use Webkul\BagistoApi\Resolver\BaseQueryItemResolver;
             provider: ProductGraphQLProvider::class,
             args: [
                 'sortKey' => [
-                    'type'        => 'String',
+                    'type' => 'String',
                     'description' => 'Sort products by field (TITLE, CREATED_AT, UPDATED_AT, PRICE, etc.)',
                 ],
                 'reverse' => [
-                    'type'        => 'Boolean',
+                    'type' => 'Boolean',
                     'description' => 'Reverse the sort order (true = descending, false = ascending)',
                 ],
                 'query' => [
-                    'type'        => 'String',
+                    'type' => 'String',
                     'description' => 'Search query to filter products by SKU or name',
                 ],
                 'filter' => [
-                    'type'        => 'String',
+                    'type' => 'String',
                     'description' => 'JSON filter object containing attribute filters (type, sku, category_id, price, color, name, etc.). Example: {"type":"configurable","sku":"ABC123"}',
                 ],
                 'first' => [
-                    'type'        => 'Int',
+                    'type' => 'Int',
                     'description' => 'Limit the number of products returned',
                 ],
                 'after' => [
-                    'type'        => 'String',
+                    'type' => 'String',
                     'description' => 'Relay cursor for forward pagination',
                 ],
                 'before' => [
-                    'type'        => 'String',
+                    'type' => 'String',
                     'description' => 'Relay cursor for backward pagination',
                 ],
                 'last' => [
-                    'type'        => 'Int',
+                    'type' => 'Int',
                     'description' => 'Return the last N items (used with before cursor)',
                 ],
                 'locale' => [
-                    'type'        => 'String',
+                    'type' => 'String',
                     'description' => 'Fetch data products by locale',
                 ],
                 'channel' => [
-                    'type'        => 'String',
+                    'type' => 'String',
                     'description' => 'Fetch data products by channel',
                 ],
             ]
@@ -515,34 +515,34 @@ class Product extends BaseProduct
     ];
 
     protected static array $systemAttributes = [
-        'sku'                  => ['id' => 1],
-        'name'                 => ['id' => 2],
-        'url_key'              => ['id' => 3],
-        'tax_category_id'      => ['id' => 4],
-        'new'                  => ['id' => 5],
-        'featured'             => ['id' => 6],
+        'sku' => ['id' => 1],
+        'name' => ['id' => 2],
+        'url_key' => ['id' => 3],
+        'tax_category_id' => ['id' => 4],
+        'new' => ['id' => 5],
+        'featured' => ['id' => 6],
         'visible_individually' => ['id' => 7],
-        'status'               => ['id' => 8],
-        'short_description'    => ['id' => 9],
-        'description'          => ['id' => 10],
-        'price'                => ['id' => 11],
-        'special_price'        => ['id' => 13],
-        'special_price_from'   => ['id' => 14],
-        'special_price_to'     => ['id' => 15],
-        'meta_title'           => ['id' => 16],
-        'meta_keywords'        => ['id' => 17],
-        'weight'               => ['id' => 22],
-        'guest_checkout'       => ['id' => 26],
-        'product_number'       => ['id' => 27],
-        'manage_stock'         => ['id' => 28],
-        'cost'                 => ['id' => 12],
-        'meta_description'     => ['id' => 18],
-        'length'               => ['id' => 19],
-        'width'                => ['id' => 20],
-        'height'               => ['id' => 21],
-        'color'                => ['id' => 23],
-        'size'                 => ['id' => 24],
-        'brand'                => ['id' => 25],
+        'status' => ['id' => 8],
+        'short_description' => ['id' => 9],
+        'description' => ['id' => 10],
+        'price' => ['id' => 11],
+        'special_price' => ['id' => 13],
+        'special_price_from' => ['id' => 14],
+        'special_price_to' => ['id' => 15],
+        'meta_title' => ['id' => 16],
+        'meta_keywords' => ['id' => 17],
+        'weight' => ['id' => 22],
+        'guest_checkout' => ['id' => 26],
+        'product_number' => ['id' => 27],
+        'manage_stock' => ['id' => 28],
+        'cost' => ['id' => 12],
+        'meta_description' => ['id' => 18],
+        'length' => ['id' => 19],
+        'width' => ['id' => 20],
+        'height' => ['id' => 21],
+        'color' => ['id' => 23],
+        'size' => ['id' => 24],
+        'brand' => ['id' => 25],
     ];
 
     #[ApiProperty(identifier: true, writable: false)]
@@ -675,7 +675,7 @@ class Product extends BaseProduct
         return $this->hasMany(static::class, 'parent_id')
             ->whereHas('attribute_values', function ($q) {
                 $q->where('attribute_id', 8)
-                  ->where('boolean_value', 1);
+                    ->where('boolean_value', 1);
             });
     }
 
@@ -824,22 +824,23 @@ class Product extends BaseProduct
 
     /**
      * Get configurable product option index attribute.
-     * 
+     *
      * For configurable products, returns an index mapping variant IDs to their option values by attribute code.
      * Format: JSON string like { "588": { "color": 1, "size": 6 }, "589": { "color": 2, "size": 6 }, ... }
-     * 
+     *
      * This allows headless developers to identify which variant matches selected options.
      * Similar to Shop package's ConfigurableOption helper.
-     */    
+     */
     public function getIndexAttribute(): string
     {
-         return $this->getCombinationsAttribute();
+        return $this->getCombinationsAttribute();
     }
 
-    #[ApiProperty(deprecationReason: "Use the VariantAttributeMap property instead",writable: false, readable: true, required: false)]
+    #[ApiProperty(deprecationReason: 'Use the VariantAttributeMap property instead', writable: false, readable: true, required: false)]
     public function getIndex(): ?string
     {
         $indexJson = $this->getIndexAttribute();
+
         return $indexJson !== '{}' ? $indexJson : null;
     }
 
@@ -859,7 +860,7 @@ class Product extends BaseProduct
             $this->load([
                 'variants' => function ($query) {
                     $query->with(['attribute_values.attribute']);
-                }
+                },
             ]);
         }
 
@@ -918,7 +919,7 @@ class Product extends BaseProduct
             $this->load([
                 'variants' => function ($query) {
                     $query->with(['attribute_values.attribute.options']);
-                }
+                },
             ]);
         }
 
@@ -945,7 +946,7 @@ class Product extends BaseProduct
             foreach ($attribute->options as $option) {
                 if (in_array($option->id, $usedOptions[$attribute->id] ?? [])) {
                     $options[] = [
-                        'id'    => $option->id,
+                        'id' => $option->id,
                         'label' => $option->admin_name,
                     ];
                 }
@@ -953,9 +954,9 @@ class Product extends BaseProduct
 
             if (! empty($options)) {
                 $result[] = [
-                    'id'      => $attribute->id,
-                    'code'    => $attribute->code,
-                    'label'   => $attribute->admin_name,
+                    'id' => $attribute->id,
+                    'code' => $attribute->code,
+                    'label' => $attribute->admin_name,
                     'options' => $options,
                 ];
             }
@@ -971,8 +972,7 @@ class Product extends BaseProduct
 
         return $indexJson !== '{}' ? $indexJson : null;
     }
-    
-   
+
     public function getSkuAttribute(): ?string
     {
         return $this->getSystemAttributeValue('sku');
@@ -1065,7 +1065,7 @@ class Product extends BaseProduct
      */
     public function booking_products(): HasMany
     {
-         return $this->hasMany(BookingProduct::class, 'product_id');
+        return $this->hasMany(BookingProduct::class, 'product_id');
     }
 
     /**
@@ -1099,6 +1099,7 @@ class Product extends BaseProduct
     {
         return $this->hasMany(ProductGroupedProduct::class, 'product_id');
     }
+
     public function downloadable_links(): HasMany
     {
         return $this->hasMany(ProductDownloadableLink::class, 'product_id');
@@ -1780,7 +1781,7 @@ class Product extends BaseProduct
         $currentChannel = $this->channel ?? (core()->getCurrentChannel()->code ?? 'default');
 
         $attributeValue = null;
-        
+
         $localeVariants = [];
         if (! empty($currentLocale)) {
             $localeVariants[] = $currentLocale;
@@ -1799,7 +1800,7 @@ class Product extends BaseProduct
         }
 
         $localeVariants[] = null;
-        
+
         $channelVariants = [$currentChannel, null];
 
         foreach ($localeVariants as $localeVariant) {
@@ -1829,7 +1830,7 @@ class Product extends BaseProduct
         if ($attributeValue && $attributeValue?->integer_value && in_array($attributeValue?->attribute?->type, ['select', 'multiselect', 'checkbox'])) {
             $attributeValue->setValue($attributeValue->attribute->options()->where('id', $attributeValue->value)->first()?->label);
         }
-        
+
         return $this->attributeValueCache[$attributeCode] = ($attributeValue ? $attributeValue->value : '');
     }
 
@@ -1852,16 +1853,16 @@ class Product extends BaseProduct
     public function getRelatedProducts()
     {
         return function ($source, array $args = [], $context = null) {
-            
+
             $relation = $source->related_products();
-            
+
             $total = $relation->count();
 
             $limit = $args['first'] ?? $args['last'] ?? 30;
 
             $items = $relation->limit($limit)->get();
-            
-            return new \Illuminate\Pagination\LengthAwarePaginator(
+
+            return new LengthAwarePaginator(
                 $items,
                 $total,
                 $limit,
@@ -1891,7 +1892,7 @@ class Product extends BaseProduct
             $items = $relation->limit($limit)->get();
 
             // Return a LengthAwarePaginator so ApiPlatform can compute totalCount
-            return new \Illuminate\Pagination\LengthAwarePaginator(
+            return new LengthAwarePaginator(
                 $items,
                 $total,
                 $limit,
@@ -1921,7 +1922,7 @@ class Product extends BaseProduct
             $items = $relation->limit($limit)->get();
 
             // Return a LengthAwarePaginator so ApiPlatform can compute totalCount
-            return new \Illuminate\Pagination\LengthAwarePaginator(
+            return new LengthAwarePaginator(
                 $items,
                 $total,
                 $limit,

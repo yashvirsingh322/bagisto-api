@@ -40,12 +40,12 @@ class AttributeValue extends Model
     protected $guarded = ['value'];
 
     protected $casts = [
-        'boolean_value'  => 'boolean',
-        'integer_value'  => 'integer',
-        'float_value'    => 'decimal:4',
+        'boolean_value' => 'boolean',
+        'integer_value' => 'integer',
+        'float_value' => 'decimal:4',
         'datetime_value' => 'datetime',
-        'date_value'     => 'date',
-        'json_value'     => 'array',
+        'date_value' => 'date',
+        'json_value' => 'array',
     ];
 
     /**

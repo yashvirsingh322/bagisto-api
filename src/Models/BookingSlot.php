@@ -29,11 +29,11 @@ use Webkul\BagistoApi\State\BookingSlotProvider;
         new QueryCollection(
             args: [
                 'id' => [
-                    'type'        => 'Int!',
+                    'type' => 'Int!',
                     'description' => 'The booking product ID',
                 ],
                 'date' => [
-                    'type'        => 'String!',
+                    'type' => 'String!',
                     'description' => 'The date for which to get slots (YYYY-MM-DD)',
                 ],
             ],

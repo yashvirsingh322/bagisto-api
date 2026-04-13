@@ -25,7 +25,7 @@ class InvoicePdfController extends Controller
      * Download invoice as PDF
      *
      * @param  int  $id  Invoice ID
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function __invoke(int $id)
     {

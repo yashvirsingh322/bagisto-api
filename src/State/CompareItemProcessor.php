@@ -3,6 +3,7 @@
 namespace Webkul\BagistoApi\State;
 
 use ApiPlatform\Metadata\Operation;
+use ApiPlatform\Metadata\Post;
 use ApiPlatform\State\ProcessorInterface;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -36,8 +37,8 @@ class CompareItemProcessor implements ProcessorInterface
             return $this->handleCreate($data);
         }
 
-        if ($data instanceof CompareItem && $operation instanceof \ApiPlatform\Metadata\Post) {
-            $input = new CreateCompareItemInput();
+        if ($data instanceof CompareItem && $operation instanceof Post) {
+            $input = new CreateCompareItemInput;
             $input->product_id = request()->input('product_id') ?? request()->input('productId');
 
             return $this->handleCreate($input);
@@ -88,7 +89,7 @@ class CompareItemProcessor implements ProcessorInterface
         }
 
         $compareItem = CompareItem::create([
-            'product_id'  => $input->product_id,
+            'product_id' => $input->product_id,
             'customer_id' => $user->id,
         ]);
 

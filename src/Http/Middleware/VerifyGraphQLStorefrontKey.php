@@ -3,6 +3,7 @@
 namespace Webkul\BagistoApi\Http\Middleware;
 
 use Closure;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use ReflectionClass;
 use ReflectionMethod;
@@ -96,13 +97,13 @@ class VerifyGraphQLStorefrontKey
         $client = $validation['client'];
         $rateLimit = $this->apiKeyService->checkRateLimit($client);
 
- #       if (! $rateLimit['allowed']) {
-  #          return response()->json([
-   #             'message'     => 'Rate limit exceeded',
-    #            'error'       => 'rate_limit_exceeded',
-     #           'retry_after' => $rateLimit['reset_at'],
-      #      ], 429);
-       # }
+        //       if (! $rateLimit['allowed']) {
+        //          return response()->json([
+        //             'message'     => 'Rate limit exceeded',
+        //            'error'       => 'rate_limit_exceeded',
+        //           'retry_after' => $rateLimit['reset_at'],
+        //      ], 429);
+        // }
 
         // Store in request for downstream use
         $request->attributes->set('storefront_key', $client);
@@ -375,15 +376,15 @@ class VerifyGraphQLStorefrontKey
         string $error = 'missing_key',
         string $headerName = 'X-STOREFRONT-KEY',
         string $keyType = 'shop'
-    ): \Illuminate\Http\JsonResponse {
+    ): JsonResponse {
         return response()->json([
-            'message'     => $message,
-            'error'       => $error,
+            'message' => $message,
+            'error' => $error,
             'header_name' => $headerName,
-            'key_type'    => $keyType,
-            'errors'      => [
+            'key_type' => $keyType,
+            'errors' => [
                 [
-                    'message'    => $message,
+                    'message' => $message,
                     'extensions' => [
                         'code' => 'UNAUTHENTICATED',
                     ],

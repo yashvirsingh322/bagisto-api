@@ -20,7 +20,7 @@ use Webkul\BagistoApi\State\VerifyTokenProcessor;
             processor: VerifyTokenProcessor::class,
             denormalizationContext: [
                 'allow_extra_attributes' => true,
-                'groups'                 => ['mutation'],
+                'groups' => ['mutation'],
             ],
         ),
     ]

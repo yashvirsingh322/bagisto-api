@@ -32,10 +32,10 @@ use Webkul\BagistoApi\State\CartTokenProcessor;
             processor: CartTokenProcessor::class,
             denormalizationContext: [
                 'allow_extra_attributes' => true,
-                'groups'                 => ['mutation'],
+                'groups' => ['mutation'],
             ],
             normalizationContext: [
-                'groups'                 => ['mutation'],
+                'groups' => ['mutation'],
             ],
             description: 'Update cart item quantity.',
             openapi: new Model\Operation(
@@ -47,27 +47,27 @@ use Webkul\BagistoApi\State\CartTokenProcessor;
                     content: new \ArrayObject([
                         'application/json' => [
                             'schema' => [
-                                'type'       => 'object',
+                                'type' => 'object',
                                 'properties' => [
                                     'cartItemId' => [
-                                        'type'        => 'integer',
-                                        'example'     => 7,
+                                        'type' => 'integer',
+                                        'example' => 7,
                                         'description' => 'Cart item ID',
                                     ],
                                     'quantity' => [
-                                        'type'        => 'integer',
-                                        'example'     => 2,
+                                        'type' => 'integer',
+                                        'example' => 2,
                                         'description' => 'New quantity',
                                     ],
                                 ],
                             ],
                             'examples' => [
                                 'update_quantity' => [
-                                    'summary'     => 'Update Item Quantity',
+                                    'summary' => 'Update Item Quantity',
                                     'description' => 'Update the quantity of a cart item',
-                                    'value'       => [
+                                    'value' => [
                                         'cartItemId' => 7,
-                                        'quantity'   => 2,
+                                        'quantity' => 2,
                                     ],
                                 ],
                             ],
@@ -86,10 +86,10 @@ use Webkul\BagistoApi\State\CartTokenProcessor;
             processor: CartTokenProcessor::class,
             denormalizationContext: [
                 'allow_extra_attributes' => true,
-                'groups'                 => ['mutation'],
+                'groups' => ['mutation'],
             ],
             normalizationContext: [
-                'groups'                 => ['mutation'],
+                'groups' => ['mutation'],
             ],
             description: 'Update cart item quantity. Use token, cartItemId, and quantity.',
         ),

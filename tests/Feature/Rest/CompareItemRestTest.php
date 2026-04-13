@@ -21,11 +21,11 @@ class CompareItemRestTest extends RestApiTestCase
 
         $compareItem1 = CompareItem::factory()->create([
             'customer_id' => $customer->id,
-            'product_id'  => $product1->id,
+            'product_id' => $product1->id,
         ]);
         $compareItem2 = CompareItem::factory()->create([
             'customer_id' => $customer->id,
-            'product_id'  => $product2->id,
+            'product_id' => $product2->id,
         ]);
 
         return compact('customer', 'product1', 'product2', 'compareItem1', 'compareItem2');
@@ -72,7 +72,7 @@ class CompareItemRestTest extends RestApiTestCase
 
         $response = $this->authenticatedGet(
             $testData['customer'],
-            '/api/shop/compare_items/' . $testData['compareItem1']->id
+            '/api/shop/compare_items/'.$testData['compareItem1']->id
         );
 
         $response->assertOk();
@@ -162,7 +162,7 @@ class CompareItemRestTest extends RestApiTestCase
 
         $response = $this->authenticatedDelete(
             $testData['customer'],
-            '/api/shop/compare_items/' . $itemId
+            '/api/shop/compare_items/'.$itemId
         );
 
         $response->assertNoContent();
@@ -179,7 +179,7 @@ class CompareItemRestTest extends RestApiTestCase
 
         $response = $this->authenticatedDelete(
             $otherCustomer,
-            '/api/shop/compare_items/' . $testData['compareItem1']->id
+            '/api/shop/compare_items/'.$testData['compareItem1']->id
         );
 
         expect(in_array($response->getStatusCode(), [204, 403, 404, 500]))->toBeTrue();

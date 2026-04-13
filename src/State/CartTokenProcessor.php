@@ -6,6 +6,8 @@ use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProcessorInterface;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Request;
+use Illuminate\Support\Str;
+use Laravel\Sanctum\PersonalAccessToken;
 use Webkul\BagistoApi\Dto\CartData;
 use Webkul\BagistoApi\Dto\CartInput;
 use Webkul\BagistoApi\Exception\AuthenticationException;
@@ -17,10 +19,17 @@ use Webkul\BagistoApi\Facades\CartTokenFacade;
 use Webkul\BagistoApi\Facades\TokenHeaderFacade;
 use Webkul\BagistoApi\Repositories\GuestCartTokensRepository;
 use Webkul\BagistoApi\Service\BookingSlotParser;
+use Webkul\BookingProduct\Helpers\Booking;
+use Webkul\BookingProduct\Models\BookingProduct;
 use Webkul\Checkout\Facades\Cart as CartFacade;
 use Webkul\Checkout\Models\Cart as CartModel;
+use Webkul\Checkout\Models\CartAddress;
 use Webkul\Checkout\Repositories\CartRepository;
 use Webkul\Customer\Models\Customer;
+use Webkul\Product\Models\Product;
+use Webkul\Product\Repositories\ProductBundleOptionProductRepository;
+use Webkul\Product\Repositories\ProductBundleOptionRepository;
+use Webkul\Shipping\Facades\Shipping;
 
 /**
  * CartTokenProcessor - Handles cart operations with token-based authentication
@@ -61,10 +70,8 @@ class CartTokenProcessor implements ProcessorInterface
 
         $customer = $token ? $this->getCustomerFromToken($token) : null;
 
-        
         $cart = $this->resolveCart($operationName, $data, $customer, $token);
-        
-        
+
         return $this->executeOperation($operationName, $cart, $customer, $data);
     }
 
@@ -101,16 +108,16 @@ class CartTokenProcessor implements ProcessorInterface
 
         $operationMap = [
             'AddProductInCart' => 'addProduct',
-            'CartToken'        => 'createOrGetCart',
-            'ReadCart'         => 'read',
-            'UpdateCartItem'   => 'updateItem',
-            'RemoveCartItem'   => 'removeItem',
-            'RemoveCartItems'  => 'removeItems',
-            'ApplyCoupon'      => 'applyCoupon',
-            'RemoveCoupon'     => 'removeCoupon',
-            'MoveToWishlist'   => 'moveToWishlist',
+            'CartToken' => 'createOrGetCart',
+            'ReadCart' => 'read',
+            'UpdateCartItem' => 'updateItem',
+            'RemoveCartItem' => 'removeItem',
+            'RemoveCartItems' => 'removeItems',
+            'ApplyCoupon' => 'applyCoupon',
+            'RemoveCoupon' => 'removeCoupon',
+            'MoveToWishlist' => 'moveToWishlist',
             'EstimateShipping' => 'estimateShipping',
-            'MergeCart'        => 'mergeGuest',
+            'MergeCart' => 'mergeGuest',
         ];
 
         if ($operationName === 'create' && isset($operationMap[$resourceClassName])) {
@@ -136,7 +143,7 @@ class CartTokenProcessor implements ProcessorInterface
         // Handle GraphQL mutation input - data is wrapped in 'input' key
         if (isset($context['args']['input']) && is_array($context['args']['input'])) {
             $inputData = $context['args']['input'];
-            
+
             // Map input fields to CartInput object
             foreach ($inputData as $key => $value) {
                 if (property_exists($data, $key)) {
@@ -274,7 +281,7 @@ class CartTokenProcessor implements ProcessorInterface
      * Resolve cart based on operation and data
      */
     private function resolveCart(string $operationName, CartInput $data, ?Customer $customer, ?string $token): ?CartModel
-    {   
+    {
         if ($operationName === 'mergeGuest' && $data->cartId) {
             return CartTokenFacade::getCartById((int) $data->cartId);
         }
@@ -282,7 +289,7 @@ class CartTokenProcessor implements ProcessorInterface
         if ($customer) {
             return $this->cartRepository->findOneWhere([
                 'customer_id' => $customer->id,
-                'is_active'   => 1,
+                'is_active' => 1,
             ]);
         }
 
@@ -307,19 +314,19 @@ class CartTokenProcessor implements ProcessorInterface
         CartInput $data
     ): mixed {
         return match ($operationName) {
-            'addProduct'       => $this->handleAddProduct($cart, $customer, $data),
-            'updateItem'       => $this->handleUpdateItem($cart, $customer, $data),
-            'removeItem'       => $this->handleRemoveItem($cart, $customer, $data),
-            'removeItems'      => $this->handleRemoveItems($cart, $customer, $data),
-            'read'             => $this->handleGetCart($cart, $customer, $data),
-            'collection'       => $this->handleGetCarts($customer, $data),
-            'mergeGuest'       => $this->handleMergeGuest($cart, $customer, $data),
-            'applyCoupon'      => $this->handleApplyCoupon($cart, $customer, $data),
-            'removeCoupon'     => $this->handleRemoveCoupon($cart, $customer, $data),
-            'moveToWishlist'   => $this->handleMoveToWishlist($cart, $customer, $data),
+            'addProduct' => $this->handleAddProduct($cart, $customer, $data),
+            'updateItem' => $this->handleUpdateItem($cart, $customer, $data),
+            'removeItem' => $this->handleRemoveItem($cart, $customer, $data),
+            'removeItems' => $this->handleRemoveItems($cart, $customer, $data),
+            'read' => $this->handleGetCart($cart, $customer, $data),
+            'collection' => $this->handleGetCarts($customer, $data),
+            'mergeGuest' => $this->handleMergeGuest($cart, $customer, $data),
+            'applyCoupon' => $this->handleApplyCoupon($cart, $customer, $data),
+            'removeCoupon' => $this->handleRemoveCoupon($cart, $customer, $data),
+            'moveToWishlist' => $this->handleMoveToWishlist($cart, $customer, $data),
             'estimateShipping' => $this->handleEstimateShipping($cart, $customer, $data),
-            'createOrGetCart'  => $this->handleCreateOrGetCart($customer, $data),
-            default            => throw new InvalidInputException(__('bagistoapi::app.graphql.cart.unknown-operation')),
+            'createOrGetCart' => $this->handleCreateOrGetCart($customer, $data),
+            default => throw new InvalidInputException(__('bagistoapi::app.graphql.cart.unknown-operation')),
         };
     }
 
@@ -344,7 +351,7 @@ class CartTokenProcessor implements ProcessorInterface
             throw new InvalidInputException(__('bagistoapi::app.graphql.cart.invalid-quantity'));
         }
 
-        $product = \Webkul\Product\Models\Product::find($data->productId);
+        $product = Product::find($data->productId);
         if (! $product) {
             throw new ResourceNotFoundException(__('bagistoapi::app.graphql.cart.product-not-found'));
         }
@@ -419,16 +426,16 @@ class CartTokenProcessor implements ProcessorInterface
             if ($customer) {
                 $cart = $this->cartRepository->create([
                     'customer_id' => $customer->id,
-                    'channel_id'  => $channel->id,
-                    'is_active'   => 1,
+                    'channel_id' => $channel->id,
+                    'is_active' => 1,
                 ]);
             } else {
                 $cart = $this->cartRepository->create([
                     'channel_id' => $channel->id,
-                    'is_active'  => 1,
+                    'is_active' => 1,
                 ]);
                 $guestCartTokenDetail = $this->guestCartTokensRepository->createToken($cart->id);
-                
+
             }
         }
 
@@ -436,19 +443,19 @@ class CartTokenProcessor implements ProcessorInterface
             // Handle is_buy_now - deactivate cart and prepare for checkout
             if (! empty($data->isBuyNow)) {
                 CartFacade::deActivateCart();
-                
+
                 // Create a new cart for buy now
                 $channel = core()->getCurrentChannel();
                 if ($customer) {
                     $cart = $this->cartRepository->create([
                         'customer_id' => $customer->id,
-                        'channel_id'  => $channel->id,
-                        'is_active'   => 1,
+                        'channel_id' => $channel->id,
+                        'is_active' => 1,
                     ]);
                 } else {
                     $cart = $this->cartRepository->create([
                         'channel_id' => $channel->id,
-                        'is_active'  => 1,
+                        'is_active' => 1,
                     ]);
                     $guestCartTokenDetail = $this->guestCartTokensRepository->createToken($cart->id);
                 }
@@ -471,7 +478,7 @@ class CartTokenProcessor implements ProcessorInterface
             }
 
             $cartData = [
-                'quantity'   => $data->quantity,
+                'quantity' => $data->quantity,
                 'product_id' => $product->id,
                 'is_buy_now' => $data->isBuyNow ?? 0,
                 ...(is_array($data->options) ? $data->options : []),
@@ -509,7 +516,7 @@ class CartTokenProcessor implements ProcessorInterface
 
             CartFacade::collectTotals();
 
-            $updatedCart  = CartFacade::getCart();
+            $updatedCart = CartFacade::getCart();
 
             Event::dispatch('cart.after.add', ['cart' => $updatedCart]);
         } catch (\Exception $e) {
@@ -571,16 +578,16 @@ class CartTokenProcessor implements ProcessorInterface
      * Checkbox/Multiselect options: qty is fixed by admin — throws error if customer tries to change
      * Radio/Select options: qty can be changed by customer
      *
-     * @param  array  $bundleOptions    [optionId => [optionProductId, ...]]
+     * @param  array  $bundleOptions  [optionId => [optionProductId, ...]]
      * @param  array  $bundleOptionQty  [optionId => qty]
-     * @return array  Validated bundle option quantities
+     * @return array Validated bundle option quantities
      *
      * @throws InvalidInputException
      */
     private function sanitizeBundleOptionQty(array $bundleOptions, array $bundleOptionQty): array
     {
-        $optionRepo = app(\Webkul\Product\Repositories\ProductBundleOptionRepository::class);
-        $optionProductRepo = app(\Webkul\Product\Repositories\ProductBundleOptionProductRepository::class);
+        $optionRepo = app(ProductBundleOptionRepository::class);
+        $optionProductRepo = app(ProductBundleOptionProductRepository::class);
 
         $sanitized = [];
 
@@ -619,7 +626,7 @@ class CartTokenProcessor implements ProcessorInterface
                         throw new InvalidInputException(
                             __('bagistoapi::app.graphql.cart.bundle-qty-not-changeable', [
                                 'option' => $bundleOption->label,
-                                'qty'    => $optionProduct->qty,
+                                'qty' => $optionProduct->qty,
                             ])
                         );
                     }
@@ -731,15 +738,15 @@ class CartTokenProcessor implements ProcessorInterface
             return null;
         }
 
-        $bookingProduct = \Webkul\BookingProduct\Models\BookingProduct::query()
+        $bookingProduct = BookingProduct::query()
             ->where('product_id', $productId)
             ->first();
 
         return match ($bookingType) {
             'appointment' => (int) ($bookingProduct?->appointment_slot?->duration ?? 0),
-            'default'     => (int) ($bookingProduct?->default_slot?->duration ?? 0),
-            'table'       => (int) ($bookingProduct?->table_slot?->duration ?? 0),
-            default       => null,
+            'default' => (int) ($bookingProduct?->default_slot?->duration ?? 0),
+            'table' => (int) ($bookingProduct?->table_slot?->duration ?? 0),
+            default => null,
         } ?: null;
     }
 
@@ -749,7 +756,7 @@ class CartTokenProcessor implements ProcessorInterface
             return;
         }
 
-        $bookingProduct = \Webkul\BookingProduct\Models\BookingProduct::query()
+        $bookingProduct = BookingProduct::query()
             ->where('product_id', $productId)
             ->first();
 
@@ -757,7 +764,7 @@ class CartTokenProcessor implements ProcessorInterface
             return;
         }
 
-        $bookingHelper = app(\Webkul\BookingProduct\Helpers\Booking::class);
+        $bookingHelper = app(Booking::class);
 
         $typeHelper = app($bookingHelper->getTypeHelper($bookingType));
 
@@ -906,7 +913,7 @@ class CartTokenProcessor implements ProcessorInterface
         CartFacade::setCart($cart);
 
         if ($cart->shipping_method && $cart->shipping_address) {
-            \Webkul\Shipping\Facades\Shipping::collectRates();
+            Shipping::collectRates();
         }
 
         CartFacade::collectTotals();
@@ -952,19 +959,19 @@ class CartTokenProcessor implements ProcessorInterface
 
         $customerCart = $this->cartRepository->findOneWhere([
             'customer_id' => $customer->id,
-            'is_active'   => 1,
+            'is_active' => 1,
         ]);
 
         if (! $customerCart) {
             $customerCart = $this->cartRepository->create([
                 'customer_id' => $customer->id,
-                'channel_id'  => $guestCart->channel_id,
-                'is_active'   => 1,
+                'channel_id' => $guestCart->channel_id,
+                'is_active' => 1,
             ]);
 
             $this->guestCartTokensRepository->create([
                 'cart_id' => $customerCart->id,
-                'token'   => $this->generateSecureToken(),
+                'token' => $this->generateSecureToken(),
             ]);
         }
 
@@ -990,7 +997,7 @@ class CartTokenProcessor implements ProcessorInterface
                     if ($item->type === 'configurable' && $item->child) {
                         $item->child->replicate()
                             ->fill([
-                                'cart_id'   => $customerCart->id,
+                                'cart_id' => $customerCart->id,
                                 'parent_id' => $newItem->id,
                             ])
                             ->save();
@@ -1074,7 +1081,7 @@ class CartTokenProcessor implements ProcessorInterface
                 return $customer;
             }
 
-            $personalAccessToken = \Laravel\Sanctum\PersonalAccessToken::findToken($token);
+            $personalAccessToken = PersonalAccessToken::findToken($token);
 
             if ($personalAccessToken && $personalAccessToken->tokenable instanceof Customer) {
                 return $personalAccessToken->tokenable;
@@ -1094,14 +1101,14 @@ class CartTokenProcessor implements ProcessorInterface
         if ($customer) {
             $cart = $this->cartRepository->findOneWhere([
                 'customer_id' => $customer->id,
-                'is_active'   => 1,
+                'is_active' => 1,
             ]);
 
             if (! $cart) {
                 $cart = $this->cartRepository->create([
                     'customer_id' => $customer->id,
-                    'channel_id'  => core()->getCurrentChannel()->id,
-                    'is_active'   => 1,
+                    'channel_id' => core()->getCurrentChannel()->id,
+                    'is_active' => 1,
                 ]);
             }
 
@@ -1116,12 +1123,12 @@ class CartTokenProcessor implements ProcessorInterface
 
             $cart = $this->cartRepository->create([
                 'channel_id' => core()->getCurrentChannel()->id,
-                'is_active'  => 1,
+                'is_active' => 1,
             ]);
 
             $guestCartData = [
                 'cart_id' => $cart->id,
-                'token'   => $sessionToken,
+                'token' => $sessionToken,
             ];
 
             // Note: device_token is NOT saved for guest users anymore
@@ -1145,7 +1152,7 @@ class CartTokenProcessor implements ProcessorInterface
      */
     private function generateSecureToken(): string
     {
-        return (string) \Illuminate\Support\Str::uuid();
+        return (string) Str::uuid();
     }
 
     /**
@@ -1282,11 +1289,11 @@ class CartTokenProcessor implements ProcessorInterface
         CartFacade::setCart($cart);
 
         try {
-            $address = (new \Webkul\Checkout\Models\CartAddress)->fill([
-                'country'  => $data->country,
-                'state'    => $data->state,
+            $address = (new CartAddress)->fill([
+                'country' => $data->country,
+                'state' => $data->state,
                 'postcode' => $data->postcode,
-                'cart_id'  => $cart->id,
+                'cart_id' => $cart->id,
             ]);
 
             $cart->setRelation('billing_address', $address);
@@ -1324,7 +1331,7 @@ class CartTokenProcessor implements ProcessorInterface
         $bookingType = $cartItem->additional['booking']['type'] ?? null;
 
         if (! $bookingType) {
-            $bookingType = \Webkul\BookingProduct\Models\BookingProduct::query()
+            $bookingType = BookingProduct::query()
                 ->where('product_id', $cartItem->product_id)
                 ->value('type');
         }

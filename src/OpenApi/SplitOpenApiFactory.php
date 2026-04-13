@@ -4,7 +4,10 @@ namespace Webkul\BagistoApi\OpenApi;
 
 use ApiPlatform\OpenApi\Factory\OpenApiFactoryInterface;
 use ApiPlatform\OpenApi\Model\Components;
+use ApiPlatform\OpenApi\Model\Info;
+use ApiPlatform\OpenApi\Model\Parameter;
 use ApiPlatform\OpenApi\Model\Paths;
+use ApiPlatform\OpenApi\Model\Server;
 use ApiPlatform\OpenApi\OpenApi;
 
 /**
@@ -27,7 +30,7 @@ class SplitOpenApiFactory implements OpenApiFactoryInterface
 
         // Set appropriate server for this endpoint
         $servers = [
-            new \ApiPlatform\OpenApi\Model\Server(
+            new Server(
                 url: '/api/'.$endpointType,
                 description: $endpointType === 'shop' ? 'Shop API - Customer-facing endpoints' : 'Admin API - Administrative endpoints'
             ),
@@ -213,7 +216,7 @@ class SplitOpenApiFactory implements OpenApiFactoryInterface
                     }
                 }
 
-                $newInfo = new \ApiPlatform\OpenApi\Model\Info(...array_values($params));
+                $newInfo = new Info(...array_values($params));
 
                 return $openApi->withInfo($newInfo);
             }
@@ -457,7 +460,7 @@ class SplitOpenApiFactory implements OpenApiFactoryInterface
             $playgroundKey = env('API_PLAYGROUND_AUTO_INJECT_STOREFRONT_KEY', false) ? (env('STOREFRONT_PLAYGROUND_KEY') ?? 'pk_storefront_xxxxx') : '';
 
             // Create the X-STOREFRONT-KEY header parameter
-            $headerParam = new \ApiPlatform\OpenApi\Model\Parameter(
+            $headerParam = new Parameter(
                 name: 'X-STOREFRONT-KEY',
                 in: 'header',
                 description: 'Storefront API Key for authentication. Required for all shop/storefront API requests.',
@@ -465,7 +468,7 @@ class SplitOpenApiFactory implements OpenApiFactoryInterface
                 deprecated: false,
                 allowEmptyValue: false,
                 schema: [
-                    'type'    => 'string',
+                    'type' => 'string',
                     'example' => $playgroundKey ?? '',
                 ]
             );

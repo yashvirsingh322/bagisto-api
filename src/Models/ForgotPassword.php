@@ -20,7 +20,7 @@ use Webkul\BagistoApi\State\ForgotPasswordProcessor;
             processor: ForgotPasswordProcessor::class,
             denormalizationContext: [
                 'allow_extra_attributes' => true,
-                'groups'                 => ['mutation'],
+                'groups' => ['mutation'],
             ],
         ),
     ]

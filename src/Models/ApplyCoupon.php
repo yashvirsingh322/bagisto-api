@@ -32,10 +32,10 @@ use Webkul\BagistoApi\State\CartTokenProcessor;
             processor: CartTokenProcessor::class,
             denormalizationContext: [
                 'allow_extra_attributes' => true,
-                'groups'                 => ['mutation'],
+                'groups' => ['mutation'],
             ],
             normalizationContext: [
-                'groups'                 => ['mutation'],
+                'groups' => ['mutation'],
             ],
             description: 'Apply coupon code to cart.',
             openapi: new Model\Operation(
@@ -47,20 +47,20 @@ use Webkul\BagistoApi\State\CartTokenProcessor;
                     content: new \ArrayObject([
                         'application/json' => [
                             'schema' => [
-                                'type'       => 'object',
+                                'type' => 'object',
                                 'properties' => [
                                     'couponCode' => [
-                                        'type'        => 'string',
-                                        'example'     => 'DISCOUNT10',
+                                        'type' => 'string',
+                                        'example' => 'DISCOUNT10',
                                         'description' => 'Coupon code',
                                     ],
                                 ],
                             ],
                             'examples' => [
                                 'apply_coupon' => [
-                                    'summary'     => 'Apply Coupon',
+                                    'summary' => 'Apply Coupon',
                                     'description' => 'Apply a discount coupon code',
-                                    'value'       => [
+                                    'value' => [
                                         'couponCode' => 'DISCOUNT10',
                                     ],
                                 ],
@@ -80,10 +80,10 @@ use Webkul\BagistoApi\State\CartTokenProcessor;
             processor: CartTokenProcessor::class,
             denormalizationContext: [
                 'allow_extra_attributes' => true,
-                'groups'                 => ['mutation'],
+                'groups' => ['mutation'],
             ],
             normalizationContext: [
-                'groups'                 => ['mutation'],
+                'groups' => ['mutation'],
             ],
             description: 'Apply coupon code to cart. Use token and couponCode.',
         ),

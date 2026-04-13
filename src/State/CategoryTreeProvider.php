@@ -9,7 +9,7 @@ use Webkul\Category\Models\Category as BaseCategory;
 
 /**
  * Provider for fetching category tree structure for REST API
- * 
+ *
  * This provider handles the /api/shop/category-trees endpoint and supports:
  * - parentId query parameter to filter by parent category
  * - depth query parameter to control how deep the tree goes (default: 4)
@@ -34,7 +34,7 @@ class CategoryTreeProvider implements ProviderInterface
             $parent = BaseCategory::with(['translations', 'translation'])
                 ->find($parentId);
 
-            if (!$parent) {
+            if (! $parent) {
                 return [];
             }
 
@@ -45,6 +45,7 @@ class CategoryTreeProvider implements ProviderInterface
                 ->get();
 
             $tree = $this->buildTreeArray($children, 0, $depth);
+
             return $tree;
         }
 

@@ -4,6 +4,7 @@ namespace Webkul\BagistoApi\State;
 
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProviderInterface;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Webkul\BagistoApi\Models\BookingSlot;
 use Webkul\BookingProduct\Helpers\AppointmentSlot as AppointmentSlotHelper;
 use Webkul\BookingProduct\Helpers\DefaultSlot as DefaultSlotHelper;
@@ -11,7 +12,6 @@ use Webkul\BookingProduct\Helpers\EventTicket as EventTicketHelper;
 use Webkul\BookingProduct\Helpers\RentalSlot as RentalSlotHelper;
 use Webkul\BookingProduct\Helpers\TableSlot as TableSlotHelper;
 use Webkul\BookingProduct\Repositories\BookingProductRepository;
-use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
 /**
  * Provider for fetching booking slots via GraphQL
@@ -36,11 +36,11 @@ class BookingSlotProvider implements ProviderInterface
         protected TableSlotHelper $tableSlotHelper
     ) {
         $this->bookingHelpers = [
-            'default'     => $this->defaultSlotHelper,
+            'default' => $this->defaultSlotHelper,
             'appointment' => $this->appointmentSlotHelper,
-            'rental'      => $this->rentalSlotHelper,
-            'event'       => $this->eventTicketHelper,
-            'table'       => $this->tableSlotHelper,
+            'rental' => $this->rentalSlotHelper,
+            'event' => $this->eventTicketHelper,
+            'table' => $this->tableSlotHelper,
         ];
     }
 
@@ -51,7 +51,7 @@ class BookingSlotProvider implements ProviderInterface
         Operation $operation,
         array $uriVariables = [],
         array $context = []
-    ): array|null {
+    ): ?array {
         // Get arguments from GraphQL query
         $args = $context['args'] ?? [];
 
@@ -73,14 +73,14 @@ class BookingSlotProvider implements ProviderInterface
         // Find the booking product
         $bookingProduct = $this->bookingProductRepository->find($id);
 
-        if (!$bookingProduct) {
+        if (! $bookingProduct) {
             throw new BadRequestHttpException(
                 'bagistoapi::app.graphql.booking-slot.product-not-found'
             );
         }
 
         // Check if the booking type has a helper
-        if (!isset($this->bookingHelpers[$bookingProduct->type])) {
+        if (! isset($this->bookingHelpers[$bookingProduct->type])) {
             throw new BadRequestHttpException(
                 'bagistoapi::app.graphql.booking-slot.invalid-type'
             );
@@ -123,10 +123,10 @@ class BookingSlotProvider implements ProviderInterface
 
             foreach ($group['slots'] as $slot) {
                 $subSlots[] = [
-                    'from'      => $slot['from'] ?? null,
-                    'to'        => $slot['to'] ?? null,
+                    'from' => $slot['from'] ?? null,
+                    'to' => $slot['to'] ?? null,
                     'timestamp' => $this->buildRentalTimestamp($slot),
-                    'qty'       => isset($slot['qty']) ? (string) $slot['qty'] : null,
+                    'qty' => isset($slot['qty']) ? (string) $slot['qty'] : null,
                 ];
             }
 
@@ -171,7 +171,7 @@ class BookingSlotProvider implements ProviderInterface
         $from = $slot['from_timestamp'] ?? '';
         $to = $slot['to_timestamp'] ?? '';
 
-        $timestamp = $from . '-' . $to;
+        $timestamp = $from.'-'.$to;
 
         return $timestamp !== '-' ? $timestamp : null;
     }

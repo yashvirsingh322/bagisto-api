@@ -8,10 +8,12 @@ use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\GraphQl\Query;
 use ApiPlatform\Metadata\GraphQl\QueryCollection;
-use Webkul\CMS\Models\Page as BasePage;
+use Illuminate\Database\Eloquent\Model;
+use Webkul\BagistoApi\Resolver\BaseQueryItemResolver;
 use Webkul\BagistoApi\Resolver\PageByUrlKeyResolver;
 use Webkul\BagistoApi\State\CursorAwareCollectionProvider;
 use Webkul\BagistoApi\State\PageProvider;
+use Webkul\CMS\Models\Page as BasePage;
 
 #[ApiResource(
     routePrefix: '/api/shop',
@@ -25,13 +27,13 @@ use Webkul\BagistoApi\State\PageProvider;
         ),
     ],
     graphQlOperations: [
-        new Query(resolver: \Webkul\BagistoApi\Resolver\BaseQueryItemResolver::class),
+        new Query(resolver: BaseQueryItemResolver::class),
         new QueryCollection(provider: CursorAwareCollectionProvider::class),
         new QueryCollection(
             name: 'pageByUrlKey',
             args: [
                 'urlKey' => [
-                    'type'        => 'String!',
+                    'type' => 'String!',
                     'description' => 'The URL key of the page',
                 ],
             ],
@@ -82,9 +84,9 @@ class Page extends BasePage
      * Get current locale translation for API
      */
     #[ApiProperty(readable: true, writable: false, description: 'Current locale translation')]
-    public function getCurrentTranslation(): ?\Illuminate\Database\Eloquent\Model
+    public function getCurrentTranslation(): ?Model
     {
-        return $this->translations->firstWhere('locale', app()->getLocale()) 
+        return $this->translations->firstWhere('locale', app()->getLocale())
             ?? $this->translations->first();
     }
 }

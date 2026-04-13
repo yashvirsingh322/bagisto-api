@@ -9,8 +9,7 @@ use Illuminate\Support\Facades\Event;
 
 class LogoutProcessor implements ProcessorInterface
 {
-    public function __construct()
-    {}
+    public function __construct() {}
 
     public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = [])
     {
@@ -39,7 +38,7 @@ class LogoutProcessor implements ProcessorInterface
             $deviceToken = $data->deviceToken ?? null;
             if ($deviceToken) {
                 Event::dispatch('bagistoapi.customer.device-token.delete', [
-                    'customerId'  => $customer->id,
+                    'customerId' => $customer->id,
                     'deviceToken' => $deviceToken,
                 ]);
             }

@@ -67,7 +67,7 @@ class GuestCheckoutTest extends GraphQLTestCase
     private function guestHeaders(string $token): array
     {
         return [
-            'Authorization' => 'Bearer ' . $token,
+            'Authorization' => 'Bearer '.$token,
         ];
     }
 
@@ -93,7 +93,7 @@ class GuestCheckoutTest extends GraphQLTestCase
 
         $response = $this->graphQL($mutation, [
             'productId' => $product->id,
-            'quantity'  => 1,
+            'quantity' => 1,
         ], $this->guestHeaders($token));
 
         $response->assertSuccessful();
@@ -107,7 +107,7 @@ class GuestCheckoutTest extends GraphQLTestCase
     public function test_get_shipping_methods(): void
     {
         $token = $this->getGuestCartToken();
-        
+
         $query = <<<'GQL'
             query checkoutShippingRates {
               collectionShippingRates {
@@ -138,7 +138,7 @@ class GuestCheckoutTest extends GraphQLTestCase
     public function test_get_payment_methods(): void
     {
         $token = $this->getGuestCartToken();
-        
+
         $query = <<<'GQL'
             query checkoutPaymentMethods {
               collectionPaymentMethods {
@@ -169,10 +169,10 @@ class GuestCheckoutTest extends GraphQLTestCase
     public function test_set_checkout_address(): void
     {
         $token = $this->getGuestCartToken();
-        
+
         // First add product to cart
         $this->addProductToCart($token);
-        
+
         $headers = $this->guestHeaders($token);
 
         $query = <<<'GQL'
@@ -253,13 +253,13 @@ class GuestCheckoutTest extends GraphQLTestCase
     public function test_set_shipping_method(): void
     {
         $token = $this->getGuestCartToken();
-        
+
         // First add product to cart and set address
         $this->addProductToCart($token);
-        
+
         // Set address first
         $this->setCheckoutAddress($token);
-        
+
         $headers = $this->guestHeaders($token);
 
         $query = <<<'GQL'
@@ -300,12 +300,12 @@ class GuestCheckoutTest extends GraphQLTestCase
     public function test_set_payment_method(): void
     {
         $token = $this->getGuestCartToken();
-        
+
         // First add product to cart, set address, and set shipping
         $this->addProductToCart($token);
         $this->setCheckoutAddress($token);
         $this->setShippingMethod($token);
-        
+
         $headers = $this->guestHeaders($token);
 
         $query = <<<'GQL'
@@ -356,13 +356,13 @@ class GuestCheckoutTest extends GraphQLTestCase
     public function test_place_order(): void
     {
         $token = $this->getGuestCartToken();
-        
+
         // First add product to cart, set address, shipping and payment
         $this->addProductToCart($token);
         $this->setCheckoutAddress($token);
         $this->setShippingMethod($token);
         $this->setPaymentMethod($token);
-        
+
         $headers = $this->guestHeaders($token);
 
         $query = <<<'GQL'
@@ -449,23 +449,23 @@ class GuestCheckoutTest extends GraphQLTestCase
         GQL;
 
         $response = $this->graphQL($mutation, [
-            'billingFirstName'   => 'John',
-            'billingLastName'    => 'Doe',
-            'billingEmail'       => 'john@example.com',
-            'billingAddress'     => '123 Main St',
-            'billingCity'        => 'Los Angeles',
-            'billingCountry'     => 'IN',
-            'billingState'       => 'UP',
-            'billingPostcode'    => '201301',
+            'billingFirstName' => 'John',
+            'billingLastName' => 'Doe',
+            'billingEmail' => 'john@example.com',
+            'billingAddress' => '123 Main St',
+            'billingCity' => 'Los Angeles',
+            'billingCountry' => 'IN',
+            'billingState' => 'UP',
+            'billingPostcode' => '201301',
             'billingPhoneNumber' => '2125551234',
-            'shippingFirstName'  => 'Jane',
-            'shippingLastName'   => 'Doe',
-            'shippingAddress'    => '456 Elm St',
-            'shippingCity'       => 'Mumbai',
-            'shippingCountry'    => 'IN',
-            'shippingState'      => 'MH',
-            'shippingPostcode'   => '400001',
-            'shippingPhoneNumber'=> '9876543210',
+            'shippingFirstName' => 'Jane',
+            'shippingLastName' => 'Doe',
+            'shippingAddress' => '456 Elm St',
+            'shippingCity' => 'Mumbai',
+            'shippingCountry' => 'IN',
+            'shippingState' => 'MH',
+            'shippingPostcode' => '400001',
+            'shippingPhoneNumber' => '9876543210',
         ], $this->guestHeaders($token));
 
         $response->assertSuccessful();
@@ -515,13 +515,13 @@ class GuestCheckoutTest extends GraphQLTestCase
 
         // No Authorization header
         $response = $this->graphQL($mutation, [
-            'billingFirstName'   => 'John',
-            'billingEmail'       => 'john@example.com',
-            'billingAddress'     => '123 Main St',
-            'billingCity'        => 'Los Angeles',
-            'billingCountry'     => 'IN',
-            'billingState'       => 'UP',
-            'billingPostcode'    => '201301',
+            'billingFirstName' => 'John',
+            'billingEmail' => 'john@example.com',
+            'billingAddress' => '123 Main St',
+            'billingCity' => 'Los Angeles',
+            'billingCountry' => 'IN',
+            'billingState' => 'UP',
+            'billingPostcode' => '201301',
             'billingPhoneNumber' => '2125551234',
         ]);
 
