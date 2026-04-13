@@ -11,7 +11,7 @@ concurrency:
 
 jobs:
   pint:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     name: Laravel Pint (code style)
 
