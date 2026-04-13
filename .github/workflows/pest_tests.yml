@@ -112,50 +112,51 @@ jobs:
           composer dump-autoload --no-interaction
 
       # ------------------------------------------------------------------
-      # Diagnostic: show exactly what API Platform registered and what a
-      # real request to one of the failing endpoints returns. This lets us
-      # see the `Location:` header on the 302 redirects that pest is
-      # reporting and trace the middleware that produced them.
+      # Diagnostic: figure out why API Platform registered zero routes.
+      # Previous probes returned 404 NotFoundHttpException — the plugin is
+      # installed and the installer ran green, but `/api/shop/*` routes
+      # do not exist in the route table. Need to see:
+      #   - whether the BagistoApi service provider is discovered
+      #   - whether config/api-platform.php exists and what it points to
+      #   - whether API Platform found any resources in src/Models/
+      #   - full `route:list` so we can grep for api_platform rows
       # ------------------------------------------------------------------
-      - name: Diagnostic — list API routes and probe one endpoint
+      - name: Diagnostic — inspect service provider and route registration
         working-directory: bagisto
         run: |
-          echo "======= ROUTES UNDER /api ======="
-          php artisan route:list --path=api --columns=method,uri,name,middleware || true
+          echo "======= CHECK: plugin directory exists ======="
+          ls -la vendor/bagisto/bagisto-api 2>&1 | head -20 || true
           echo
-          echo "======= ROUTES UNDER /graphql ======="
-          php artisan route:list --path=graphql --columns=method,uri,name,middleware || true
+          echo "======= CHECK: plugin Models directory ======="
+          ls -la vendor/bagisto/bagisto-api/src/Models 2>&1 | head -30 || true
           echo
-          echo "======= GLOBAL MIDDLEWARE + GROUPS ======="
-          php artisan route:list --path=/ --columns=uri,middleware 2>/dev/null | head -40 || true
+          echo "======= CHECK: config/api-platform.php exists and what it points to ======="
+          if [ -f config/api-platform.php ]; then
+            echo "EXISTS: config/api-platform.php"
+            grep -n "resources\|base_path\|vendor/bagisto\|packages/Webkul" config/api-platform.php | head -20
+          else
+            echo "MISSING: config/api-platform.php — installer did not publish it"
+          fi
           echo
-          echo "======= STARTING LARAVEL SERVER ======="
-          php artisan serve --host=127.0.0.1 --port=8000 > /tmp/laravel.log 2>&1 &
-          SERVER_PID=$!
-          sleep 3
-          echo "Server PID: $SERVER_PID"
+          echo "======= CHECK: bootstrap/cache/packages.php (discovered providers) ======="
+          if [ -f bootstrap/cache/packages.php ]; then
+            grep -c "BagistoApi" bootstrap/cache/packages.php && echo "  → BagistoApiServiceProvider IS in packages.php" || echo "  → BagistoApiServiceProvider NOT in packages.php"
+            grep -c "api-platform" bootstrap/cache/packages.php && echo "  → api-platform provider IS in packages.php" || echo "  → api-platform provider NOT in packages.php"
+          else
+            echo "MISSING: bootstrap/cache/packages.php"
+          fi
           echo
-          echo "======= PROBE: GET /api/shop/products (no headers) ======="
-          curl -isS http://127.0.0.1:8000/api/shop/products | head -30 || true
+          echo "======= CHECK: run package:discover to see what's discovered ======="
+          php artisan package:discover --ansi 2>&1 | head -40 || true
           echo
-          echo "======= PROBE: GET /api/shop/products (Accept: application/json) ======="
-          curl -isS -H 'Accept: application/json' http://127.0.0.1:8000/api/shop/products | head -30 || true
+          echo "======= CHECK: re-run install with verbose output ======="
+          php artisan bagisto-api-platform:install -vvv 2>&1 | tail -60 || true
           echo
-          echo "======= PROBE: GET /api/shop/products (with test storefront key) ======="
-          curl -isS \
-            -H 'Accept: application/json' \
-            -H 'X-STOREFRONT-KEY: pk_test_WaZh0x0FlbKF1suYmDD37YTfkRKm6BJ1' \
-            http://127.0.0.1:8000/api/shop/products | head -30 || true
+          echo "======= ROUTE LIST: grep for api_platform + shop + graphql ======="
+          php artisan route:list 2>&1 | grep -iE "api.platform|/api/|shop|graphql" | head -60 || true
           echo
-          echo "======= PROBE: GET /api/shop/compare-items ======="
-          curl -isS \
-            -H 'Accept: application/json' \
-            -H 'X-STOREFRONT-KEY: pk_test_WaZh0x0FlbKF1suYmDD37YTfkRKm6BJ1' \
-            http://127.0.0.1:8000/api/shop/compare-items | head -30 || true
-          echo
-          echo "======= LARAVEL SERVER LOG (tail) ======="
-          tail -40 /tmp/laravel.log || true
-          kill $SERVER_PID 2>/dev/null || true
+          echo "======= ROUTE LIST: total count ======="
+          php artisan route:list 2>&1 | wc -l
 
       - name: Run Pest (plugin suite)
         working-directory: bagisto
