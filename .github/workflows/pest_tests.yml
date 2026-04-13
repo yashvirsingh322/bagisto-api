@@ -13,19 +13,22 @@ jobs:
   pest_tests:
     runs-on: ubuntu-22.04
 
-    # Known issue: every test API request currently returns HTTP 302 because
-    # something in Bagisto's middleware stack redirects under `APP_ENV=testing`
-    # before VerifyStorefrontKey gets a chance to handle the request. Result:
-    # ~518 failing tests, all with the same root cause. Fix tracked separately;
-    # until then the job runs and keeps the failures visible but does not
-    # block PRs.
+    # Known issue: ~518 tests fail because providers like CompareItemProvider
+    # call Auth::guard('sanctum')->user() and throw AuthorizationException for
+    # unauthenticated requests, but the test suite calls many of those
+    # endpoints via `publicGet` (no customer auth). The test base class needs
+    # a refactor to use authenticatedGet for customer-scoped endpoints. Until
+    # then the job runs and keeps the failures visible but does not block PRs.
     continue-on-error: true
 
     strategy:
       matrix:
         php-versions: ['8.3']
 
-    name: PHP ${{ matrix.php-versions }} | pest against latest Bagisto release
+    name: PHP ${{ matrix.php-versions }} | pest against Bagisto v2.3.8
+
+    env:
+      BAGISTO_VERSION: v2.3.8
 
     services:
       mysql:
@@ -43,20 +46,11 @@ jobs:
         with:
           path: plugin
 
-      - name: Resolve latest Bagisto release tag
-        id: bagisto-release
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          TAG=$(gh api repos/bagisto/bagisto/releases/latest --jq '.tag_name')
-          echo "Resolved Bagisto release: ${TAG}"
-          echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
-
-      - name: Checkout Bagisto at ${{ steps.bagisto-release.outputs.tag }}
+      - name: Checkout Bagisto ${{ env.BAGISTO_VERSION }}
         uses: actions/checkout@v4
         with:
           repository: bagisto/bagisto
-          ref: ${{ steps.bagisto-release.outputs.tag }}
+          ref: ${{ env.BAGISTO_VERSION }}
           path: bagisto
 
       - name: Setup PHP
@@ -110,76 +104,6 @@ jobs:
             file_put_contents($file, json_encode($json, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . "\n");
           '
           composer dump-autoload --no-interaction
-
-      # ------------------------------------------------------------------
-      # Diagnostic: figure out why API Platform registered zero routes.
-      # Previous probes returned 404 NotFoundHttpException — the plugin is
-      # installed and the installer ran green, but `/api/shop/*` routes
-      # do not exist in the route table. Need to see:
-      #   - whether the BagistoApi service provider is discovered
-      #   - whether config/api-platform.php exists and what it points to
-      #   - whether API Platform found any resources in src/Models/
-      #   - full `route:list` so we can grep for api_platform rows
-      # ------------------------------------------------------------------
-      - name: Diagnostic — inspect service provider and route registration
-        working-directory: bagisto
-        run: |
-          echo "======= CHECK: plugin directory exists ======="
-          ls -la vendor/bagisto/bagisto-api 2>&1 | head -20 || true
-          echo
-          echo "======= CHECK: plugin Models directory ======="
-          ls -la vendor/bagisto/bagisto-api/src/Models 2>&1 | head -30 || true
-          echo
-          echo "======= CHECK: config/api-platform.php exists and what it points to ======="
-          if [ -f config/api-platform.php ]; then
-            echo "EXISTS: config/api-platform.php"
-            grep -n "resources\|base_path\|vendor/bagisto\|packages/Webkul" config/api-platform.php | head -20
-          else
-            echo "MISSING: config/api-platform.php — installer did not publish it"
-          fi
-          echo
-          echo "======= CHECK: bootstrap/cache/packages.php (discovered providers) ======="
-          if [ -f bootstrap/cache/packages.php ]; then
-            grep -c "BagistoApi" bootstrap/cache/packages.php && echo "  → BagistoApiServiceProvider IS in packages.php" || echo "  → BagistoApiServiceProvider NOT in packages.php"
-            grep -c "api-platform" bootstrap/cache/packages.php && echo "  → api-platform provider IS in packages.php" || echo "  → api-platform provider NOT in packages.php"
-          else
-            echo "MISSING: bootstrap/cache/packages.php"
-          fi
-          echo
-          echo "======= CHECK: run package:discover to see what's discovered ======="
-          php artisan package:discover --ansi 2>&1 | head -40 || true
-          echo
-          echo "======= CHECK: re-run install with verbose output ======="
-          php artisan bagisto-api-platform:install -vvv 2>&1 | tail -60 || true
-          echo
-          echo "======= ROUTE LIST: total count ======="
-          php artisan route:list 2>&1 | wc -l
-          echo
-          echo "======= ROUTE LIST: all routes containing /api/ ======="
-          php artisan route:list 2>&1 | grep " api" > /tmp/api_routes.txt || true
-          wc -l /tmp/api_routes.txt
-          echo
-          echo "======= ROUTE LIST: routes under /api/shop/ ======="
-          grep "api/shop" /tmp/api_routes.txt || echo "(no /api/shop/* routes)"
-          echo
-          echo "======= ROUTE LIST: routes under /api/admin/ ======="
-          grep "api/admin" /tmp/api_routes.txt | head -20 || echo "(no /api/admin/* routes)"
-          echo
-          echo "======= ROUTE LIST: API Platform routes (_api_ prefix) ======="
-          php artisan route:list 2>&1 | grep "_api_" > /tmp/apiplatform_routes.txt || true
-          wc -l /tmp/apiplatform_routes.txt
-          grep -oE "_api_/[^ ]*" /tmp/apiplatform_routes.txt | sort -u | head -80
-          echo
-          echo "======= PROBE ONE FAILING URL ======="
-          php artisan serve --host=127.0.0.1 --port=8000 > /tmp/laravel.log 2>&1 &
-          SERVER_PID=$!
-          sleep 3
-          echo "--- GET /api/shop/compare_items ---"
-          curl -isS -H 'Accept: application/json' -H 'X-STOREFRONT-KEY: pk_test_diagnostic' http://127.0.0.1:8000/api/shop/compare_items | head -20 || true
-          echo
-          echo "--- GET /api/compare-items (no prefix, Bagisto's own) ---"
-          curl -isS -H 'Accept: application/json' http://127.0.0.1:8000/api/compare-items | head -20 || true
-          kill $SERVER_PID 2>/dev/null || true
 
       - name: Run Pest (plugin suite)
         working-directory: bagisto
