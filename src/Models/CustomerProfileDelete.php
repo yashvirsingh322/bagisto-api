@@ -28,7 +28,7 @@ use Webkul\BagistoApi\State\CustomerProfileProcessor;
             processor: CustomerProfileProcessor::class,
             denormalizationContext: [
                 'allow_extra_attributes' => true,
-                'groups'                 => ['mutation'],
+                'groups' => ['mutation'],
             ],
             description: 'Delete authenticated customer profile (requires token)',
         ),

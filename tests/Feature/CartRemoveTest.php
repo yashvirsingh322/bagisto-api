@@ -27,9 +27,9 @@ class CartRemoveTest extends TestCase
         $product = Product::factory()->create();
 
         $cartItem = CartItem::factory()->create([
-            'cart_id'    => $cart->id,
+            'cart_id' => $cart->id,
             'product_id' => $product->id,
-            'quantity'   => 2,
+            'quantity' => 2,
         ]);
 
         return compact('customer', 'token', 'cart', 'product', 'cartItem');
@@ -63,7 +63,7 @@ class CartRemoveTest extends TestCase
         GQL;
 
         return $this->postJson($this->graphqlUrl, [
-            'query'     => $mutation,
+            'query' => $mutation,
             'variables' => compact('token', 'cartItemId'),
         ])->json();
     }
@@ -94,9 +94,9 @@ class CartRemoveTest extends TestCase
         // Add second item
         $product2 = Product::factory()->create();
         $cartItem2 = CartItem::factory()->create([
-            'cart_id'    => $cart->id,
+            'cart_id' => $cart->id,
             'product_id' => $product2->id,
-            'quantity'   => 1,
+            'quantity' => 1,
         ]);
 
         $response = $this->removeCartItem($token, $cartItem->id);
@@ -155,9 +155,9 @@ class CartRemoveTest extends TestCase
         // Add second item
         $product2 = Product::factory()->create();
         $cartItem2 = CartItem::factory()->create([
-            'cart_id'    => $cart->id,
+            'cart_id' => $cart->id,
             'product_id' => $product2->id,
-            'quantity'   => 3,
+            'quantity' => 3,
         ]);
 
         $response = $this->removeCartItem($token, $cartItem->id);

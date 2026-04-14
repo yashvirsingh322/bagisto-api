@@ -2,6 +2,8 @@
 
 namespace Webkul\BagistoApi\Exception;
 
+use GraphQL\Error\ClientAware;
+
 /**
  * ResourceNotFoundException
  *
@@ -15,7 +17,7 @@ namespace Webkul\BagistoApi\Exception;
  *
  * Status Code: 404 Not Found
  */
-class ResourceNotFoundException extends \Exception implements \GraphQL\Error\ClientAware
+class ResourceNotFoundException extends \Exception implements ClientAware
 {
     public function isClientSafe(): bool
     {

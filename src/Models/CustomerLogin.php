@@ -5,6 +5,7 @@ namespace Webkul\BagistoApi\Models;
 use ApiPlatform\Metadata\ApiProperty;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\GraphQl\Mutation;
+use ApiPlatform\Metadata\Post;
 use Webkul\BagistoApi\Dto\LoginInput;
 use Webkul\BagistoApi\State\LoginProcessor;
 
@@ -12,7 +13,7 @@ use Webkul\BagistoApi\State\LoginProcessor;
     routePrefix: '/api/shop',
     shortName: 'CustomerLogin',
     operations: [
-        new \ApiPlatform\Metadata\Post(
+        new Post(
             uriTemplate: '/customer/login',
             description: 'Authenticate a customer and retrieve an API token.',
             input: LoginInput::class,
@@ -20,7 +21,7 @@ use Webkul\BagistoApi\State\LoginProcessor;
             processor: LoginProcessor::class,
             denormalizationContext: [
                 'allow_extra_attributes' => true,
-                'groups'                 => ['mutation'],
+                'groups' => ['mutation'],
             ],
         ),
     ],
@@ -32,7 +33,7 @@ use Webkul\BagistoApi\State\LoginProcessor;
             processor: LoginProcessor::class,
             denormalizationContext: [
                 'allow_extra_attributes' => true,
-                'groups'                 => ['mutation'],
+                'groups' => ['mutation'],
             ],
         ),
     ]

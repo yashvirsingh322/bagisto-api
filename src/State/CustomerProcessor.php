@@ -4,15 +4,15 @@ namespace Webkul\BagistoApi\State;
 
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProcessorInterface;
-use Webkul\BagistoApi\Exception\AuthenticationException;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
+use Webkul\BagistoApi\Exception\AuthenticationException;
+use Webkul\BagistoApi\Exception\InvalidInputException;
 use Webkul\BagistoApi\Models\Customer;
 use Webkul\BagistoApi\Validators\CustomerValidator;
 use Webkul\Customer\Repositories\CustomerRepository;
-use Webkul\BagistoApi\Exception\InvalidInputException;
 
 class CustomerProcessor implements ProcessorInterface
 {
@@ -52,18 +52,18 @@ class CustomerProcessor implements ProcessorInterface
                 }
 
                 $customerData = [
-                    'first_name'                => $data->first_name,
-                    'last_name'                 => $data->last_name,
-                    'email'                     => $data->email,
-                    'password'                  => $data->password,
-                    'phone'                     => $data->phone,
-                    'gender'                    => $data->gender,
-                    'date_of_birth'             => $data->date_of_birth,
-                    'status'                    => $data->status ?? 1,
-                    'is_verified'               => $data->is_verified ?? 0,
-                    'is_suspended'              => $data->is_suspended ?? 0,
+                    'first_name' => $data->first_name,
+                    'last_name' => $data->last_name,
+                    'email' => $data->email,
+                    'password' => $data->password,
+                    'phone' => $data->phone,
+                    'gender' => $data->gender,
+                    'date_of_birth' => $data->date_of_birth,
+                    'status' => $data->status ?? 1,
+                    'is_verified' => $data->is_verified ?? 0,
+                    'is_suspended' => $data->is_suspended ?? 0,
                     'subscribed_to_news_letter' => $data->subscribed_to_news_letter ?? false,
-                    'api_token'                 => Str::random(80),
+                    'api_token' => Str::random(80),
                 ];
 
                 Event::dispatch('customer.registration.before');
@@ -74,7 +74,7 @@ class CustomerProcessor implements ProcessorInterface
                 $deviceToken = $data->device_token ?? $data->deviceToken ?? null;
                 if ($deviceToken) {
                     Event::dispatch('bagistoapi.customer.device-token.save', [
-                        'customerId'  => $customer->id,
+                        'customerId' => $customer->id,
                         'deviceToken' => $deviceToken,
                     ]);
                 }

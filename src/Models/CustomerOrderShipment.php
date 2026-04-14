@@ -14,8 +14,6 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Webkul\BagistoApi\Resolver\BaseQueryItemResolver;
 use Webkul\BagistoApi\State\CustomerOrderShipmentProvider;
 use Webkul\Sales\Models\Order;
-use Webkul\Sales\Models\OrderAddress;
-use Webkul\BagistoApi\Models\CustomerOrderAddress;
 
 /**
  * Customer Order Shipment API Resource
@@ -53,11 +51,11 @@ use Webkul\BagistoApi\Models\CustomerOrderAddress;
             paginationType: 'cursor',
             args: [
                 'orderId' => ['type' => 'Int', 'description' => 'Filter shipments by order ID'],
-                'status'  => ['type' => 'String', 'description' => 'Filter shipments by status (pending, shipped, canceled)'],
-                'first'   => ['type' => 'Int', 'description' => 'Number of items to return from the start'],
-                'last'    => ['type' => 'Int', 'description' => 'Number of items to return from the end'],
-                'after'   => ['type' => 'String', 'description' => 'Cursor to start pagination after'],
-                'before'  => ['type' => 'String', 'description' => 'Cursor to start pagination before'],
+                'status' => ['type' => 'String', 'description' => 'Filter shipments by status (pending, shipped, canceled)'],
+                'first' => ['type' => 'Int', 'description' => 'Number of items to return from the start'],
+                'last' => ['type' => 'Int', 'description' => 'Number of items to return from the end'],
+                'after' => ['type' => 'String', 'description' => 'Cursor to start pagination after'],
+                'before' => ['type' => 'String', 'description' => 'Cursor to start pagination before'],
             ],
         ),
     ],
@@ -69,16 +67,16 @@ class CustomerOrderShipment extends Model
 
     /** @var array */
     protected $casts = [
-        'id'                      => 'int',
-        'order_id'                => 'int',
-        'total_qty'               => 'int',
-        'total_weight'            => 'float',
-        'email_sent'              => 'boolean',
-        'customer_id'             => 'int',
-        'order_address_id'        => 'int',
-        'inventory_source_id'     => 'int',
-        'created_at'              => 'datetime',
-        'updated_at'              => 'datetime',
+        'id' => 'int',
+        'order_id' => 'int',
+        'total_qty' => 'int',
+        'total_weight' => 'float',
+        'email_sent' => 'boolean',
+        'customer_id' => 'int',
+        'order_address_id' => 'int',
+        'inventory_source_id' => 'int',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
     ];
 
     /** @var array */
@@ -99,7 +97,7 @@ class CustomerOrderShipment extends Model
     #[ApiProperty(writable: false)]
     public function getShippingNumberAttribute(): string
     {
-        return '#' . $this->id;
+        return '#'.$this->id;
     }
 
     /**
@@ -215,7 +213,7 @@ class CustomerOrderShipment extends Model
         $array['totalWeight'] = $this->total_weight;
         $array['paymentMethodTitle'] = $this->getPaymentMethodTitle();
         $array['shippingMethodTitle'] = $this->getShippingMethodTitle();
-        
+
         // Set addresses to null if not found
         if (! array_key_exists('shippingAddress', $array) || ! $this->shippingAddress) {
             $array['shippingAddress'] = null;
@@ -223,7 +221,7 @@ class CustomerOrderShipment extends Model
         if (! array_key_exists('billingAddress', $array) || ! $this->billingAddress) {
             $array['billingAddress'] = null;
         }
-        
+
         return $array;
     }
 }

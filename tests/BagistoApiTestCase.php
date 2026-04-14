@@ -2,13 +2,17 @@
 
 namespace Webkul\BagistoApi\Tests;
 
-use Illuminate\Support\Facades\DB;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
-use Illuminate\Testing\TestResponse;
+use Illuminate\Support\Facades\DB;
 use Webkul\Attribute\Models\Attribute;
 use Webkul\Attribute\Models\AttributeOption;
+<<<<<<< chore/release-prep-v1.0.3
+use Webkul\BagistoApi\Http\Middleware\LogApiRequests;
+use Webkul\Category\Models\Category;
+=======
 use Webkul\BagistoApi\Models\StorefrontKey;
 use Webkul\BagistoApi\Tests\BagistoApiTest;
+>>>>>>> main
 use Webkul\Core\Models\Channel;
 use Webkul\Customer\Models\Customer;
 use Webkul\Customer\Models\CustomerGroup;
@@ -30,10 +34,10 @@ abstract class BagistoApiTestCase extends BagistoApiTest
 
     /** Disable API logging middleware for tests */
     protected $withoutMiddleware = [
-        \Webkul\BagistoApi\Http\Middleware\LogApiRequests::class,
+        LogApiRequests::class,
     ];
 
-    public function setUp(): void
+    protected function setUp(): void
     {
         parent::setUp();
         DB::statement('SET FOREIGN_KEY_CHECKS=0');
@@ -62,7 +66,7 @@ abstract class BagistoApiTestCase extends BagistoApiTest
         return $key->key;
     }
 
-    public function tearDown(): void
+    protected function tearDown(): void
     {
         DB::statement('SET FOREIGN_KEY_CHECKS=1');
         parent::tearDown();
@@ -86,7 +90,7 @@ abstract class BagistoApiTestCase extends BagistoApiTest
         $token = $customer->createToken('test-token')->plainTextToken;
 
         return [
-            'Authorization'    => "Bearer {$token}",
+            'Authorization' => "Bearer {$token}",
             'X-STOREFRONT-KEY' => $this->storefrontKey,
         ];
     }
@@ -97,8 +101,8 @@ abstract class BagistoApiTestCase extends BagistoApiTest
     protected function seedRequiredData(): void
     {
         try {
-            if (! \Webkul\Category\Models\Category::exists()) {
-                \Webkul\Category\Models\Category::factory()->create([
+            if (! Category::exists()) {
+                Category::factory()->create([
                     'parent_id' => null,
                 ]);
             }
@@ -109,8 +113,8 @@ abstract class BagistoApiTestCase extends BagistoApiTest
 
             if (! CustomerGroup::where('code', 'general')->exists()) {
                 CustomerGroup::create([
-                    'code'            => 'general',
-                    'name'            => 'General',
+                    'code' => 'general',
+                    'name' => 'General',
                     'is_user_defined' => 0,
                 ]);
             }
@@ -142,7 +146,7 @@ abstract class BagistoApiTestCase extends BagistoApiTest
 
         return [
             'customer' => $customer,
-            'token'    => $customer->token,
+            'token' => $customer->token,
         ];
     }
 
@@ -174,17 +178,17 @@ abstract class BagistoApiTestCase extends BagistoApiTest
         $field = ProductAttributeValue::$attributeTypeFields[$type] ?? 'text_value';
 
         $payload = [
-            'product_id'   => $productId,
+            'product_id' => $productId,
             'attribute_id' => (int) $attribute->id,
-            'locale'       => $locale,
-            'channel'      => $channel,
-            'text_value'   => null,
-            'boolean_value'=> null,
-            'integer_value'=> null,
-            'float_value'  => null,
-            'datetime_value'=> null,
-            'date_value'   => null,
-            'json_value'   => null,
+            'locale' => $locale,
+            'channel' => $channel,
+            'text_value' => null,
+            'boolean_value' => null,
+            'integer_value' => null,
+            'float_value' => null,
+            'datetime_value' => null,
+            'date_value' => null,
+            'json_value' => null,
         ];
 
         $normalized = $value;
@@ -205,10 +209,10 @@ abstract class BagistoApiTestCase extends BagistoApiTest
 
         ProductAttributeValue::query()->updateOrCreate(
             [
-                'product_id'   => $productId,
+                'product_id' => $productId,
                 'attribute_id' => (int) $attribute->id,
-                'locale'       => $locale,
-                'channel'      => $channel,
+                'locale' => $locale,
+                'channel' => $channel,
             ],
             $payload
         );
@@ -237,9 +241,9 @@ abstract class BagistoApiTestCase extends BagistoApiTest
 
         DB::table('product_inventories')->updateOrInsert(
             [
-                'product_id'          => $product->id,
+                'product_id' => $product->id,
                 'inventory_source_id' => $inventorySourceId,
-                'vendor_id'           => 0,
+                'vendor_id' => 0,
             ],
             [
                 'qty' => $qty,
@@ -258,7 +262,7 @@ abstract class BagistoApiTestCase extends BagistoApiTest
                 'channel_id' => $channelId,
             ],
             [
-                'qty'        => $qty,
+                'qty' => $qty,
                 'created_at' => now(),
                 'updated_at' => now(),
             ]
@@ -272,7 +276,7 @@ abstract class BagistoApiTestCase extends BagistoApiTest
         $attributeFamilyId = (int) (DB::table('attribute_families')->value('id') ?? 1);
 
         $product = Product::factory()->create([
-            'type'                => $type,
+            'type' => $type,
             'attribute_family_id' => $attributeFamilyId,
             ...$overrides,
         ]);
@@ -287,14 +291,14 @@ abstract class BagistoApiTestCase extends BagistoApiTest
         /** @var AttributeOption $option */
         $option = AttributeOption::query()->create([
             'attribute_id' => $attributeId,
-            'admin_name'   => $label,
-            'sort_order'   => 1,
+            'admin_name' => $label,
+            'sort_order' => 1,
         ]);
 
         DB::table('attribute_option_translations')->insert([
             'attribute_option_id' => $option->id,
-            'locale'              => $locale,
-            'label'               => $label,
+            'locale' => $locale,
+            'label' => $label,
         ]);
 
         return (int) $option->id;
@@ -312,6 +316,19 @@ abstract class BagistoApiTestCase extends BagistoApiTest
             ->havingRaw('SUM(qty) > 0')
             ->first();
 
+<<<<<<< chore/release-prep-v1.0.3
+        if (! $productWithInventory) {
+            throw new \Exception('No products with inventory found in database');
+        }
+
+        $productId = $productWithInventory->product_id;
+
+        // Get the product model
+        $product = Product::find($productId);
+
+        if (! $product) {
+            throw new \Exception('Product not found with ID: '.$productId);
+=======
         $product = $productWithInventory
             ? Product::find($productWithInventory->product_id)
             : null;
@@ -321,6 +338,7 @@ abstract class BagistoApiTestCase extends BagistoApiTest
                 'sku' => 'TEST-PRODUCT-'.uniqid(),
             ]);
             $this->ensureInventory($product, 50);
+>>>>>>> main
         }
 
         $inventorySourceId = (int) (DB::table('inventory_sources')->value('id') ?? 1);

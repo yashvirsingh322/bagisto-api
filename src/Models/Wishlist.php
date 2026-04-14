@@ -7,14 +7,14 @@ use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
-use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\GraphQl\Mutation;
 use ApiPlatform\Metadata\GraphQl\Query;
 use ApiPlatform\Metadata\GraphQl\QueryCollection;
+use ApiPlatform\Metadata\Post;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Webkul\BagistoApi\Resolver\BaseQueryItemResolver;
 use Webkul\BagistoApi\Dto\CreateWishlistInput;
 use Webkul\BagistoApi\Dto\DeleteWishlistInput;
+use Webkul\BagistoApi\Resolver\BaseQueryItemResolver;
 use Webkul\BagistoApi\State\WishlistProcessor;
 use Webkul\BagistoApi\State\WishlistProvider;
 
@@ -47,7 +47,7 @@ use Webkul\BagistoApi\State\WishlistProvider;
             name: 'toggle',
             args: [
                 'productId' => [
-                    'type'        => 'Int',
+                    'type' => 'Int',
                     'description' => 'ID of the product to toggle in the wishlist.',
                 ],
             ],

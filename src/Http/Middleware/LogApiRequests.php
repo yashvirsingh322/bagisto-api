@@ -52,14 +52,14 @@ class LogApiRequests
     private function logRequestAsync(Request $request, $response, float $duration): void
     {
         $logData = [
-            'method'            => $request->getMethod(),
-            'path'              => $request->path(),
-            'status'            => $response->getStatusCode(),
-            'duration_ms'       => $duration,
-            'ip'                => $request->ip(),
-            'user_agent'        => substr($request->userAgent() ?? '', 0, 255),
-            'user_id'           => auth()->id(),
-            'api_key'           => $this->maskApiKey($request->header('X-STOREFRONT-KEY')),
+            'method' => $request->getMethod(),
+            'path' => $request->path(),
+            'status' => $response->getStatusCode(),
+            'duration_ms' => $duration,
+            'ip' => $request->ip(),
+            'user_agent' => substr($request->userAgent() ?? '', 0, 255),
+            'user_id' => auth()->id(),
+            'api_key' => $this->maskApiKey($request->header('X-STOREFRONT-KEY')),
             'graphql_operation' => $this->getGraphQLOperation($request),
         ];
 
@@ -80,7 +80,7 @@ class LogApiRequests
     private function logSync(array $logData): void
     {
         $level = $this->getLogLevel($logData['status']);
-        
+
         try {
             // Use 'api' channel if configured, otherwise fallback to default
             if (config('logging.channels.api')) {

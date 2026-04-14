@@ -29,8 +29,8 @@ class HandleInvalidInputException
             // Return proper API error response for REST APIs
             if ($request->wantsJson() || $request->is('api/*')) {
                 return response()->json([
-                    'type'   => $e->getType(),
-                    'title'  => $e->getTitle(),
+                    'type' => $e->getType(),
+                    'title' => $e->getTitle(),
                     'status' => $e->getStatus(),
                     'detail' => $e->getDetail(),
                 ], $e->getStatusCode(), [], JSON_UNESCAPED_SLASHES);

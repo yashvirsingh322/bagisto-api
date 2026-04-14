@@ -14,10 +14,11 @@ use ApiPlatform\Metadata\GraphQl\QueryCollection;
 use ApiPlatform\Metadata\Link;
 use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
+use Webkul\BagistoApi\Resolver\BaseQueryItemResolver;
+use Webkul\BagistoApi\State\CursorAwareCollectionProvider;
 use Webkul\BagistoApi\State\ProductImageProcessor;
 use Webkul\BagistoApi\State\ProductImageProvider;
 use Webkul\Product\Models\ProductImage as BaseProductImage;
-use Webkul\BagistoApi\Resolver\BaseQueryItemResolver;
 
 #[ApiResource(
     routePrefix: '/api/admin',
@@ -66,7 +67,7 @@ use Webkul\BagistoApi\Resolver\BaseQueryItemResolver;
     ],
     graphQlOperations: [
         new QueryCollection(
-            provider: \Webkul\BagistoApi\State\CursorAwareCollectionProvider::class,
+            provider: CursorAwareCollectionProvider::class,
             args: [
                 'product_id' => ['type' => 'Int', 'description' => 'Filter by product ID'],
             ]

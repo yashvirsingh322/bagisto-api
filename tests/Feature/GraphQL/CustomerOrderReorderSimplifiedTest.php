@@ -4,7 +4,6 @@ namespace Webkul\BagistoApi\Tests\Feature\GraphQL;
 
 use Webkul\BagistoApi\Tests\GraphQLTestCase;
 use Webkul\Core\Models\Channel;
-use Webkul\Product\Models\Product;
 use Webkul\Sales\Models\Order;
 use Webkul\Sales\Models\OrderItem;
 use Webkul\Sales\Models\OrderPayment;
@@ -20,7 +19,7 @@ class CustomerOrderReorderSimplifiedTest extends GraphQLTestCase
 
         $customer = $this->createCustomer();
         $channel = Channel::first();
-        
+
         // Create products and make them saleable
         $product1 = $this->createBaseProduct('simple', ['sku' => 'REORDER-PROD-1']);
         $this->ensureInventory($product1);
@@ -30,23 +29,23 @@ class CustomerOrderReorderSimplifiedTest extends GraphQLTestCase
 
         // Create a completed order with multiple items
         $order = Order::factory()->create([
-            'customer_id'         => $customer->id,
-            'customer_email'      => $customer->email,
+            'customer_id' => $customer->id,
+            'customer_email' => $customer->email,
             'customer_first_name' => $customer->first_name,
-            'customer_last_name'  => $customer->last_name,
-            'channel_id'          => $channel->id,
-            'status'              => 'completed',
+            'customer_last_name' => $customer->last_name,
+            'channel_id' => $channel->id,
+            'status' => 'completed',
         ]);
 
         OrderItem::factory()->create([
-            'order_id'    => $order->id,
-            'product_id'  => $product1->id,
+            'order_id' => $order->id,
+            'product_id' => $product1->id,
             'qty_ordered' => 2,
         ]);
 
         OrderItem::factory()->create([
-            'order_id'    => $order->id,
-            'product_id'  => $product2->id,
+            'order_id' => $order->id,
+            'product_id' => $product2->id,
             'qty_ordered' => 1,
         ]);
 
@@ -200,12 +199,12 @@ class CustomerOrderReorderSimplifiedTest extends GraphQLTestCase
         $channel = Channel::first();
 
         $order = Order::factory()->create([
-            'customer_id'         => $customer->id,
-            'customer_email'      => $customer->email,
+            'customer_id' => $customer->id,
+            'customer_email' => $customer->email,
             'customer_first_name' => $customer->first_name,
-            'customer_last_name'  => $customer->last_name,
-            'channel_id'          => $channel->id,
-            'status'              => 'completed',
+            'customer_last_name' => $customer->last_name,
+            'channel_id' => $channel->id,
+            'status' => 'completed',
         ]);
 
         OrderItem::factory()->create(['order_id' => $order->id, 'product_id' => $product->id]);

@@ -52,16 +52,16 @@ class NewsletterSubscriptionProcessor implements ProcessorInterface
             }
 
             SubscribersListProxy::create([
-                'email'         => $data->customerEmail,
-                'channel_id'    => $data?->channelId ?? core()->getCurrentChannel()->id,
+                'email' => $data->customerEmail,
+                'channel_id' => $data?->channelId ?? core()->getCurrentChannel()->id,
                 'is_subscribed' => 1,
-                'token'         => uniqid(),
-                'customer_id'   => $customer ? $customer?->id : null,
+                'token' => uniqid(),
+                'customer_id' => $customer ? $customer?->id : null,
             ]);
 
             return (object) [
-                'success'  => true,
-                'message'  => __('shop::app.subscription.subscribe-success'),
+                'success' => true,
+                'message' => __('shop::app.subscription.subscribe-success'),
             ];
         } catch (\Exception $e) {
             return (object) [

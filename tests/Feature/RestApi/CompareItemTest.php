@@ -24,11 +24,11 @@ class CompareItemTest extends RestApiTestCase
 
         $compareItem1 = CompareItem::factory()->create([
             'customer_id' => $customer->id,
-            'product_id'  => $product1->id,
+            'product_id' => $product1->id,
         ]);
         $compareItem2 = CompareItem::factory()->create([
             'customer_id' => $customer->id,
-            'product_id'  => $product2->id,
+            'product_id' => $product2->id,
         ]);
 
         return compact('customer', 'product1', 'product2', 'compareItem1', 'compareItem2');
@@ -49,10 +49,10 @@ class CompareItemTest extends RestApiTestCase
         // API Platform Collection Format
         if (isset($data['hydra:member'])) {
             expect($data['hydra:member'])->not()->toBeEmpty();
-        } else if (isset($data['@type'])) {
+        } elseif (isset($data['@type'])) {
             // Alternative collection format
             expect($data)->toHaveKey('@type');
-        } else if (is_array($data)) {
+        } elseif (is_array($data)) {
             // Fallback: array of items
             expect(count($data))->toBeGreaterThanOrEqual(0);
         }
@@ -107,14 +107,14 @@ class CompareItemTest extends RestApiTestCase
     {
         $testData = $this->createTestData();
 
-        $response = $this->publicGet($this->apiUrl . '?itemsPerPage=1');
+        $response = $this->publicGet($this->apiUrl.'?itemsPerPage=1');
 
         $response->assertOk();
         $data = $response->json();
-        
+
         // Handle both Hydra format and plain array format
         $compareItem = $data['hydra:member'][0] ?? $data[0] ?? null;
-        
+
         if ($compareItem) {
             expect($compareItem)->toHaveKey('createdAt');
             expect($compareItem)->toHaveKey('updatedAt');
@@ -131,14 +131,14 @@ class CompareItemTest extends RestApiTestCase
 
         $payload = [
             'customer_id' => $testData['customer']->id,
-            'product_id'  => $product3->id,
+            'product_id' => $product3->id,
         ];
 
         $response = $this->publicPost($this->apiUrl, $payload);
 
         $response->assertCreated();
         $data = $response->json();
-        
+
         // Verify the created item has the expected IDs
         expect($data)->toHaveKey('id');
         expect($data['id'])->toBeGreaterThan(0);
@@ -227,7 +227,7 @@ class CompareItemTest extends RestApiTestCase
     {
         $this->createTestData();
 
-        $response = $this->publicGet($this->apiUrl . '?itemsPerPage=1');
+        $response = $this->publicGet($this->apiUrl.'?itemsPerPage=1');
 
         $response->assertOk();
         $data = $response->json();
@@ -243,7 +243,7 @@ class CompareItemTest extends RestApiTestCase
     {
         $this->createTestData();
 
-        $response = $this->publicGet($this->apiUrl . '?itemsPerPage=1');
+        $response = $this->publicGet($this->apiUrl.'?itemsPerPage=1');
 
         $response->assertOk();
         $data = $response->json();

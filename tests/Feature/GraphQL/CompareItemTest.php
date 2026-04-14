@@ -21,11 +21,11 @@ class CompareItemTest extends GraphQLTestCase
 
         $compareItem1 = CompareItem::factory()->create([
             'customer_id' => $customer->id,
-            'product_id'  => $product1->id,
+            'product_id' => $product1->id,
         ]);
         $compareItem2 = CompareItem::factory()->create([
             'customer_id' => $customer->id,
-            'product_id'  => $product2->id,
+            'product_id' => $product2->id,
         ]);
 
         return compact('customer', 'product1', 'product2', 'compareItem1', 'compareItem2');
@@ -605,7 +605,7 @@ class CompareItemTest extends GraphQLTestCase
         if (! empty($errors)) {
             $this->fail('GraphQL errors: '.json_encode($errors));
         }
-        
+
         $compareItem = $response->json('data.createCompareItem.compareItem');
 
         expect($compareItem)->not()->toBeNull();
@@ -614,7 +614,6 @@ class CompareItemTest extends GraphQLTestCase
         expect($compareItem['createdAt'])->not()->toBeNull();
         expect($compareItem['updatedAt'])->not()->toBeNull();
     }
-
 
     /**
      * Test: Create compare item using createCompareItemInput variable type (matches spec)
@@ -704,7 +703,7 @@ class CompareItemTest extends GraphQLTestCase
 
         $compareItem = CompareItem::factory()->create([
             'customer_id' => $customer->id,
-            'product_id'  => $product->id,
+            'product_id' => $product->id,
         ]);
 
         $mutation = <<<'GQL'
@@ -731,7 +730,6 @@ class CompareItemTest extends GraphQLTestCase
         expect(CompareItem::find($compareItem->id))->toBeNull();
     }
 
-
     /**
      * Test: Delete compare item using deleteCompareItemInput variable type with product fields (matches spec)
      */
@@ -742,7 +740,7 @@ class CompareItemTest extends GraphQLTestCase
 
         $compareItem = CompareItem::factory()->create([
             'customer_id' => $customer->id,
-            'product_id'  => $product->id,
+            'product_id' => $product->id,
         ]);
 
         $mutation = <<<'GQL'
@@ -784,7 +782,7 @@ class CompareItemTest extends GraphQLTestCase
 
         $compareItem = CompareItem::factory()->create([
             'customer_id' => $customer->id,
-            'product_id'  => $product->id,
+            'product_id' => $product->id,
         ]);
 
         $mutation = sprintf(<<<'GQL'
@@ -817,7 +815,7 @@ class CompareItemTest extends GraphQLTestCase
 
         CompareItem::factory()->create([
             'customer_id' => $customer->id,
-            'product_id'  => $product1->id,
+            'product_id' => $product1->id,
         ]);
 
         $mutation = <<<'GQL'
@@ -1041,7 +1039,7 @@ class CompareItemTest extends GraphQLTestCase
 
         $compareItem = CompareItem::factory()->create([
             'customer_id' => $customer1->id,
-            'product_id'  => $product->id,
+            'product_id' => $product->id,
         ]);
 
         $mutation = <<<'GQL'

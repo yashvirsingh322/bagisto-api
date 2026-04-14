@@ -3,6 +3,7 @@
 namespace Webkul\BagistoApi\Models\Filter;
 
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\GraphQl\QueryCollection;
 use Webkul\BagistoApi\State\FilterableAttributesProvider;
 
@@ -11,7 +12,7 @@ use Webkul\BagistoApi\State\FilterableAttributesProvider;
     description: 'Attribute Filters for the category or product grid page',
     routePrefix: '/api/shop',
     operations: [
-        new \ApiPlatform\Metadata\GetCollection(
+        new GetCollection(
             uriTemplate: '/filters/attributes'
         ),
     ],
@@ -20,10 +21,10 @@ use Webkul\BagistoApi\State\FilterableAttributesProvider;
             provider: FilterableAttributesProvider::class,
             args: [
                 'categorySlug' => ['type' => 'String', 'required' => false],
-                'first'        => ['type' => 'Int', 'description' => 'Number of items to return from the start'],
-                'last'         => ['type' => 'Int', 'description' => 'Number of items to return from the end'],
-                'after'        => ['type' => 'String', 'description' => 'Cursor to start pagination after'],
-                'before'       => ['type' => 'String', 'description' => 'Cursor to start pagination before'],
+                'first' => ['type' => 'Int', 'description' => 'Number of items to return from the start'],
+                'last' => ['type' => 'Int', 'description' => 'Number of items to return from the end'],
+                'after' => ['type' => 'String', 'description' => 'Cursor to start pagination after'],
+                'before' => ['type' => 'String', 'description' => 'Cursor to start pagination before'],
             ],
         ),
     ],

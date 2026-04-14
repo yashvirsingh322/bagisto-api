@@ -8,10 +8,10 @@ use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\GraphQl\Query;
 use ApiPlatform\Metadata\GraphQl\QueryCollection;
+use Illuminate\Database\Eloquent\Model;
 use Webkul\BagistoApi\Resolver\BaseQueryItemResolver;
 use Webkul\BagistoApi\Resolver\CategoryCollectionResolver;
 use Webkul\BagistoApi\State\CursorAwareCollectionProvider;
-use Webkul\BagistoApi\State\RestCategoryTreeProvider;
 use Webkul\Category\Models\Category as BaseCategory;
 
 #[ApiResource(
@@ -31,7 +31,7 @@ use Webkul\Category\Models\Category as BaseCategory;
             name: 'tree',
             args: [
                 'parentId' => [
-                    'type'        => 'Int',
+                    'type' => 'Int',
                     'description' => 'Only children of this category will be returned, usually a root category.',
                 ],
             ],
@@ -46,7 +46,7 @@ class Category extends BaseCategory
      * Get category translation for the current locale
      */
     #[ApiProperty(readableLink: true, description: 'Current locale translation')]
-    public function getTranslation(?string $locale = null, ?bool $withFallback = null): ?\Illuminate\Database\Eloquent\Model
+    public function getTranslation(?string $locale = null, ?bool $withFallback = null): ?Model
     {
         return $this->translation;
     }

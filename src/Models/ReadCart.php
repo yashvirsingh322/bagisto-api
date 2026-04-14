@@ -5,14 +5,15 @@ namespace Webkul\BagistoApi\Models;
 use ApiPlatform\Metadata\ApiProperty;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\GraphQl\Mutation;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Symfony\Component\Serializer\Annotation\Groups;
-use Webkul\Checkout\Models\Cart;
-use Webkul\Checkout\Models\CartItem;
 use Webkul\BagistoApi\Dto\CartData;
 use Webkul\BagistoApi\Dto\CartInput;
 use Webkul\BagistoApi\Dto\CartItemData;
 use Webkul\BagistoApi\State\CartTokenMutationProvider;
 use Webkul\BagistoApi\State\CartTokenProcessor;
+use Webkul\Checkout\Models\Cart;
 
 /**
  * ReadCart - GraphQL API Resource for Reading Cart Details
@@ -35,10 +36,10 @@ use Webkul\BagistoApi\State\CartTokenProcessor;
             processor: CartTokenProcessor::class,
             denormalizationContext: [
                 'allow_extra_attributes' => true,
-                'groups'                 => ['mutation'],
+                'groups' => ['mutation'],
             ],
             normalizationContext: [
-                'groups'                 => ['mutation'],
+                'groups' => ['mutation'],
             ],
             description: 'Get cart details by cartId or token - pass cartId or token in input',
         ),
@@ -51,9 +52,9 @@ class ReadCart extends Cart
     ];
 
     protected $with = [
-        'selected_shipping_rate',        
+        'selected_shipping_rate',
     ];
-    
+
     #[ApiProperty(readable: true, writable: false)]
     #[Groups(['mutation'])]
     public ?int $id = null;
@@ -77,7 +78,7 @@ class ReadCart extends Cart
     /**
      * Cart items - array of CartItemData objects
      *
-     * @var \Webkul\BagistoApi\Dto\CartItemData[]|null
+     * @var CartItemData[]|null
      */
     #[ApiProperty(readable: true, writable: false)]
     #[Groups(['mutation'])]
@@ -143,9 +144,8 @@ class ReadCart extends Cart
     #[Groups(['mutation'])]
     public ?string $formattedDiscountAmount = null;
 
-
     #[ApiProperty(readableLink: true, writable: false, readable: true)]
-    public function customer(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    public function customer(): BelongsTo
     {
         return $this->belongsTo(Customer::class);
     }
@@ -154,18 +154,16 @@ class ReadCart extends Cart
      * Get the channel record associated with the address.
      */
     #[ApiProperty(readableLink: true, writable: false, readable: true)]
-    public function channel(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    public function channel(): BelongsTo
     {
         return $this->belongsTo(Channel::class);
     }
- 
+
     /**
      * Get shipping rates relationship
      */
-    public function shipping_rates(): \Illuminate\Database\Eloquent\Relations\HasMany
+    public function shipping_rates(): HasMany
     {
         return $this->hasMany(ShippingRates::class, 'cart_id');
     }
-    
-
 }

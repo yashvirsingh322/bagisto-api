@@ -31,10 +31,10 @@ use Webkul\BagistoApi\State\CartTokenProcessor;
             processor: CartTokenProcessor::class,
             denormalizationContext: [
                 'allow_extra_attributes' => true,
-                'groups'                 => ['mutation'],
+                'groups' => ['mutation'],
             ],
             normalizationContext: [
-                'groups'                 => ['mutation'],
+                'groups' => ['mutation'],
             ],
             description: 'Remove multiple cart items.',
             openapi: new Model\Operation(
@@ -46,21 +46,21 @@ use Webkul\BagistoApi\State\CartTokenProcessor;
                     content: new \ArrayObject([
                         'application/json' => [
                             'schema' => [
-                                'type'       => 'object',
+                                'type' => 'object',
                                 'properties' => [
                                     'itemIds' => [
-                                        'type'        => 'array',
-                                        'items'       => ['type' => 'integer'],
-                                        'example'     => [7, 8, 9],
+                                        'type' => 'array',
+                                        'items' => ['type' => 'integer'],
+                                        'example' => [7, 8, 9],
                                         'description' => 'Array of cart item IDs',
                                     ],
                                 ],
                             ],
                             'examples' => [
                                 'remove_items' => [
-                                    'summary'     => 'Remove Multiple Items',
+                                    'summary' => 'Remove Multiple Items',
                                     'description' => 'Remove multiple items from cart',
-                                    'value'       => [
+                                    'value' => [
                                         'itemIds' => [7, 8, 9],
                                     ],
                                 ],
@@ -80,10 +80,10 @@ use Webkul\BagistoApi\State\CartTokenProcessor;
             processor: CartTokenProcessor::class,
             denormalizationContext: [
                 'allow_extra_attributes' => true,
-                'groups'                 => ['mutation'],
+                'groups' => ['mutation'],
             ],
             normalizationContext: [
-                'groups'                 => ['mutation'],
+                'groups' => ['mutation'],
             ],
             description: 'Remove multiple items from cart. Use token and itemIds array.',
         ),

@@ -68,12 +68,12 @@ use Webkul\Core\Models\CountryState as BaseCountryState;
             paginationType: 'cursor',
             args: [
                 'countryId' => [
-                    'type'        => 'Int!',
+                    'type' => 'Int!',
                     'description' => 'Filter states by country ID (required)',
                 ],
-                'first'  => ['type' => 'Int', 'description' => 'Limit results (forward pagination)'],
-                'last'   => ['type' => 'Int', 'description' => 'Limit results (backward pagination)'],
-                'after'  => ['type' => 'String', 'description' => 'Cursor for forward pagination'],
+                'first' => ['type' => 'Int', 'description' => 'Limit results (forward pagination)'],
+                'last' => ['type' => 'Int', 'description' => 'Limit results (backward pagination)'],
+                'after' => ['type' => 'String', 'description' => 'Cursor for forward pagination'],
                 'before' => ['type' => 'String', 'description' => 'Cursor for backward pagination'],
             ]
         ),

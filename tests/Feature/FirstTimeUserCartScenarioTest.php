@@ -46,7 +46,7 @@ class FirstTimeUserCartScenarioTest extends TestCase
         GQL;
 
         return $this->postJson($this->graphqlUrl, [
-            'query'     => $mutation,
+            'query' => $mutation,
             'variables' => compact('token', 'productId', 'quantity'),
         ])->json();
     }
@@ -83,7 +83,7 @@ class FirstTimeUserCartScenarioTest extends TestCase
         GQL;
 
         return $this->postJson($this->graphqlUrl, [
-            'query'     => $query,
+            'query' => $query,
             'variables' => compact('token', 'cartId'),
         ])->json();
     }
@@ -116,7 +116,7 @@ class FirstTimeUserCartScenarioTest extends TestCase
         GQL;
 
         return $this->postJson($this->graphqlUrl, [
-            'query'     => $mutation,
+            'query' => $mutation,
             'variables' => compact('token', 'cartItemId', 'quantity'),
         ])->json();
     }
@@ -246,9 +246,9 @@ class FirstTimeUserCartScenarioTest extends TestCase
 
         // Step 1: Create customer and get token (simulating login/register)
         $customer = Customer::factory()->create([
-            'email'      => 'newuser@example.com',
+            'email' => 'newuser@example.com',
             'first_name' => 'John',
-            'last_name'  => 'Doe',
+            'last_name' => 'Doe',
         ]);
 
         $token = $customer->createToken('api-token')->plainTextToken;

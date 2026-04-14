@@ -2,19 +2,21 @@
 
 namespace Webkul\BagistoApi\State;
 
+use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\Operation;
+use ApiPlatform\Metadata\Post;
 use ApiPlatform\State\ProcessorInterface;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Request as RequestFacade;
 use Webkul\BagistoApi\Dto\CreateWishlistInput;
 use Webkul\BagistoApi\Dto\DeleteWishlistInput;
 use Webkul\BagistoApi\Exception\AuthorizationException;
 use Webkul\BagistoApi\Exception\InvalidInputException;
 use Webkul\BagistoApi\Exception\ResourceNotFoundException;
-use Webkul\BagistoApi\Models\Wishlist;
 use Webkul\BagistoApi\Models\Product;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Event;
-use Illuminate\Support\Facades\Request as RequestFacade;
-use Illuminate\Http\Request;
+use Webkul\BagistoApi\Models\Wishlist;
 
 /**
  * WishlistProcessor - Handles create/delete operations for wishlist items
@@ -33,7 +35,6 @@ class WishlistProcessor implements ProcessorInterface
     {
         $operationName = $operation->getName();
 
-        
         if (in_array($operationName, ['toggle']) && $data instanceof CreateWishlistInput) {
             $this->hydrateCreateInputFromContext($data, $context);
 
@@ -47,8 +48,8 @@ class WishlistProcessor implements ProcessorInterface
         }
 
         /** Handle REST POST — model received instead of DTO */
-        if ($data instanceof Wishlist && $operation instanceof \ApiPlatform\Metadata\Post) {
-            $input = new CreateWishlistInput();
+        if ($data instanceof Wishlist && $operation instanceof Post) {
+            $input = new CreateWishlistInput;
             $input->product_id = request()->input('product_id') ?? request()->input('productId');
 
             return $this->handleCreate($input, $context);
@@ -60,7 +61,7 @@ class WishlistProcessor implements ProcessorInterface
             return $this->handleDeleteFromInput($data, $context);
         }
 
-        if ($operation instanceof \ApiPlatform\Metadata\Delete || in_array($operationName, ['delete', 'destroy'])) {
+        if ($operation instanceof Delete || in_array($operationName, ['delete', 'destroy'])) {
             return $this->handleDelete($data, $uriVariables, $context);
         }
 
@@ -106,9 +107,9 @@ class WishlistProcessor implements ProcessorInterface
         Event::dispatch('customer.wishlist.create.before', $input->product_id);
 
         $wishlistItem = Wishlist::create([
-            'product_id'  => $input->product_id,
+            'product_id' => $input->product_id,
             'customer_id' => $customerId,
-            'channel_id'  => $channelId,
+            'channel_id' => $channelId,
         ]);
 
         Event::dispatch('customer.wishlist.create.after', $wishlistItem);
@@ -156,16 +157,15 @@ class WishlistProcessor implements ProcessorInterface
         Event::dispatch('customer.wishlist.create.before', $input->product_id);
 
         $wishlistItem = Wishlist::create([
-            'product_id'  => $input->product_id,
+            'product_id' => $input->product_id,
             'customer_id' => $customerId,
-            'channel_id'  => $channelId,
+            'channel_id' => $channelId,
         ]);
 
         Event::dispatch('customer.wishlist.create.after', $wishlistItem);
 
         return $wishlistItem;
     }
-
 
     private function hydrateCreateInputFromContext(CreateWishlistInput $input, array $context): void
     {
@@ -320,4 +320,3 @@ class WishlistProcessor implements ProcessorInterface
         return null;
     }
 }
-

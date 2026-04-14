@@ -4,14 +4,13 @@ namespace Webkul\BagistoApi\Serializer\Mapping\Loader;
 
 use ApiPlatform\Laravel\Eloquent\Metadata\ModelMetadata;
 use Illuminate\Database\Eloquent\Model;
-use ReflectionClass;
 use Symfony\Component\Serializer\Attribute\Context;
 use Symfony\Component\Serializer\Attribute\Groups;
 use Symfony\Component\Serializer\Attribute\Ignore;
 use Symfony\Component\Serializer\Attribute\MaxDepth;
 use Symfony\Component\Serializer\Attribute\SerializedName;
 use Symfony\Component\Serializer\Attribute\SerializedPath;
-use Symfony\Component\Serializer\Mapping\AttributeMetadataInterface;
+use Symfony\Component\Serializer\Mapping\AttributeMetadata;
 use Symfony\Component\Serializer\Mapping\ClassMetadataInterface;
 use Symfony\Component\Serializer\Mapping\Loader\LoaderInterface;
 
@@ -20,17 +19,15 @@ use Symfony\Component\Serializer\Mapping\Loader\LoaderInterface;
  */
 final class SafeRelationMetadataLoader implements LoaderInterface
 {
-    public function __construct(private readonly ModelMetadata $modelMetadata)
-    {
-    }
+    public function __construct(private readonly ModelMetadata $modelMetadata) {}
 
     public function loadClassMetadata(ClassMetadataInterface $classMetadata): bool
     {
-        if (Model::class === $classMetadata->getName()) {
+        if ($classMetadata->getName() === Model::class) {
             return false;
         }
 
-        if (!is_a($classMetadata->getName(), Model::class, true)) {
+        if (! is_a($classMetadata->getName(), Model::class, true)) {
             return false;
         }
 
@@ -59,15 +56,15 @@ final class SafeRelationMetadataLoader implements LoaderInterface
 
         foreach ($this->modelMetadata->getRelations($model) as $relation) {
             $methodName = $relation['method_name'];
-            if (!$refl->hasMethod($methodName)) {
+            if (! $refl->hasMethod($methodName)) {
                 continue;
             }
 
             $reflMethod = $refl->getMethod($methodName);
             $propertyName = $relation['name'];
 
-            if (!isset($attributesMetadata[$propertyName])) {
-                $attributesMetadata[$propertyName] = new \Symfony\Component\Serializer\Mapping\AttributeMetadata($propertyName);
+            if (! isset($attributesMetadata[$propertyName])) {
+                $attributesMetadata[$propertyName] = new AttributeMetadata($propertyName);
                 $classMetadata->addAttributeMetadata($attributesMetadata[$propertyName]);
             }
 
