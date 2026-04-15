@@ -4,9 +4,9 @@ namespace Webkul\BagistoApi\Tests;
 
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Webkul\Attribute\Models\Attribute;
 use Webkul\Attribute\Models\AttributeOption;
-use Webkul\BagistoApi\Models\StorefrontKey;
 use Webkul\Core\Models\Channel;
 use Webkul\Customer\Models\Customer;
 use Webkul\Customer\Models\CustomerGroup;
@@ -35,29 +35,7 @@ abstract class BagistoApiTestCase extends BagistoApiTest
     {
         parent::setUp();
         DB::statement('SET FOREIGN_KEY_CHECKS=0');
-        $this->storefrontKey = $this->resolveStorefrontKey();
-    }
-
-    /**
-     * Fetch a valid storefront key from the database, or create one on the fly.
-     * Works with DatabaseTransactions — a created key is rolled back per test.
-     */
-    protected function resolveStorefrontKey(): string
-    {
-        $existing = StorefrontKey::valid()->value('key');
-
-        if ($existing) {
-            return $existing;
-        }
-
-        $key = StorefrontKey::create([
-            'name'       => 'Test Storefront Key',
-            'key'        => StorefrontKey::generateKey(),
-            'is_active'  => true,
-            'rate_limit' => 1000,
-        ]);
-
-        return $key->key;
+        $this->storefrontKey = 'pk_test_'.Str::random(32);
     }
 
     protected function tearDown(): void
