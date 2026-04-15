@@ -326,6 +326,21 @@ class LocaleChannelCurrencyHeaderTest extends GraphQLTestCase
             'currency_id' => $currencyId,
         ]);
 
+        // Bagisto's Core service memoizes the channel's currency list and exchange
+        // rates per-process. Earlier tests in this class prime that cache before
+        // we insert TST, so the resolver would ignore the new currency and fall
+        // back to base. Drop the cached singletons so the next query re-reads.
+        \Illuminate\Support\Facades\Cache::flush();
+        if (app()->bound('core')) {
+            app()->forgetInstance('core');
+        }
+        if (app()->bound(\Webkul\Core\Repositories\CurrencyRepository::class)) {
+            app()->forgetInstance(\Webkul\Core\Repositories\CurrencyRepository::class);
+        }
+        if (app()->bound(\Webkul\Core\Repositories\ExchangeRateRepository::class)) {
+            app()->forgetInstance(\Webkul\Core\Repositories\ExchangeRateRepository::class);
+        }
+
         // --- Create a product with a known base price ---
         $basePrice = 10.0;
         $product = $this->createBaseProduct('simple');
