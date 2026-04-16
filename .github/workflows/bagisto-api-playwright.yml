@@ -72,7 +72,7 @@ jobs:
           sed -i "s|DB_USERNAME=.*|DB_USERNAME=root|" .env
           sed -i "s|DB_PASSWORD=.*|DB_PASSWORD=root|" .env
 
-          yes yes | php artisan bagisto:install --skip-env-check --skip-admin-creation
+          yes yes | php artisan bagisto:install --skip-env-check --skip-admin-creation --skip-github-star
 
       # -------------------------------
       # Seed sample products
