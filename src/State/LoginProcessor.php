@@ -27,23 +27,23 @@ class LoginProcessor implements ProcessorInterface
 
                 if (! $customer || ! Hash::check($data->password, $customer->password)) {
                     return (object) [
-                        'id' => 0,
-                        '_id' => 0,
+                        'id'       => 0,
+                        '_id'      => 0,
                         'apiToken' => '',
-                        'token' => '',
-                        'success' => false,
-                        'message' => __('bagistoapi::app.graphql.login.invalid-credentials'),
+                        'token'    => '',
+                        'success'  => false,
+                        'message'  => __('bagistoapi::app.graphql.login.invalid-credentials'),
                     ];
                 }
 
                 if ($customer->is_suspended) {
                     return (object) [
-                        'id' => 0,
-                        '_id' => 0,
+                        'id'       => 0,
+                        '_id'      => 0,
                         'apiToken' => '',
-                        'token' => '',
-                        'success' => false,
-                        'message' => __('bagistoapi::app.graphql.login.account-suspended'),
+                        'token'    => '',
+                        'success'  => false,
+                        'message'  => __('bagistoapi::app.graphql.login.account-suspended'),
                     ];
                 }
 
@@ -56,7 +56,7 @@ class LoginProcessor implements ProcessorInterface
                 $deviceToken = $data->deviceToken ?? null;
                 if ($deviceToken) {
                     Event::dispatch('bagistoapi.customer.device-token.save', [
-                        'customerId' => $customer->id,
+                        'customerId'  => $customer->id,
                         'deviceToken' => $deviceToken,
                     ]);
                 }
@@ -64,23 +64,23 @@ class LoginProcessor implements ProcessorInterface
                 $token = $customer->createToken('customer-login')->plainTextToken;
 
                 return (object) [
-                    'id' => $customer->id,
-                    '_id' => $customer->id,
+                    'id'       => $customer->id,
+                    '_id'      => $customer->id,
                     'apiToken' => $customer->api_token,
-                    'token' => $token,
-                    'success' => true,
-                    'message' => __('bagistoapi::app.graphql.login.successful'),
+                    'token'    => $token,
+                    'success'  => true,
+                    'message'  => __('bagistoapi::app.graphql.login.successful'),
                 ];
             }
         }
 
         return (object) [
-            'id' => 0,
-            '_id' => 0,
+            'id'       => 0,
+            '_id'      => 0,
             'apiToken' => '',
-            'token' => '',
-            'success' => false,
-            'message' => __('bagistoapi::app.graphql.login.invalid-request'),
+            'token'    => '',
+            'success'  => false,
+            'message'  => __('bagistoapi::app.graphql.login.invalid-request'),
         ];
     }
 }

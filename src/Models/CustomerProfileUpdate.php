@@ -33,7 +33,7 @@ use Webkul\BagistoApi\State\CustomerProfileProcessor;
             ],
             denormalizationContext: [
                 'allow_extra_attributes' => true,
-                'groups' => ['mutation'],
+                'groups'                 => ['mutation'],
             ],
             description: 'Update authenticated customer profile (requires token and at least one field). Re-query readCustomerProfile for updated data.',
         ),

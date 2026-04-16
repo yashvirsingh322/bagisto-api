@@ -27,10 +27,10 @@ use Webkul\BagistoApi\State\CustomerAddressTokenProcessor;
             processor: CustomerAddressTokenProcessor::class,
             denormalizationContext: [
                 'allow_extra_attributes' => true,
-                'groups' => ['mutation'],
+                'groups'                 => ['mutation'],
             ],
             normalizationContext: [
-                'groups' => ['mutation'],
+                'groups'                 => ['mutation'],
             ],
             description: 'Add new or update existing customer address using token',
         ),
@@ -41,10 +41,10 @@ use Webkul\BagistoApi\State\CustomerAddressTokenProcessor;
             processor: CustomerAddressTokenProcessor::class,
             denormalizationContext: [
                 'allow_extra_attributes' => true,
-                'groups' => ['mutation'],
+                'groups'                 => ['mutation'],
             ],
             normalizationContext: [
-                'groups' => ['mutation'],
+                'groups'                 => ['mutation'],
             ],
             description: 'Delete customer address using token',
         ),
@@ -53,7 +53,7 @@ use Webkul\BagistoApi\State\CustomerAddressTokenProcessor;
             output: CustomerAddressInput::class,
             processor: CustomerAddressTokenProcessor::class,
             normalizationContext: [
-                'groups' => ['query'],
+                'groups'                 => ['query'],
             ],
             description: 'Get single customer address by ID using token',
         ),
@@ -62,7 +62,7 @@ use Webkul\BagistoApi\State\CustomerAddressTokenProcessor;
             output: CustomerAddressInput::class,
             processor: CustomerAddressTokenProcessor::class,
             normalizationContext: [
-                'groups' => ['query'],
+                'groups'                 => ['query'],
             ],
             description: 'Get all customer addresses using token',
         ),

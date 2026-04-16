@@ -51,11 +51,11 @@ use Webkul\Sales\Models\Order;
             paginationType: 'cursor',
             args: [
                 'orderId' => ['type' => 'Int', 'description' => 'Filter shipments by order ID'],
-                'status' => ['type' => 'String', 'description' => 'Filter shipments by status (pending, shipped, canceled)'],
-                'first' => ['type' => 'Int', 'description' => 'Number of items to return from the start'],
-                'last' => ['type' => 'Int', 'description' => 'Number of items to return from the end'],
-                'after' => ['type' => 'String', 'description' => 'Cursor to start pagination after'],
-                'before' => ['type' => 'String', 'description' => 'Cursor to start pagination before'],
+                'status'  => ['type' => 'String', 'description' => 'Filter shipments by status (pending, shipped, canceled)'],
+                'first'   => ['type' => 'Int', 'description' => 'Number of items to return from the start'],
+                'last'    => ['type' => 'Int', 'description' => 'Number of items to return from the end'],
+                'after'   => ['type' => 'String', 'description' => 'Cursor to start pagination after'],
+                'before'  => ['type' => 'String', 'description' => 'Cursor to start pagination before'],
             ],
         ),
     ],
@@ -67,16 +67,16 @@ class CustomerOrderShipment extends Model
 
     /** @var array */
     protected $casts = [
-        'id' => 'int',
-        'order_id' => 'int',
-        'total_qty' => 'int',
-        'total_weight' => 'float',
-        'email_sent' => 'boolean',
-        'customer_id' => 'int',
-        'order_address_id' => 'int',
-        'inventory_source_id' => 'int',
-        'created_at' => 'datetime',
-        'updated_at' => 'datetime',
+        'id'                      => 'int',
+        'order_id'                => 'int',
+        'total_qty'               => 'int',
+        'total_weight'            => 'float',
+        'email_sent'              => 'boolean',
+        'customer_id'             => 'int',
+        'order_address_id'        => 'int',
+        'inventory_source_id'     => 'int',
+        'created_at'              => 'datetime',
+        'updated_at'              => 'datetime',
     ];
 
     /** @var array */

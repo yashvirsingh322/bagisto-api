@@ -38,7 +38,7 @@ class LogoutProcessor implements ProcessorInterface
             $deviceToken = $data->deviceToken ?? null;
             if ($deviceToken) {
                 Event::dispatch('bagistoapi.customer.device-token.delete', [
-                    'customerId' => $customer->id,
+                    'customerId'  => $customer->id,
                     'deviceToken' => $deviceToken,
                 ]);
             }

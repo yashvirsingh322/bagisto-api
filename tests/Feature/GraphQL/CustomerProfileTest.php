@@ -16,15 +16,15 @@ class CustomerProfileTest extends GraphQLTestCase
     public function test_read_customer_profile_returns_all_fields(): void
     {
         $customer = $this->createCustomer([
-            'first_name' => 'Alice',
-            'last_name' => 'Wonder',
-            'email' => 'alice@example.com',
-            'phone' => '555-1234',
-            'gender' => 'Female',
-            'date_of_birth' => '1995-06-15',
-            'status' => 1,
+            'first_name'                => 'Alice',
+            'last_name'                 => 'Wonder',
+            'email'                     => 'alice@example.com',
+            'phone'                     => '555-1234',
+            'gender'                    => 'Female',
+            'date_of_birth'             => '1995-06-15',
+            'status'                    => 1,
             'subscribed_to_news_letter' => true,
-            'is_verified' => 1,
+            'is_verified'               => 1,
         ]);
 
         $query = <<<'GQL'
@@ -127,7 +127,7 @@ class CustomerProfileTest extends GraphQLTestCase
     {
         $customer = $this->createCustomer([
             'first_name' => 'Bob',
-            'email' => 'bob@example.com',
+            'email'      => 'bob@example.com',
         ]);
 
         $query = <<<'GQL'
@@ -163,7 +163,7 @@ class CustomerProfileTest extends GraphQLTestCase
     {
         $customer = $this->createCustomer([
             'first_name' => 'Original',
-            'last_name' => 'Name',
+            'last_name'  => 'Name',
         ]);
 
         $mutation = <<<'GQL'
@@ -193,8 +193,8 @@ class CustomerProfileTest extends GraphQLTestCase
     {
         $customer = $this->createCustomer([
             'first_name' => 'Old',
-            'last_name' => 'User',
-            'phone' => '0000000',
+            'last_name'  => 'User',
+            'phone'      => '0000000',
         ]);
 
         $mutation = <<<'GQL'
@@ -208,9 +208,9 @@ class CustomerProfileTest extends GraphQLTestCase
         $response = $this->authenticatedGraphQL($customer, $mutation, [
             'input' => [
                 'firstName' => 'NewFirst',
-                'lastName' => 'NewLast',
-                'phone' => '9998888',
-                'gender' => 'Male',
+                'lastName'  => 'NewLast',
+                'phone'     => '9998888',
+                'gender'    => 'Male',
             ],
         ]);
 
@@ -336,7 +336,7 @@ class CustomerProfileTest extends GraphQLTestCase
     {
         $customer = $this->createCustomer([
             'first_name' => 'Unchanged',
-            'last_name' => 'User',
+            'last_name'  => 'User',
         ]);
 
         $mutation = <<<'GQL'
@@ -365,7 +365,7 @@ class CustomerProfileTest extends GraphQLTestCase
     {
         $customer = $this->createCustomer([
             'first_name' => 'Before',
-            'last_name' => 'Update',
+            'last_name'  => 'Update',
         ]);
 
         $mutation = <<<'GQL'
@@ -379,7 +379,7 @@ class CustomerProfileTest extends GraphQLTestCase
         $this->authenticatedGraphQL($customer, $mutation, [
             'input' => [
                 'firstName' => 'After',
-                'lastName' => 'Change',
+                'lastName'  => 'Change',
             ],
         ]);
 
@@ -413,7 +413,7 @@ class CustomerProfileTest extends GraphQLTestCase
     {
         $customer = $this->createCustomer([
             'first_name' => 'ToDelete',
-            'email' => 'delete-me@example.com',
+            'email'      => 'delete-me@example.com',
         ]);
 
         $customerId = $customer->id;

@@ -21,11 +21,11 @@ class CompareItemTest extends GraphQLTestCase
 
         $compareItem1 = CompareItem::factory()->create([
             'customer_id' => $customer->id,
-            'product_id' => $product1->id,
+            'product_id'  => $product1->id,
         ]);
         $compareItem2 = CompareItem::factory()->create([
             'customer_id' => $customer->id,
-            'product_id' => $product2->id,
+            'product_id'  => $product2->id,
         ]);
 
         return compact('customer', 'product1', 'product2', 'compareItem1', 'compareItem2');
@@ -703,7 +703,7 @@ class CompareItemTest extends GraphQLTestCase
 
         $compareItem = CompareItem::factory()->create([
             'customer_id' => $customer->id,
-            'product_id' => $product->id,
+            'product_id'  => $product->id,
         ]);
 
         $mutation = <<<'GQL'
@@ -740,7 +740,7 @@ class CompareItemTest extends GraphQLTestCase
 
         $compareItem = CompareItem::factory()->create([
             'customer_id' => $customer->id,
-            'product_id' => $product->id,
+            'product_id'  => $product->id,
         ]);
 
         $mutation = <<<'GQL'
@@ -782,7 +782,7 @@ class CompareItemTest extends GraphQLTestCase
 
         $compareItem = CompareItem::factory()->create([
             'customer_id' => $customer->id,
-            'product_id' => $product->id,
+            'product_id'  => $product->id,
         ]);
 
         $mutation = sprintf(<<<'GQL'
@@ -815,7 +815,7 @@ class CompareItemTest extends GraphQLTestCase
 
         CompareItem::factory()->create([
             'customer_id' => $customer->id,
-            'product_id' => $product1->id,
+            'product_id'  => $product1->id,
         ]);
 
         $mutation = <<<'GQL'
@@ -1039,7 +1039,7 @@ class CompareItemTest extends GraphQLTestCase
 
         $compareItem = CompareItem::factory()->create([
             'customer_id' => $customer1->id,
-            'product_id' => $product->id,
+            'product_id'  => $product->id,
         ]);
 
         $mutation = <<<'GQL'

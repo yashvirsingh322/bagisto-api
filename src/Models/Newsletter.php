@@ -22,10 +22,10 @@ use Webkul\BagistoApi\State\Processor\NewsletterSubscriptionProcessor;
             processor: NewsletterSubscriptionProcessor::class,
             denormalizationContext: [
                 'allow_extra_attributes' => true,
-                'groups' => ['mutation'],
+                'groups'                 => ['mutation'],
             ],
             normalizationContext: [
-                'groups' => ['mutation'],
+                'groups'                 => ['mutation'],
             ],
             description: 'Subscribe to newsletter',
         ),
@@ -38,10 +38,10 @@ use Webkul\BagistoApi\State\Processor\NewsletterSubscriptionProcessor;
             processor: NewsletterSubscriptionProcessor::class,
             denormalizationContext: [
                 'allow_extra_attributes' => true,
-                'groups' => ['mutation'],
+                'groups'                 => ['mutation'],
             ],
             normalizationContext: [
-                'groups' => ['mutation'],
+                'groups'                 => ['mutation'],
             ],
             description: 'Subscribe to newsletter',
         ),

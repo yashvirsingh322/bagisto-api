@@ -2,9 +2,7 @@
 
 namespace Webkul\BagistoApi\State;
 
-use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\Operation;
-use ApiPlatform\Metadata\Post;
 use ApiPlatform\State\ProcessorInterface;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -48,7 +46,7 @@ class WishlistProcessor implements ProcessorInterface
         }
 
         /** Handle REST POST — model received instead of DTO */
-        if ($data instanceof Wishlist && $operation instanceof Post) {
+        if ($data instanceof Wishlist && $operation instanceof \ApiPlatform\Metadata\Post) {
             $input = new CreateWishlistInput;
             $input->product_id = request()->input('product_id') ?? request()->input('productId');
 
@@ -61,7 +59,7 @@ class WishlistProcessor implements ProcessorInterface
             return $this->handleDeleteFromInput($data, $context);
         }
 
-        if ($operation instanceof Delete || in_array($operationName, ['delete', 'destroy'])) {
+        if ($operation instanceof \ApiPlatform\Metadata\Delete || in_array($operationName, ['delete', 'destroy'])) {
             return $this->handleDelete($data, $uriVariables, $context);
         }
 
@@ -107,9 +105,9 @@ class WishlistProcessor implements ProcessorInterface
         Event::dispatch('customer.wishlist.create.before', $input->product_id);
 
         $wishlistItem = Wishlist::create([
-            'product_id' => $input->product_id,
+            'product_id'  => $input->product_id,
             'customer_id' => $customerId,
-            'channel_id' => $channelId,
+            'channel_id'  => $channelId,
         ]);
 
         Event::dispatch('customer.wishlist.create.after', $wishlistItem);
@@ -157,9 +155,9 @@ class WishlistProcessor implements ProcessorInterface
         Event::dispatch('customer.wishlist.create.before', $input->product_id);
 
         $wishlistItem = Wishlist::create([
-            'product_id' => $input->product_id,
+            'product_id'  => $input->product_id,
             'customer_id' => $customerId,
-            'channel_id' => $channelId,
+            'channel_id'  => $channelId,
         ]);
 
         Event::dispatch('customer.wishlist.create.after', $wishlistItem);

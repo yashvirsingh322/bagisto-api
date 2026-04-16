@@ -8,7 +8,6 @@ use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\GraphQl\Query;
 use ApiPlatform\Metadata\GraphQl\QueryCollection;
-use Illuminate\Database\Eloquent\Model;
 use Webkul\BagistoApi\Resolver\BaseQueryItemResolver;
 use Webkul\BagistoApi\State\CursorAwareCollectionProvider;
 use Webkul\Core\Models\Country as BaseCountry;
@@ -39,7 +38,7 @@ class Country extends BaseCountry
 
     public function states()
     {
-        return $this->hasMany(CountryState::class, 'country_id');
+        return $this->hasMany(\Webkul\BagistoApi\Models\CountryState::class, 'country_id');
     }
 
     /**
@@ -47,7 +46,7 @@ class Country extends BaseCountry
      * Note: This field is excluded from GraphQL to avoid null conflicts.
      * Use 'translations' (collection) instead to get all translations.
      */
-    public function getTranslation(?string $locale = null, ?bool $withFallback = null): ?Model
+    public function getTranslation(?string $locale = null, ?bool $withFallback = null): ?\Illuminate\Database\Eloquent\Model
     {
         return parent::getTranslation($locale, $withFallback);
     }

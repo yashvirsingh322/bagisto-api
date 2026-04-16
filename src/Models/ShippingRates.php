@@ -6,7 +6,6 @@ use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\GraphQl\QueryCollection;
 use Webkul\BagistoApi\Dto\ShippingRateOutput;
 use Webkul\BagistoApi\State\ShippingRatesProvider;
-use Webkul\Checkout\Models\CartShippingRate;
 
 /**
  * ShippingRates - GraphQL API Resource for Shipping Rates
@@ -27,4 +26,4 @@ use Webkul\Checkout\Models\CartShippingRate;
         ),
     ]
 )]
-class ShippingRates extends CartShippingRate {}
+class ShippingRates extends \Webkul\Checkout\Models\CartShippingRate {}

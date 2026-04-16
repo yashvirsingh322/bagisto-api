@@ -24,11 +24,11 @@ class CompareItemTest extends RestApiTestCase
 
         $compareItem1 = CompareItem::factory()->create([
             'customer_id' => $customer->id,
-            'product_id' => $product1->id,
+            'product_id'  => $product1->id,
         ]);
         $compareItem2 = CompareItem::factory()->create([
             'customer_id' => $customer->id,
-            'product_id' => $product2->id,
+            'product_id'  => $product2->id,
         ]);
 
         return compact('customer', 'product1', 'product2', 'compareItem1', 'compareItem2');
@@ -131,7 +131,7 @@ class CompareItemTest extends RestApiTestCase
 
         $payload = [
             'customer_id' => $testData['customer']->id,
-            'product_id' => $product3->id,
+            'product_id'  => $product3->id,
         ];
 
         $response = $this->publicPost($this->apiUrl, $payload);

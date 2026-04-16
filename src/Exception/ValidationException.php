@@ -2,12 +2,10 @@
 
 namespace Webkul\BagistoApi\Exception;
 
-use GraphQL\Error\ClientAware;
-
 /**
  * ValidationException
  */
-class ValidationException extends \Exception implements ClientAware
+class ValidationException extends \Exception implements \GraphQL\Error\ClientAware
 {
     public function isClientSafe(): bool
     {

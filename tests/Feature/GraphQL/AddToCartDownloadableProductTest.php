@@ -2,7 +2,6 @@
 
 namespace Webkul\BagistoApi\Tests\Feature\GraphQL;
 
-use Illuminate\Support\Facades\DB;
 use Webkul\BagistoApi\Tests\GraphQLTestCase;
 
 class AddToCartDownloadableProductTest extends GraphQLTestCase
@@ -63,14 +62,14 @@ class AddToCartDownloadableProductTest extends GraphQLTestCase
         $links = [];
 
         for ($i = 1; $i <= $linksCount; $i++) {
-            $links[] = (int) DB::table('product_downloadable_links')->insertGetId([
+            $links[] = (int) \Illuminate\Support\Facades\DB::table('product_downloadable_links')->insertGetId([
                 'product_id' => $product->id,
-                'url' => 'https://example.com/download/'.$product->sku.'/'.$i,
-                'file' => null,
-                'file_name' => null,
-                'type' => 'url',
-                'price' => 0,
-                'downloads' => 0,
+                'url'        => 'https://example.com/download/'.$product->sku.'/'.$i,
+                'file'       => null,
+                'file_name'  => null,
+                'type'       => 'url',
+                'price'      => 0,
+                'downloads'  => 0,
                 'sort_order' => $i,
                 'created_at' => now(),
                 'updated_at' => now(),
@@ -79,7 +78,7 @@ class AddToCartDownloadableProductTest extends GraphQLTestCase
 
         return [
             'productId' => (int) $product->id,
-            'links' => $links,
+            'links'     => $links,
         ];
     }
 
@@ -126,8 +125,8 @@ class AddToCartDownloadableProductTest extends GraphQLTestCase
 
         $response = $this->graphQL($mutation, [
             'productId' => $payload['productId'],
-            'quantity' => 1,
-            'links' => $payload['links'],
+            'quantity'  => 1,
+            'links'     => $payload['links'],
         ], $headers);
 
         $response->assertSuccessful();
@@ -186,8 +185,8 @@ class AddToCartDownloadableProductTest extends GraphQLTestCase
 
         $response = $this->graphQL($mutation, [
             'productId' => $payload['productId'],
-            'quantity' => 1,
-            'links' => $payload['links'],
+            'quantity'  => 1,
+            'links'     => $payload['links'],
         ], $headers);
 
         $response->assertSuccessful();
@@ -317,8 +316,8 @@ class AddToCartDownloadableProductTest extends GraphQLTestCase
 
         $response = $this->graphQL($this->fullAddToCartMutation(), [
             'productId' => $payload['productId'],
-            'quantity' => 1,
-            'links' => $payload['links'],
+            'quantity'  => 1,
+            'links'     => $payload['links'],
         ], $this->guestHeaders($token));
 
         $response->assertSuccessful();
@@ -416,8 +415,8 @@ class AddToCartDownloadableProductTest extends GraphQLTestCase
 
         $response = $this->graphQL($this->fullAddToCartMutation(), [
             'productId' => $payload['productId'],
-            'quantity' => 1,
-            'links' => $payload['links'],
+            'quantity'  => 1,
+            'links'     => $payload['links'],
         ], $this->customerHeaders($token));
 
         $response->assertSuccessful();
@@ -473,8 +472,8 @@ class AddToCartDownloadableProductTest extends GraphQLTestCase
 
         $response = $this->graphQL($this->fullAddToCartMutation(), [
             'productId' => $payload['productId'],
-            'quantity' => 1,
-            'links' => $payload['links'],
+            'quantity'  => 1,
+            'links'     => $payload['links'],
         ], $this->guestHeaders($token));
 
         $response->assertSuccessful();

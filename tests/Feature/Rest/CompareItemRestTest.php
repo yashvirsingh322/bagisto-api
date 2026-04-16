@@ -21,11 +21,11 @@ class CompareItemRestTest extends RestApiTestCase
 
         $compareItem1 = CompareItem::factory()->create([
             'customer_id' => $customer->id,
-            'product_id' => $product1->id,
+            'product_id'  => $product1->id,
         ]);
         $compareItem2 = CompareItem::factory()->create([
             'customer_id' => $customer->id,
-            'product_id' => $product2->id,
+            'product_id'  => $product2->id,
         ]);
 
         return compact('customer', 'product1', 'product2', 'compareItem1', 'compareItem2');

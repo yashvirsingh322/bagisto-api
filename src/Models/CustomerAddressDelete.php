@@ -24,7 +24,7 @@ use Webkul\BagistoApi\State\CustomerAddressTokenProcessor;
             processor: CustomerAddressTokenProcessor::class,
             denormalizationContext: [
                 'allow_extra_attributes' => true,
-                'groups' => ['mutation'],
+                'groups'                 => ['mutation'],
             ],
             normalizationContext: [
                 'groups' => ['mutation'],

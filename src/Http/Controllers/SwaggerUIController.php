@@ -2,10 +2,8 @@
 
 namespace Webkul\BagistoApi\Http\Controllers;
 
-use ApiPlatform\OpenApi\Factory\OpenApiFactoryInterface;
 use Illuminate\Routing\Controller;
 use Illuminate\View\View;
-use Webkul\BagistoApi\Services\OpenApiSerializer;
 
 /**
  * Customizes Swagger UI for Shop and Admin APIs
@@ -22,10 +20,10 @@ class SwaggerUIController extends Controller
         $specData = $this->getOpenApiSpec('shop');
 
         return view('webkul::api-platform.swagger-ui-embedded', [
-            'title' => 'Bagisto Shop API',
-            'description' => 'Customer-facing API for shop operations',
-            'specData' => $specData,
-            'endpoint' => 'shop',
+            'title'         => 'Bagisto Shop API',
+            'description'   => 'Customer-facing API for shop operations',
+            'specData'      => $specData,
+            'endpoint'      => 'shop',
             'defaultServer' => '/api/shop',
         ]);
     }
@@ -40,10 +38,10 @@ class SwaggerUIController extends Controller
         $specData = $this->getOpenApiSpec('admin');
 
         return view('webkul::api-platform.swagger-ui-embedded', [
-            'title' => 'Bagisto Admin API',
-            'description' => 'Administrative API for platform management',
-            'specData' => $specData,
-            'endpoint' => 'admin',
+            'title'         => 'Bagisto Admin API',
+            'description'   => 'Administrative API for platform management',
+            'specData'      => $specData,
+            'endpoint'      => 'admin',
             'defaultServer' => '/api/admin',
         ]);
     }
@@ -79,16 +77,16 @@ class SwaggerUIController extends Controller
         return view('webkul::api-platform.docs-index', [
             'apis' => [
                 [
-                    'name' => 'Shop API',
+                    'name'        => 'Shop API',
                     'description' => 'Customer-facing API for shop operations',
-                    'url' => url('/api/shop'),
-                    'icon' => '🛍️',
+                    'url'         => url('/api/shop'),
+                    'icon'        => '🛍️',
                 ],
                 [
-                    'name' => 'Admin API',
+                    'name'        => 'Admin API',
                     'description' => 'Administrative API for platform management',
-                    'url' => url('/api/admin'),
-                    'icon' => '⚙️',
+                    'url'         => url('/api/admin'),
+                    'icon'        => '⚙️',
                 ],
             ],
         ]);
@@ -103,7 +101,7 @@ class SwaggerUIController extends Controller
         try {
             // Get the already-registered OpenAPI Factory from the service container
             // It's already a SplitOpenApiFactory, so we just need to call it with context
-            $factory = app(OpenApiFactoryInterface::class);
+            $factory = app(\ApiPlatform\OpenApi\Factory\OpenApiFactoryInterface::class);
 
             if (! $factory) {
                 throw new \Exception('OpenAPI Factory could not be instantiated');
@@ -114,7 +112,7 @@ class SwaggerUIController extends Controller
             $context = [
                 'endpoint' => $endpoint,
                 'base_url' => request()->getBaseUrl(),
-                'request' => request(),
+                'request'  => request(),
             ];
 
             // Generate the OpenAPI spec using the factory
@@ -123,25 +121,25 @@ class SwaggerUIController extends Controller
 
             // Use our custom serializer to properly convert the OpenAPI object to an array
             // This handles all the nested objects and complex types properly
-            $array = OpenApiSerializer::toArray($openApi);
+            $array = \Webkul\BagistoApi\Services\OpenApiSerializer::toArray($openApi);
 
             return $array ?: [];
 
         } catch (\Exception $e) {
             \Log::error('OpenAPI Spec Generation Error: '.$e->getMessage(), [
                 'exception' => $e,
-                'endpoint' => $endpoint,
-                'trace' => $e->getTraceAsString(),
+                'endpoint'  => $endpoint,
+                'trace'     => $e->getTraceAsString(),
             ]);
 
             return [
                 'openapi' => '3.0.0',
-                'info' => [
-                    'title' => 'Error',
-                    'version' => '1.0.3',
+                'info'    => [
+                    'title'       => 'Error',
+                    'version'     => '1.0.0',
                     'description' => 'Failed to generate OpenAPI specification: '.$e->getMessage(),
                 ],
-                'paths' => [],
+                'paths'      => [],
                 'components' => [
                     'schemas' => [],
                 ],

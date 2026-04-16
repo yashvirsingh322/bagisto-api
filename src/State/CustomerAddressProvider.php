@@ -8,7 +8,6 @@ use ApiPlatform\State\Pagination\Pagination;
 use ApiPlatform\State\ProviderInterface;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Request;
-use Laravel\Sanctum\PersonalAccessToken;
 use Webkul\BagistoApi\Exception\AuthenticationException;
 use Webkul\BagistoApi\Facades\TokenHeaderFacade;
 use Webkul\BagistoApi\Models\CustomerAddress;
@@ -99,7 +98,7 @@ class CustomerAddressProvider implements ProviderInterface
                 return null;
             }
 
-            $personalAccessToken = PersonalAccessToken::findToken($token);
+            $personalAccessToken = \Laravel\Sanctum\PersonalAccessToken::findToken($token);
 
             if (! $personalAccessToken) {
                 return null;

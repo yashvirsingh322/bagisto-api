@@ -300,14 +300,14 @@ class ProductReviewProcessor implements ProcessorInterface
 
             ProductReviewAttachment::create([
                 'review_id' => $reviewId,
-                'path' => $filename,
-                'type' => $mediaType,
+                'path'      => $filename,
+                'type'      => $mediaType,
                 'mime_type' => $mimeType,
             ]);
 
             return [
                 'type' => $mediaType,
-                'url' => Storage::url($filename),
+                'url'  => Storage::url($filename),
             ];
         } catch (\Exception $e) {
             report($e);

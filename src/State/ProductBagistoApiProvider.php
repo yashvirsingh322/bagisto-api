@@ -6,7 +6,6 @@ use ApiPlatform\Laravel\Eloquent\Paginator;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\Pagination\Pagination;
 use ApiPlatform\State\ProviderInterface;
-use Illuminate\Pagination\LengthAwarePaginator;
 use Webkul\BagistoApi\Models\Product;
 
 /**
@@ -281,7 +280,7 @@ class ProductBagistoApiProvider implements ProviderInterface
 
             $currentPage = (int) floor($startIndex / max(1, $usePerPage)) + 1;
 
-            $laravelPaginator = new LengthAwarePaginator(
+            $laravelPaginator = new \Illuminate\Pagination\LengthAwarePaginator(
                 $items,
                 $total,
                 $usePerPage,
@@ -304,7 +303,7 @@ class ProductBagistoApiProvider implements ProviderInterface
 
             $currentPage = (int) floor($startIndex / max(1, $useLast)) + 1;
 
-            $laravelPaginator = new LengthAwarePaginator(
+            $laravelPaginator = new \Illuminate\Pagination\LengthAwarePaginator(
                 $items,
                 $total,
                 $useLast,
@@ -320,7 +319,7 @@ class ProductBagistoApiProvider implements ProviderInterface
             $items = $query->skip($startIndex)->take($useLast)->get();
             $currentPage = (int) floor($startIndex / max(1, $useLast)) + 1;
 
-            $laravelPaginator = new LengthAwarePaginator(
+            $laravelPaginator = new \Illuminate\Pagination\LengthAwarePaginator(
                 $items,
                 $total,
                 $useLast,

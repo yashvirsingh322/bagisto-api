@@ -31,10 +31,10 @@ use Webkul\BagistoApi\State\CartTokenProcessor;
             processor: CartTokenProcessor::class,
             denormalizationContext: [
                 'allow_extra_attributes' => true,
-                'groups' => ['mutation'],
+                'groups'                 => ['mutation'],
             ],
             normalizationContext: [
-                'groups' => ['mutation'],
+                'groups'                 => ['mutation'],
             ],
             description: 'Remove coupon from cart.',
             openapi: new Model\Operation(
@@ -46,14 +46,14 @@ use Webkul\BagistoApi\State\CartTokenProcessor;
                     content: new \ArrayObject([
                         'application/json' => [
                             'schema' => [
-                                'type' => 'object',
+                                'type'       => 'object',
                                 'properties' => [],
                             ],
                             'examples' => [
                                 'remove_coupon' => [
-                                    'summary' => 'Remove Coupon',
+                                    'summary'     => 'Remove Coupon',
                                     'description' => 'Remove the applied coupon code',
-                                    'value' => new \stdClass,
+                                    'value'       => new \stdClass,
                                 ],
                             ],
                         ],
@@ -71,10 +71,10 @@ use Webkul\BagistoApi\State\CartTokenProcessor;
             processor: CartTokenProcessor::class,
             denormalizationContext: [
                 'allow_extra_attributes' => true,
-                'groups' => ['mutation'],
+                'groups'                 => ['mutation'],
             ],
             normalizationContext: [
-                'groups' => ['mutation'],
+                'groups'                 => ['mutation'],
             ],
             description: 'Remove coupon code from cart. Use token.',
         ),

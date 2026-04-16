@@ -39,11 +39,11 @@ use Webkul\BagistoApi\State\MoveWishlistToCartProcessor;
             name: 'move',
             args: [
                 'wishlistItemId' => [
-                    'type' => 'Int!',
+                    'type'        => 'Int!',
                     'description' => 'ID of the wishlist item to move to cart.',
                 ],
                 'quantity' => [
-                    'type' => 'Int',
+                    'type'        => 'Int',
                     'description' => 'Quantity of the item to add to cart (defaults to 1).',
                 ],
             ],

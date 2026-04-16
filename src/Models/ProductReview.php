@@ -3,15 +3,10 @@
 namespace Webkul\BagistoApi\Models;
 
 use ApiPlatform\Metadata\ApiResource;
-use ApiPlatform\Metadata\Delete;
-use ApiPlatform\Metadata\Get;
-use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\GraphQl\DeleteMutation;
 use ApiPlatform\Metadata\GraphQl\Mutation;
 use ApiPlatform\Metadata\GraphQl\Query;
 use ApiPlatform\Metadata\GraphQl\QueryCollection;
-use ApiPlatform\Metadata\Patch;
-use ApiPlatform\Metadata\Post;
 use Webkul\BagistoApi\Dto\CreateProductReviewInput;
 use Webkul\BagistoApi\Dto\UpdateProductReviewInput;
 use Webkul\BagistoApi\Resolver\BaseQueryItemResolver;
@@ -24,29 +19,29 @@ use Webkul\BagistoApi\State\ProductReviewUpdateProvider;
     shortName: 'ProductReview',
     uriTemplate: '/reviews',
     operations: [
-        new GetCollection(
+        new \ApiPlatform\Metadata\GetCollection(
             uriTemplate: '/reviews'
         ),
-        new Get(
+        new \ApiPlatform\Metadata\Get(
             uriTemplate: '/reviews/{id}'
         ),
-        new Post(
+        new \ApiPlatform\Metadata\Post(
             uriTemplate: '/reviews',
             processor: ProductReviewProcessor::class,
             denormalizationContext: [
-                'groups' => ['mutation'],
+                'groups'                 => ['mutation'],
                 'allow_extra_attributes' => true,
             ]
         ),
-        new Patch(
+        new \ApiPlatform\Metadata\Patch(
             uriTemplate: '/reviews/{id}',
             processor: ProductReviewProcessor::class,
             denormalizationContext: [
-                'groups' => ['mutation'],
+                'groups'                 => ['mutation'],
                 'allow_extra_attributes' => true,
             ]
         ),
-        new Delete(
+        new \ApiPlatform\Metadata\Delete(
             uriTemplate: '/reviews/{id}'
         ),
     ],
@@ -55,12 +50,12 @@ use Webkul\BagistoApi\State\ProductReviewUpdateProvider;
             provider: ProductReviewProvider::class,
             args: [
                 'product_id' => ['type' => 'Int', 'description' => 'Filter reviews by product ID'],
-                'status' => ['type' => 'String', 'description' => 'Filter reviews by status (pending, approved, rejected)'],
-                'rating' => ['type' => 'Int', 'description' => 'Filter reviews by rating (1-5 stars)'],
-                'first' => ['type' => 'Int', 'description' => 'Number of items to return from the start'],
-                'last' => ['type' => 'Int', 'description' => 'Number of items to return from the end'],
-                'after' => ['type' => 'String', 'description' => 'Cursor to start pagination after'],
-                'before' => ['type' => 'String', 'description' => 'Cursor to start pagination before'],
+                'status'     => ['type' => 'String', 'description' => 'Filter reviews by status (pending, approved, rejected)'],
+                'rating'     => ['type' => 'Int', 'description' => 'Filter reviews by rating (1-5 stars)'],
+                'first'      => ['type' => 'Int', 'description' => 'Number of items to return from the start'],
+                'last'       => ['type' => 'Int', 'description' => 'Number of items to return from the end'],
+                'after'      => ['type' => 'String', 'description' => 'Cursor to start pagination after'],
+                'before'     => ['type' => 'String', 'description' => 'Cursor to start pagination before'],
             ]
         ),
         new Query(resolver: BaseQueryItemResolver::class),
@@ -97,16 +92,16 @@ class ProductReview extends \Webkul\Product\Models\ProductReview
     ];
 
     protected $casts = [
-        'id' => 'int',
-        'product_id' => 'int',
+        'id'          => 'int',
+        'product_id'  => 'int',
         'customer_id' => 'int',
-        'title' => 'string',
-        'comment' => 'string',
-        'name' => 'string',
-        'rating' => 'int',
-        'status' => 'string',
-        'created_at' => 'datetime',
-        'updated_at' => 'datetime',
+        'title'       => 'string',
+        'comment'     => 'string',
+        'name'        => 'string',
+        'rating'      => 'int',
+        'status'      => 'string',
+        'created_at'  => 'datetime',
+        'updated_at'  => 'datetime',
     ];
 
     /**
@@ -163,7 +158,7 @@ class ProductReview extends \Webkul\Product\Models\ProductReview
         return $this->images->first() ? $this->images->map(function ($item) {
             return [
                 'type' => $item->type,
-                'url' => $item->url(),
+                'url'  => $item->url(),
             ];
         })->toJson() : null;
     }

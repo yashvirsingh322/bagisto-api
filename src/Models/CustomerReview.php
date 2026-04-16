@@ -11,7 +11,6 @@ use ApiPlatform\Metadata\GraphQl\QueryCollection;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Webkul\BagistoApi\Resolver\BaseQueryItemResolver;
 use Webkul\BagistoApi\State\CustomerReviewProvider;
-use Webkul\Product\Models\ProductReview;
 
 /**
  * Customer Review API Resource
@@ -41,17 +40,17 @@ use Webkul\Product\Models\ProductReview;
             provider: CustomerReviewProvider::class,
             paginationType: 'cursor',
             args: [
-                'status' => ['type' => 'String', 'description' => 'Filter reviews by status (pending, approved, rejected)'],
-                'rating' => ['type' => 'Int', 'description' => 'Filter reviews by rating (1-5 stars)'],
-                'first' => ['type' => 'Int', 'description' => 'Number of items to return from the start'],
-                'last' => ['type' => 'Int', 'description' => 'Number of items to return from the end'],
-                'after' => ['type' => 'String', 'description' => 'Cursor to start pagination after'],
-                'before' => ['type' => 'String', 'description' => 'Cursor to start pagination before'],
+                'status'  => ['type' => 'String', 'description' => 'Filter reviews by status (pending, approved, rejected)'],
+                'rating'  => ['type' => 'Int', 'description' => 'Filter reviews by rating (1-5 stars)'],
+                'first'   => ['type' => 'Int', 'description' => 'Number of items to return from the start'],
+                'last'    => ['type' => 'Int', 'description' => 'Number of items to return from the end'],
+                'after'   => ['type' => 'String', 'description' => 'Cursor to start pagination after'],
+                'before'  => ['type' => 'String', 'description' => 'Cursor to start pagination before'],
             ],
         ),
     ],
 )]
-class CustomerReview extends ProductReview
+class CustomerReview extends \Webkul\Product\Models\ProductReview
 {
     /** @var string */
     protected $table = 'product_reviews';
@@ -69,16 +68,16 @@ class CustomerReview extends ProductReview
 
     /** @var array<string, string> */
     protected $casts = [
-        'id' => 'int',
-        'product_id' => 'int',
+        'id'          => 'int',
+        'product_id'  => 'int',
         'customer_id' => 'int',
-        'title' => 'string',
-        'comment' => 'string',
-        'name' => 'string',
-        'rating' => 'int',
-        'status' => 'string',
-        'created_at' => 'datetime',
-        'updated_at' => 'datetime',
+        'title'       => 'string',
+        'comment'     => 'string',
+        'name'        => 'string',
+        'rating'      => 'int',
+        'status'      => 'string',
+        'created_at'  => 'datetime',
+        'updated_at'  => 'datetime',
     ];
 
     /**

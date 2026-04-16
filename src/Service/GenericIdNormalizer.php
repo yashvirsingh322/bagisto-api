@@ -2,8 +2,6 @@
 
 namespace Webkul\BagistoApi\Service;
 
-use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
-
 /**
  * Generic service to normalize and convert IDs between formats
  *
@@ -104,7 +102,7 @@ class GenericIdNormalizer
      * @param  string  $errorMessageKey  Translation key for error message (without prefix)
      * @return int The numeric ID
      *
-     * @throws BadRequestHttpException
+     * @throws \Symfony\Component\HttpKernel\Exception\BadRequestHttpException
      *
      * @example
      * validateAndExtract("1", 'country.id-required') => 1
@@ -116,7 +114,7 @@ class GenericIdNormalizer
         $numericId = self::extractNumericId($id);
 
         if ($numericId === null) {
-            throw new BadRequestHttpException(
+            throw new \Symfony\Component\HttpKernel\Exception\BadRequestHttpException(
                 __("bagistoapi::app.graphql.{$errorMessageKey}")
             );
         }

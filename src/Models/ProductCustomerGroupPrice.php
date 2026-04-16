@@ -15,7 +15,6 @@ use ApiPlatform\Metadata\Link;
 use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
 use Webkul\BagistoApi\Resolver\BaseQueryItemResolver;
-use Webkul\BagistoApi\State\CursorAwareCollectionProvider;
 use Webkul\BagistoApi\State\ProductCustomerGroupPriceProcessor;
 use Webkul\BagistoApi\State\ProductCustomerGroupPriceProvider;
 use Webkul\Product\Models\ProductCustomerGroupPrice as BaseProductCustomerGroupPrice;
@@ -67,7 +66,7 @@ use Webkul\Product\Models\ProductCustomerGroupPrice as BaseProductCustomerGroupP
     ],
     graphQlOperations: [
         new QueryCollection(
-            provider: CursorAwareCollectionProvider::class,
+            provider: \Webkul\BagistoApi\State\CursorAwareCollectionProvider::class,
             args: [
                 'product_id' => ['type' => 'Int', 'description' => 'Filter by product ID'],
             ]

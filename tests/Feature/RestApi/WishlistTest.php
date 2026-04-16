@@ -26,13 +26,13 @@ class WishlistTest extends RestApiTestCase
 
         $wishlistItem1 = Wishlist::factory()->create([
             'customer_id' => $customer->id,
-            'product_id' => $product1->id,
-            'channel_id' => $channel->id,
+            'product_id'  => $product1->id,
+            'channel_id'  => $channel->id,
         ]);
         $wishlistItem2 = Wishlist::factory()->create([
             'customer_id' => $customer->id,
-            'product_id' => $product2->id,
-            'channel_id' => $channel->id,
+            'product_id'  => $product2->id,
+            'channel_id'  => $channel->id,
         ]);
 
         return compact('customer', 'channel', 'product1', 'product2', 'wishlistItem1', 'wishlistItem2');
@@ -138,8 +138,8 @@ class WishlistTest extends RestApiTestCase
 
         $payload = [
             'customer_id' => $testData['customer']->id,
-            'product_id' => $product3->id,
-            'channel_id' => $testData['channel']->id,
+            'product_id'  => $product3->id,
+            'channel_id'  => $testData['channel']->id,
         ];
 
         $response = $this->publicPost($this->apiUrl, $payload);
@@ -280,8 +280,8 @@ class WishlistTest extends RestApiTestCase
 
         $payload = [
             'customer_id' => $testData['customer']->id,
-            'product_id' => $product->id,
-            'channel_id' => 99999,
+            'product_id'  => $product->id,
+            'channel_id'  => 99999,
         ];
 
         $response = $this->publicPost($this->apiUrl, $payload);
@@ -299,7 +299,7 @@ class WishlistTest extends RestApiTestCase
 
         $payload = [
             'wishlistItemId' => $testData['wishlistItem1']->id,
-            'quantity' => 1,
+            'quantity'       => 1,
         ];
 
         $response = $this->authenticatedPost(
@@ -320,7 +320,7 @@ class WishlistTest extends RestApiTestCase
 
         $payload = [
             'wishlistItemId' => 99999,
-            'quantity' => 1,
+            'quantity'       => 1,
         ];
 
         $response = $this->authenticatedPost(
@@ -341,7 +341,7 @@ class WishlistTest extends RestApiTestCase
 
         $payload = [
             'wishlistItemId' => $testData['wishlistItem1']->id,
-            'quantity' => 1,
+            'quantity'       => 1,
         ];
 
         $response = $this->publicPost(
@@ -361,7 +361,7 @@ class WishlistTest extends RestApiTestCase
 
         $payload = [
             'wishlistItemId' => $testData['wishlistItem1']->id,
-            'quantity' => 3,
+            'quantity'       => 3,
         ];
 
         $response = $this->authenticatedPost(
@@ -383,7 +383,7 @@ class WishlistTest extends RestApiTestCase
 
         $payload = [
             'wishlistItemId' => $testData['wishlistItem1']->id,
-            'quantity' => 1,
+            'quantity'       => 1,
         ];
 
         $response = $this->authenticatedPost(

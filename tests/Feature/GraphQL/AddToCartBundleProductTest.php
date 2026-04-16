@@ -2,9 +2,7 @@
 
 namespace Webkul\BagistoApi\Tests\Feature\GraphQL;
 
-use Illuminate\Support\Facades\DB;
 use Webkul\BagistoApi\Tests\GraphQLTestCase;
-use Webkul\Product\Models\Product;
 
 class AddToCartBundleProductTest extends GraphQLTestCase
 {
@@ -67,13 +65,13 @@ class AddToCartBundleProductTest extends GraphQLTestCase
         $this->upsertProductAttributeValue($bundle->id, 'manage_stock', 0, null, 'default');
 
         // Refresh bundle from database to get updated attribute values
-        $bundle = Product::find($bundle->id);
+        $bundle = \Webkul\Product\Models\Product::find($bundle->id);
 
-        $optionId = (int) DB::table('product_bundle_options')->insertGetId([
-            'product_id' => $bundle->id,
-            'type' => 'checkbox',
-            'is_required' => 1,
-            'sort_order' => 1,
+        $optionId = (int) \Illuminate\Support\Facades\DB::table('product_bundle_options')->insertGetId([
+            'product_id'   => $bundle->id,
+            'type'         => 'checkbox',
+            'is_required'  => 1,
+            'sort_order'   => 1,
         ]);
 
         $optionProduct = $this->createBaseProduct('simple', [
@@ -87,18 +85,18 @@ class AddToCartBundleProductTest extends GraphQLTestCase
         $this->upsertProductAttributeValue($optionProduct->id, 'manage_stock', 0, null, 'default');
 
         // Refresh option product from database to get updated attribute values
-        $optionProduct = Product::find($optionProduct->id);
+        $optionProduct = \Webkul\Product\Models\Product::find($optionProduct->id);
 
         // Also set price for the option product
         $this->upsertProductAttributeValue($optionProduct->id, 'price', 10.00, null, 'default');
 
-        $bundleOptionProductId = DB::table('product_bundle_option_products')->insertGetId([
-            'product_id' => $optionProduct->id,
+        $bundleOptionProductId = \Illuminate\Support\Facades\DB::table('product_bundle_option_products')->insertGetId([
+            'product_id'               => $optionProduct->id,
             'product_bundle_option_id' => $optionId,
-            'qty' => 1,
-            'is_user_defined' => 1,
-            'is_default' => 1,
-            'sort_order' => 1,
+            'qty'                      => 1,
+            'is_user_defined'          => 1,
+            'is_default'               => 1,
+            'sort_order'               => 1,
         ]);
 
         $bundleOptions = [
@@ -110,8 +108,8 @@ class AddToCartBundleProductTest extends GraphQLTestCase
         ];
 
         return [
-            'productId' => (int) $bundle->id,
-            'bundleOptions' => json_encode($bundleOptions, JSON_UNESCAPED_SLASHES),
+            'productId'       => (int) $bundle->id,
+            'bundleOptions'   => json_encode($bundleOptions, JSON_UNESCAPED_SLASHES),
             'bundleOptionQty' => json_encode($bundleOptionQty, JSON_UNESCAPED_SLASHES),
         ];
     }
@@ -160,9 +158,9 @@ class AddToCartBundleProductTest extends GraphQLTestCase
         GQL;
 
         $response = $this->graphQL($mutation, [
-            'productId' => $payload['productId'],
-            'quantity' => 1,
-            'bundleOptions' => $payload['bundleOptions'],
+            'productId'       => $payload['productId'],
+            'quantity'        => 1,
+            'bundleOptions'   => $payload['bundleOptions'],
             'bundleOptionQty' => $payload['bundleOptionQty'],
         ], $headers);
 
@@ -225,9 +223,9 @@ class AddToCartBundleProductTest extends GraphQLTestCase
         GQL;
 
         $response = $this->graphQL($mutation, [
-            'productId' => $payload['productId'],
-            'quantity' => 1,
-            'bundleOptions' => $payload['bundleOptions'],
+            'productId'       => $payload['productId'],
+            'quantity'        => 1,
+            'bundleOptions'   => $payload['bundleOptions'],
             'bundleOptionQty' => $payload['bundleOptionQty'],
         ], $headers);
 
@@ -275,11 +273,11 @@ class AddToCartBundleProductTest extends GraphQLTestCase
         for ($i = 1; $i <= $optionCount; $i++) {
             $type = $types[$i - 1] ?? 'select';
 
-            $optionId = (int) DB::table('product_bundle_options')->insertGetId([
-                'product_id' => $bundle->id,
-                'type' => $type,
+            $optionId = (int) \Illuminate\Support\Facades\DB::table('product_bundle_options')->insertGetId([
+                'product_id'  => $bundle->id,
+                'type'        => $type,
                 'is_required' => 1,
-                'sort_order' => $i,
+                'sort_order'  => $i,
             ]);
 
             $optionProduct = $this->createBaseProduct('simple', [
@@ -289,13 +287,13 @@ class AddToCartBundleProductTest extends GraphQLTestCase
             $this->upsertProductAttributeValue($optionProduct->id, 'manage_stock', 0, null, 'default');
             $this->upsertProductAttributeValue($optionProduct->id, 'price', 10.00 * $i, null, 'default');
 
-            $bundleOptionProductId = (int) DB::table('product_bundle_option_products')->insertGetId([
-                'product_id' => $optionProduct->id,
+            $bundleOptionProductId = (int) \Illuminate\Support\Facades\DB::table('product_bundle_option_products')->insertGetId([
+                'product_id'               => $optionProduct->id,
                 'product_bundle_option_id' => $optionId,
-                'qty' => 1,
-                'is_user_defined' => 1,
-                'is_default' => 1,
-                'sort_order' => 1,
+                'qty'                      => 1,
+                'is_user_defined'          => 1,
+                'is_default'               => 1,
+                'sort_order'               => 1,
             ]);
 
             $bundleOptions[(string) $optionId] = [$bundleOptionProductId];
@@ -306,10 +304,10 @@ class AddToCartBundleProductTest extends GraphQLTestCase
         }
 
         return [
-            'productId' => (int) $bundle->id,
-            'bundleOptions' => json_encode($bundleOptions, JSON_UNESCAPED_SLASHES),
+            'productId'       => (int) $bundle->id,
+            'bundleOptions'   => json_encode($bundleOptions, JSON_UNESCAPED_SLASHES),
             'bundleOptionQty' => json_encode($bundleOptionQty, JSON_UNESCAPED_SLASHES),
-            'optionCount' => $optionCount,
+            'optionCount'     => $optionCount,
         ];
     }
 
@@ -428,9 +426,9 @@ class AddToCartBundleProductTest extends GraphQLTestCase
         $payload = $this->createMultiOptionBundlePayload(4);
 
         $response = $this->graphQL($this->fullAddToCartMutation(), [
-            'productId' => $payload['productId'],
-            'quantity' => 1,
-            'bundleOptions' => $payload['bundleOptions'],
+            'productId'       => $payload['productId'],
+            'quantity'        => 1,
+            'bundleOptions'   => $payload['bundleOptions'],
             'bundleOptionQty' => $payload['bundleOptionQty'],
         ], $this->guestHeaders($token));
 
@@ -525,9 +523,9 @@ class AddToCartBundleProductTest extends GraphQLTestCase
         $payload = $this->createMultiOptionBundlePayload(4);
 
         $response = $this->graphQL($this->fullAddToCartMutation(), [
-            'productId' => $payload['productId'],
-            'quantity' => 1,
-            'bundleOptions' => $payload['bundleOptions'],
+            'productId'       => $payload['productId'],
+            'quantity'        => 1,
+            'bundleOptions'   => $payload['bundleOptions'],
             'bundleOptionQty' => $payload['bundleOptionQty'],
         ], $this->customerHeaders($token));
 
@@ -584,9 +582,9 @@ class AddToCartBundleProductTest extends GraphQLTestCase
         $payload = $this->createBundleProductPayload();
 
         $response = $this->graphQL($this->fullAddToCartMutation(), [
-            'productId' => $payload['productId'],
-            'quantity' => 1,
-            'bundleOptions' => $payload['bundleOptions'],
+            'productId'       => $payload['productId'],
+            'quantity'        => 1,
+            'bundleOptions'   => $payload['bundleOptions'],
             'bundleOptionQty' => $payload['bundleOptionQty'],
         ], $this->guestHeaders($token));
 

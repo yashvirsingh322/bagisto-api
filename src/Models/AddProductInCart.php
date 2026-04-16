@@ -32,10 +32,10 @@ use Webkul\BagistoApi\State\CartTokenProcessor;
             processor: CartTokenProcessor::class,
             denormalizationContext: [
                 'allow_extra_attributes' => true,
-                'groups' => ['mutation'],
+                'groups'                 => ['mutation'],
             ],
             normalizationContext: [
-                'groups' => ['mutation'],
+                'groups'                 => ['mutation'],
             ],
             description: 'Add product to cart. Can be used for both authenticated users and guests.',
             openapi: new Model\Operation(
@@ -47,113 +47,113 @@ use Webkul\BagistoApi\State\CartTokenProcessor;
                     content: new \ArrayObject([
                         'application/json' => [
                             'schema' => [
-                                'type' => 'object',
+                                'type'       => 'object',
                                 'properties' => [
                                     'productId' => [
-                                        'type' => 'integer',
-                                        'example' => 1,
+                                        'type'        => 'integer',
+                                        'example'     => 1,
                                         'description' => 'Product ID',
                                     ],
                                     'quantity' => [
-                                        'type' => 'integer',
-                                        'example' => 1,
+                                        'type'        => 'integer',
+                                        'example'     => 1,
                                         'description' => 'Quantity',
                                     ],
                                     'options' => [
-                                        'type' => 'object',
-                                        'example' => ['size' => 'M', 'color' => 'blue'],
+                                        'type'        => 'object',
+                                        'example'     => ['size' => 'M', 'color' => 'blue'],
                                         'description' => 'Product options (optional)',
                                     ],
                                     'bundleOptions' => [
-                                        'type' => 'string',
-                                        'example' => '{"1":[1],"2":[2],"3":[3],"4":[4]}',
+                                        'type'        => 'string',
+                                        'example'     => '{"1":[1],"2":[2],"3":[3],"4":[4]}',
                                         'description' => 'Bundle options JSON (optional)',
                                     ],
                                     'bundleOptionQty' => [
-                                        'type' => 'string',
-                                        'example' => '{"1":1,"2":2,"3":1,"4":2}',
+                                        'type'        => 'string',
+                                        'example'     => '{"1":1,"2":2,"3":1,"4":2}',
                                         'description' => 'Bundle option quantities JSON (optional)',
                                     ],
                                     'groupedQty' => [
-                                        'type' => 'string',
-                                        'example' => '{"101":2,"102":1}',
+                                        'type'        => 'string',
+                                        'example'     => '{"101":2,"102":1}',
                                         'description' => 'Grouped product associated quantities JSON (optional, required for grouped products)',
                                     ],
                                     'booking' => [
-                                        'type' => 'string',
-                                        'example' => '{"type":"appointment","date":"2026-03-12","slot":"10:00 AM - 11:00 AM"}',
+                                        'type'        => 'string',
+                                        'example'     => '{"type":"appointment","date":"2026-03-12","slot":"10:00 AM - 11:00 AM"}',
                                         'description' => 'Booking options JSON string (optional, required for booking products)',
                                     ],
                                     'specialNote' => [
-                                        'type' => 'string',
-                                        'example' => 'This is a special note',
+                                        'type'        => 'string',
+                                        'example'     => 'This is a special note',
                                         'description' => 'Special request / note (optional; merged into booking.note)',
                                     ],
                                 ],
                             ],
                             'examples' => [
                                 'simple_product' => [
-                                    'summary' => 'Add Simple Product',
+                                    'summary'     => 'Add Simple Product',
                                     'description' => 'Add a simple product to cart',
-                                    'value' => [
+                                    'value'       => [
                                         'productId' => 1,
-                                        'quantity' => 1,
+                                        'quantity'  => 1,
                                     ],
                                 ],
                                 'product_with_options' => [
-                                    'summary' => 'Add Product with Options',
+                                    'summary'     => 'Add Product with Options',
                                     'description' => 'Add a product with size and color options',
-                                    'value' => [
+                                    'value'       => [
                                         'productId' => 2,
-                                        'quantity' => 2,
-                                        'options' => ['size' => 'M', 'color' => 'blue'],
+                                        'quantity'  => 2,
+                                        'options'   => ['size' => 'M', 'color' => 'blue'],
                                     ],
                                 ],
                                 'bundle_product' => [
-                                    'summary' => 'Add Bundle Product',
+                                    'summary'     => 'Add Bundle Product',
                                     'description' => 'Add a bundle product with selected bundle options',
-                                    'value' => [
-                                        'productId' => 6,
-                                        'quantity' => 1,
-                                        'bundleOptions' => '{"1":[1],"2":[2],"3":[3],"4":[4]}',
+                                    'value'       => [
+                                        'productId'       => 6,
+                                        'quantity'        => 1,
+                                        'bundleOptions'   => '{"1":[1],"2":[2],"3":[3],"4":[4]}',
                                         'bundleOptionQty' => '{"1":1,"2":2,"3":1,"4":2}',
                                     ],
                                 ],
                                 'grouped_product' => [
-                                    'summary' => 'Add Grouped Product',
+                                    'summary'     => 'Add Grouped Product',
                                     'description' => 'Add a grouped product by specifying quantities for associated simple products',
-                                    'value' => [
-                                        'productId' => 5,
-                                        'quantity' => 1,
-                                        'groupedQty' => '{"101":2,"102":1}',
+                                    'value'       => [
+                                        'productId'   => 5,
+                                        'quantity'    => 1,
+                                        'groupedQty'  => '{"101":2,"102":1}',
                                     ],
                                 ],
                                 'booking_product' => [
-                                    'summary' => 'Add Booking Product',
+                                    'summary'     => 'Add Booking Product',
                                     'description' => 'Add a booking product (appointment/default/table/rental/event) to cart by passing booking options as JSON string',
-                                    'value' => [
+                                    'value'       => [
                                         'productId' => 2555,
-                                        'quantity' => 1,
-                                        'booking' => '{"type":"appointment","date":"2026-03-12","slot":"10:00 AM - 11:00 AM"}',
+                                        'quantity'  => 1,
+                                        'booking'   => '{"type":"appointment","date":"2026-03-12","slot":"10:00 AM - 11:00 AM"}',
                                     ],
                                 ],
                                 'event_booking_product' => [
-                                    'summary' => 'Add Event Booking',
+                                    'summary'     => 'Add Event Booking',
                                     'description' => 'Add an event booking product by selecting one or more ticket quantities (at least one ticket qty > 0 required)',
-                                    'value' => [
+                                    'value'       => [
                                         'productId' => 2564,
-                                        'quantity' => 1,
-                                        'booking' => '{"type":"event","qty":{"501":1,"502":2}}',
+                                        'quantity'  => 1,
+                                        'booking'   => '{"type":"event","qty":{"501":1,"502":2}}',
                                     ],
                                 ],
                                 'table_booking_product_with_note' => [
-                                    'summary' => 'Add Table Booking (with note)',
+                                    'summary'     => 'Add Table Booking (with note)',
                                     'description' => 'Add a table booking product and send special request/note separately',
-                                    'value' => [
-                                        'productId' => 2563,
-                                        'quantity' => 1,
-                                        'booking' => '{"type":"table","date":"2026-03-25","slot":"12:00 PM - 12:45 PM"}',
-                                        'specialNote' => 'This is a special note',
+                                    'value'       => [
+                                        'productId'    => 2563,
+                                        'quantity'     => 1,
+                                        'booking'      => '{"type":"table","date":"2026-03-25","slot":"12:00 PM - 12:45 PM"}',
+                                        'specialNote'  => 'This is a special note',
                                     ],
                                 ],
                             ],
@@ -172,10 +172,10 @@ use Webkul\BagistoApi\State\CartTokenProcessor;
             processor: CartTokenProcessor::class,
             denormalizationContext: [
                 'allow_extra_attributes' => true,
-                'groups' => ['mutation'],
+                'groups'                 => ['mutation'],
             ],
             normalizationContext: [
-                'groups' => ['mutation'],
+                'groups'                 => ['mutation'],
             ],
             description: 'Add product to cart. Can be used for both authenticated users and guests.',
         ),

@@ -21,7 +21,7 @@ class CartCreateTest extends TestCase
     private function createCustomerWithToken(): array
     {
         $customer = Customer::factory()->create([
-            'email' => 'test@example.com',
+            'email'    => 'test@example.com',
             'password' => bcrypt('password123'),
         ]);
 
@@ -71,7 +71,7 @@ class CartCreateTest extends TestCase
         }
 
         return $this->postJson($this->graphqlUrl, [
-            'query' => $mutation,
+            'query'     => $mutation,
             'variables' => $variables,
         ])->json();
     }
@@ -93,7 +93,7 @@ class CartCreateTest extends TestCase
 
         $this->assertDatabaseHas('cart_items', [
             'product_id' => $product->id,
-            'quantity' => 2,
+            'quantity'   => 2,
         ]);
     }
 
@@ -134,7 +134,7 @@ class CartCreateTest extends TestCase
 
         $this->assertDatabaseHas('cart_items', [
             'product_id' => $product->id,
-            'quantity' => 5,
+            'quantity'   => 5,
         ]);
     }
 
@@ -205,7 +205,7 @@ class CartCreateTest extends TestCase
         GQL;
 
         $response = $this->postJson($this->graphqlUrl, [
-            'query' => $mutation,
+            'query'     => $mutation,
             'variables' => ['productId' => $product->id, 'quantity' => 1],
         ])->json();
 
@@ -231,7 +231,7 @@ class CartCreateTest extends TestCase
         GQL;
 
         $response = $this->postJson($this->graphqlUrl, [
-            'query' => $mutation,
+            'query'     => $mutation,
             'variables' => ['token' => $token, 'quantity' => 1],
         ])->json();
 
@@ -275,7 +275,7 @@ class CartCreateTest extends TestCase
         $this->assertTrue($response['data']['addProductToCartCartToken']['success']);
 
         $this->assertDatabaseHas('cart_items', [
-            'cart_id' => $guestCart->id,
+            'cart_id'    => $guestCart->id,
             'product_id' => $product->id,
         ]);
     }

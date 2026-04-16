@@ -3,7 +3,6 @@
 namespace Webkul\BagistoApi\Http\Middleware;
 
 use Closure;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Tymon\JWTAuth\Exceptions\JWTException;
@@ -106,14 +105,14 @@ class VerifyBearerToken
     /**
      * Send authentication error response
      */
-    protected function sendAuthenticationError(string $message, string $error = 'missing_token'): JsonResponse
+    protected function sendAuthenticationError(string $message, string $error = 'missing_token'): \Illuminate\Http\JsonResponse
     {
         return response()->json([
             'message' => $message,
-            'error' => $error,
-            'errors' => [
+            'error'   => $error,
+            'errors'  => [
                 [
-                    'message' => $message,
+                    'message'    => $message,
                     'extensions' => [
                         'code' => 'UNAUTHENTICATED',
                     ],

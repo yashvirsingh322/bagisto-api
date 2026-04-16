@@ -20,7 +20,7 @@ class CartIntegrationTest extends TestCase
     private function createCustomerWithToken(): array
     {
         $customer = Customer::factory()->create([
-            'email' => 'test@example.com',
+            'email'    => 'test@example.com',
             'password' => bcrypt('password123'),
         ]);
 
@@ -63,7 +63,7 @@ class CartIntegrationTest extends TestCase
         }
 
         return $this->postJson($this->graphqlUrl, [
-            'query' => $mutation,
+            'query'     => $mutation,
             'variables' => $variables,
         ])->json();
     }
@@ -93,7 +93,7 @@ class CartIntegrationTest extends TestCase
         GQL;
 
         return $this->postJson($this->graphqlUrl, [
-            'query' => $mutation,
+            'query'     => $mutation,
             'variables' => compact('token', 'cartItemId', 'quantity'),
         ])->json();
     }
@@ -121,7 +121,7 @@ class CartIntegrationTest extends TestCase
         GQL;
 
         return $this->postJson($this->graphqlUrl, [
-            'query' => $mutation,
+            'query'     => $mutation,
             'variables' => compact('token', 'cartItemId'),
         ])->json();
     }
@@ -152,7 +152,7 @@ class CartIntegrationTest extends TestCase
         GQL;
 
         return $this->postJson($this->graphqlUrl, [
-            'query' => $mutation,
+            'query'     => $mutation,
             'variables' => compact('token', 'cartId'),
         ])->json();
     }

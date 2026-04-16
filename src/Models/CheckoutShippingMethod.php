@@ -32,10 +32,10 @@ use Webkul\BagistoApi\State\CheckoutProcessor;
             processor: CheckoutProcessor::class,
             denormalizationContext: [
                 'allow_extra_attributes' => true,
-                'groups' => ['mutation'],
+                'groups'                 => ['mutation'],
             ],
             normalizationContext: [
-                'groups' => ['mutation'],
+                'groups'                 => ['mutation'],
             ],
             description: 'Save selected shipping method for checkout. Returns success status and message.',
         ),

@@ -2,7 +2,6 @@
 
 namespace Webkul\BagistoApi\Services;
 
-use Laravel\Sanctum\PersonalAccessToken;
 use Webkul\BagistoApi\Repositories\GuestCartTokensRepository;
 use Webkul\Checkout\Repositories\CartRepository;
 use Webkul\Customer\Models\Customer;
@@ -33,18 +32,18 @@ class CartTokenService
             if ($customer) {
                 return $this->cartRepository->findOneWhere([
                     'customer_id' => $customer->id,
-                    'is_active' => 1,
+                    'is_active'   => 1,
                 ]);
             }
 
-            $personalAccessToken = PersonalAccessToken::findToken($token);
+            $personalAccessToken = \Laravel\Sanctum\PersonalAccessToken::findToken($token);
             if ($personalAccessToken && $personalAccessToken->tokenable instanceof Customer) {
                 $customer = $personalAccessToken->tokenable;
 
                 if ($customer) {
                     return $this->cartRepository->findOneWhere([
                         'customer_id' => $customer->id,
-                        'is_active' => 1,
+                        'is_active'   => 1,
                     ]);
                 }
             }

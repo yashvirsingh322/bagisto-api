@@ -10,7 +10,6 @@ use ApiPlatform\Metadata\GraphQl\Query;
 use ApiPlatform\Metadata\GraphQl\QueryCollection;
 use ApiPlatform\Metadata\Link;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Facades\Storage;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Webkul\BagistoApi\Resolver\BaseQueryItemResolver;
@@ -77,7 +76,7 @@ class ProductDownloadableLink extends BaseProductDownloadableLink
         return $this->belongsTo(Product::class, 'product_id');
     }
 
-    public function translation(): HasOne
+    public function translation(): \Illuminate\Database\Eloquent\Relations\HasOne
     {
         return $this->hasOne(ProductDownloadableLinkTranslation::class, 'product_downloadable_link_id');
     }

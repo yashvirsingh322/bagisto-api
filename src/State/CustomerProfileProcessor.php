@@ -9,7 +9,6 @@ use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Request;
 use Illuminate\Support\Facades\Storage;
-use Laravel\Sanctum\PersonalAccessToken;
 use Webkul\BagistoApi\Dto\CustomerProfileOutput;
 use Webkul\BagistoApi\Exception\AuthenticationException;
 use Webkul\BagistoApi\Exception\InvalidInputException;
@@ -227,7 +226,7 @@ class CustomerProfileProcessor implements ProcessorInterface
                 return null;
             }
 
-            $personalAccessToken = PersonalAccessToken::findToken($token);
+            $personalAccessToken = \Laravel\Sanctum\PersonalAccessToken::findToken($token);
 
             if (! $personalAccessToken) {
                 return null;

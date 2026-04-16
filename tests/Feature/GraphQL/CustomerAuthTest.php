@@ -43,15 +43,15 @@ class CustomerAuthTest extends GraphQLTestCase
 
         $response = $this->graphQL($mutation, [
             'input' => [
-                'firstName' => 'Jane',
-                'lastName' => 'Doe',
-                'email' => $email,
-                'password' => 'secret123',
-                'confirmPassword' => 'secret123',
-                'phone' => '9990000001',
-                'status' => '1',
-                'isVerified' => '1',
-                'isSuspended' => '0',
+                'firstName'              => 'Jane',
+                'lastName'               => 'Doe',
+                'email'                  => $email,
+                'password'               => 'secret123',
+                'confirmPassword'        => 'secret123',
+                'phone'                  => '9990000001',
+                'status'                 => '1',
+                'isVerified'             => '1',
+                'isSuspended'            => '0',
                 'subscribedToNewsLetter' => false,
             ],
         ]);
@@ -88,14 +88,14 @@ class CustomerAuthTest extends GraphQLTestCase
 
         $response = $this->graphQL($mutation, [
             'input' => [
-                'firstName' => 'Dup',
-                'lastName' => 'User',
-                'email' => $existing->email,
-                'password' => 'secret123',
-                'confirmPassword' => 'secret123',
-                'status' => '1',
-                'isVerified' => '1',
-                'isSuspended' => '0',
+                'firstName'              => 'Dup',
+                'lastName'               => 'User',
+                'email'                  => $existing->email,
+                'password'               => 'secret123',
+                'confirmPassword'        => 'secret123',
+                'status'                 => '1',
+                'isVerified'             => '1',
+                'isSuspended'            => '0',
                 'subscribedToNewsLetter' => false,
             ],
         ]);
@@ -118,14 +118,14 @@ class CustomerAuthTest extends GraphQLTestCase
 
         $response = $this->graphQL($mutation, [
             'input' => [
-                'firstName' => 'Mis',
-                'lastName' => 'Match',
-                'email' => 'mismatch_'.uniqid().'@example.com',
-                'password' => 'secret123',
-                'confirmPassword' => 'different456',
-                'status' => '1',
-                'isVerified' => '1',
-                'isSuspended' => '0',
+                'firstName'              => 'Mis',
+                'lastName'               => 'Match',
+                'email'                  => 'mismatch_'.uniqid().'@example.com',
+                'password'               => 'secret123',
+                'confirmPassword'        => 'different456',
+                'status'                 => '1',
+                'isVerified'             => '1',
+                'isSuspended'            => '0',
                 'subscribedToNewsLetter' => false,
             ],
         ]);
@@ -142,7 +142,7 @@ class CustomerAuthTest extends GraphQLTestCase
         $email = 'login_'.uniqid().'@example.com';
 
         $this->createCustomer([
-            'email' => $email,
+            'email'    => $email,
             'password' => Hash::make($password),
         ]);
 
@@ -163,7 +163,7 @@ class CustomerAuthTest extends GraphQLTestCase
 
         $response = $this->graphQL($mutation, [
             'input' => [
-                'email' => $email,
+                'email'    => $email,
                 'password' => $password,
             ],
         ]);
@@ -181,7 +181,7 @@ class CustomerAuthTest extends GraphQLTestCase
         $email = 'wrongpass_'.uniqid().'@example.com';
 
         $this->createCustomer([
-            'email' => $email,
+            'email'    => $email,
             'password' => Hash::make('correctpass'),
         ]);
 
@@ -195,7 +195,7 @@ class CustomerAuthTest extends GraphQLTestCase
 
         $response = $this->graphQL($mutation, [
             'input' => [
-                'email' => $email,
+                'email'    => $email,
                 'password' => 'wrongpass',
             ],
         ]);
@@ -212,8 +212,8 @@ class CustomerAuthTest extends GraphQLTestCase
         $password = 'secret123';
 
         $this->createCustomer([
-            'email' => $email,
-            'password' => Hash::make($password),
+            'email'        => $email,
+            'password'     => Hash::make($password),
             'is_suspended' => 1,
         ]);
 
@@ -227,7 +227,7 @@ class CustomerAuthTest extends GraphQLTestCase
 
         $response = $this->graphQL($mutation, [
             'input' => [
-                'email' => $email,
+                'email'    => $email,
                 'password' => $password,
             ],
         ]);

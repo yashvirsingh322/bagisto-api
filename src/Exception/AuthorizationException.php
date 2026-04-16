@@ -2,8 +2,6 @@
 
 namespace Webkul\BagistoApi\Exception;
 
-use GraphQL\Error\ClientAware;
-
 /**
  * AuthorizationException
  *
@@ -17,7 +15,7 @@ use GraphQL\Error\ClientAware;
  *
  * Status Code: 403 Forbidden
  */
-class AuthorizationException extends \Exception implements ClientAware
+class AuthorizationException extends \Exception implements \GraphQL\Error\ClientAware
 {
     public function isClientSafe(): bool
     {

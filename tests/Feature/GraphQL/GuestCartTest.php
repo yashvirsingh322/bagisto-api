@@ -172,7 +172,7 @@ class GuestCartTest extends GraphQLTestCase
 
         $response = $this->graphQL($mutation, [
             'productId' => $product->id,
-            'quantity' => 1,
+            'quantity'  => 1,
         ], $headers);
 
         $response->assertSuccessful();
@@ -217,7 +217,7 @@ class GuestCartTest extends GraphQLTestCase
 
         $addResponse = $this->graphQL($addMutation, [
             'productId' => $product->id,
-            'quantity' => 9,
+            'quantity'  => 9,
         ], $headers);
 
         $addResponse->assertSuccessful();
@@ -313,7 +313,7 @@ class GuestCartTest extends GraphQLTestCase
 
         $updateResponse = $this->graphQL($updateMutation, [
             'cartItemId' => (int) $cartItemId,
-            'quantity' => 1,
+            'quantity'   => 1,
         ], $headers);
 
         $updateResponse->assertSuccessful();
@@ -361,7 +361,7 @@ class GuestCartTest extends GraphQLTestCase
 
         $addResponse = $this->graphQL($addMutation, [
             'productId' => $product->id,
-            'quantity' => 2,
+            'quantity'  => 2,
         ], $headers);
 
         $addResponse->assertSuccessful();
@@ -437,7 +437,7 @@ class GuestCartTest extends GraphQLTestCase
 
         $this->graphQL($addMutation, [
             'productId' => $product->id,
-            'quantity' => 1,
+            'quantity'  => 1,
         ], $headers);
 
         // Apply coupon
@@ -488,7 +488,7 @@ class GuestCartTest extends GraphQLTestCase
 
         $this->graphQL($addMutation, [
             'productId' => $product->id,
-            'quantity' => 1,
+            'quantity'  => 1,
         ], $headers);
 
         // Remove coupon

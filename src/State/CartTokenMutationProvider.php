@@ -4,11 +4,9 @@ namespace Webkul\BagistoApi\State;
 
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProviderInterface;
-use Laravel\Sanctum\PersonalAccessToken;
 use Webkul\BagistoApi\Dto\CartData;
 use Webkul\BagistoApi\Dto\CartInput;
 use Webkul\Checkout\Repositories\CartRepository;
-use Webkul\Customer\Models\Customer;
 
 /**
  * Provides input data for CartToken mutations and queries without attempting to load a resource by ID.
@@ -97,14 +95,14 @@ class CartTokenMutationProvider implements ProviderInterface
     /**
      * Get customer from bearer token
      */
-    private function getCustomerFromToken(?string $token): ?Customer
+    private function getCustomerFromToken(?string $token): ?\Webkul\Customer\Models\Customer
     {
         if (! $token) {
             return null;
         }
 
         try {
-            $personalAccessToken = PersonalAccessToken::findToken($token);
+            $personalAccessToken = \Laravel\Sanctum\PersonalAccessToken::findToken($token);
             if ($personalAccessToken && $personalAccessToken->tokenable) {
                 return $personalAccessToken->tokenable;
             }

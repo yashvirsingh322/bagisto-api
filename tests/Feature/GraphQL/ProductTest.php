@@ -2,10 +2,8 @@
 
 namespace Webkul\BagistoApi\Tests\Feature\GraphQL;
 
-use Webkul\Attribute\Models\Attribute;
 use Webkul\BagistoApi\Tests\GraphQLTestCase;
 use Webkul\Product\Models\Product;
-use Webkul\Product\Models\ProductAttributeValue;
 
 /**
  * Products GraphQL API Test Cases
@@ -23,7 +21,7 @@ class ProductTest extends GraphQLTestCase
 
     protected string $testProductSku = '';
 
-    public function setUp(): void
+    protected function setUp(): void
     {
         parent::setUp();
 
@@ -32,7 +30,7 @@ class ProductTest extends GraphQLTestCase
         ]);
         $this->ensureInventory($product, 50);
 
-        $this->testProductId  = (int) $product->id;
+        $this->testProductId = (int) $product->id;
         $this->testProductSku = (string) $product->sku;
     }
 
@@ -265,10 +263,10 @@ class ProductTest extends GraphQLTestCase
         GQL;
 
         $variables = [
-            'query' => 'shirt',
+            'query'   => 'shirt',
             'sortKey' => 'TITLE',
             'reverse' => false,
-            'first' => 10,
+            'first'   => 10,
         ];
 
         $response = $this->graphQL($query, $variables);
@@ -308,11 +306,7 @@ class ProductTest extends GraphQLTestCase
         GQL;
 
         $variables = [
-<<<<<<< chore/release-prep-v1.0.3
-            'id' => '1',
-=======
-            'id' => (string) $this->testProductId
->>>>>>> main
+            'id' => (string) $this->testProductId,
         ];
 
         $response = $this->graphQL($query, $variables);
@@ -408,11 +402,7 @@ class ProductTest extends GraphQLTestCase
         GQL;
 
         $variables = [
-<<<<<<< chore/release-prep-v1.0.3
-            'id' => '1',
-=======
-            'id' => (string) $this->testProductId
->>>>>>> main
+            'id' => (string) $this->testProductId,
         ];
 
         $response = $this->graphQL($query, $variables);
@@ -527,11 +517,7 @@ class ProductTest extends GraphQLTestCase
         GQL;
 
         $variables = [
-<<<<<<< chore/release-prep-v1.0.3
-            'id' => '1',
-=======
-            'id' => (string) $this->testProductId
->>>>>>> main
+            'id' => (string) $this->testProductId,
         ];
 
         $response = $this->graphQL($query, $variables);
@@ -663,10 +649,10 @@ class ProductTest extends GraphQLTestCase
 
         // Test with SKU search - use the SKU of the product we just created
         $variables = [
-            'query' => 'SHIRT-001',
+            'query'   => 'SHIRT-001',
             'sortKey' => 'TITLE',
             'reverse' => false,
-            'first' => 10,
+            'first'   => 10,
         ];
 
         $response = $this->graphQL($searchQuery, $variables);
@@ -734,8 +720,8 @@ class ProductTest extends GraphQLTestCase
         // Test with category filter
         $variables = [
             'filter' => '{"category_id": "22"}',
-            'first' => 2,
-            'after' => 'Mg==',
+            'first'  => 2,
+            'after'  => 'Mg==',
         ];
 
         $response = $this->graphQL($query, $variables);
@@ -903,38 +889,7 @@ class ProductTest extends GraphQLTestCase
         $product = $this->createBaseProduct('simple', [
             'sku' => 'SHIRT-001',
         ]);
-<<<<<<< chore/release-prep-v1.0.3
-
-        // Try to find the name attribute
-        $nameAttribute = Attribute::where('code', 'name')->first();
-
-        if ($nameAttribute) {
-            // Create the name attribute value - text type uses text_value field
-            ProductAttributeValue::create([
-                'product_id' => $product->id,
-                'attribute_id' => $nameAttribute->id,
-                'locale' => 'en',
-                'channel' => 'default',
-                'text_value' => 'Cotton Shirt',
-            ]);
-        }
-
-        // Try to find the price attribute
-        $priceAttribute = Attribute::where('code', 'price')->first();
-
-        if ($priceAttribute) {
-            // Create price attribute value - price type uses float_value field
-            ProductAttributeValue::create([
-                'product_id' => $product->id,
-                'attribute_id' => $priceAttribute->id,
-                'locale' => 'en',
-                'channel' => 'default',
-                'float_value' => 29.99,
-            ]);
-        }
-=======
         $this->ensureInventory($product, 50);
->>>>>>> main
 
         return $product;
     }

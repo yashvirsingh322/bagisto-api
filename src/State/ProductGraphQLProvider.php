@@ -8,7 +8,6 @@ use ApiPlatform\State\Pagination\Pagination;
 use ApiPlatform\State\ProviderInterface;
 use Illuminate\Pagination\LengthAwarePaginator as LaravelPaginator;
 use Webkul\BagistoApi\Models\Product;
-use Webkul\Customer\Repositories\CustomerGroupRepository;
 
 class ProductGraphQLProvider implements ProviderInterface
 {
@@ -109,7 +108,7 @@ class ProductGraphQLProvider implements ProviderInterface
             case 'PRICE':
                 $user = auth()->user();
                 $customerGroup = $user?->getDefaultGroup()
-                    ?? app(CustomerGroupRepository::class)
+                    ?? app(\Webkul\Customer\Repositories\CustomerGroupRepository::class)
                         ->findOneByField('code', 'guest');
 
                 $query->leftJoin('product_price_indices', function ($join) use ($customerGroup) {
@@ -203,7 +202,7 @@ class ProductGraphQLProvider implements ProviderInterface
             }
 
             $attributeFilters[$attrCode] = [
-                'term' => $spec['match'] ?? $spec,
+                'term'      => $spec['match'] ?? $spec,
                 'matchType' => strtoupper($spec['match_type'] ?? ''),
             ];
         }
@@ -371,15 +370,15 @@ class ProductGraphQLProvider implements ProviderInterface
     private function getColumnForType($attributeType)
     {
         return match ($attributeType) {
-            'text', 'textarea' => 'text_value',
+            'text', 'textarea'  => 'text_value',
             'select','multiselect','dropdown' => 'integer_value',
             'decimal', 'price' => 'float_value',
-            'integer' => 'integer_value',
-            'boolean' => 'boolean_value',
+            'integer'  => 'integer_value',
+            'boolean'  => 'boolean_value',
             'datetime' => 'datetime_value',
-            'date' => 'date_value',
-            'json' => 'json_value',
-            default => 'text_value',
+            'date'     => 'date_value',
+            'json'     => 'json_value',
+            default    => 'text_value',
         };
     }
 
@@ -422,7 +421,7 @@ class ProductGraphQLProvider implements ProviderInterface
             'decimal', 'price' => (float) $value,
             'integer' => (int) $value,
             'boolean' => $value ? '1' : '0',
-            default => $value,
+            default   => $value,
         };
     }
 
@@ -435,7 +434,7 @@ class ProductGraphQLProvider implements ProviderInterface
             'decimal', 'price' => array_map('floatval', $values),
             'integer' => array_map('intval', $values),
             'boolean' => array_map(fn ($v) => (int) filter_var($v, FILTER_VALIDATE_BOOLEAN), $values),
-            default => $values,
+            default   => $values,
         };
     }
 }

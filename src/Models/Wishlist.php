@@ -47,7 +47,7 @@ use Webkul\BagistoApi\State\WishlistProvider;
             name: 'toggle',
             args: [
                 'productId' => [
-                    'type' => 'Int',
+                    'type'        => 'Int',
                     'description' => 'ID of the product to toggle in the wishlist.',
                 ],
             ],

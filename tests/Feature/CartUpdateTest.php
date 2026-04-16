@@ -27,9 +27,9 @@ class CartUpdateTest extends TestCase
         $product = Product::factory()->create();
 
         $cartItem = CartItem::factory()->create([
-            'cart_id' => $cart->id,
+            'cart_id'    => $cart->id,
             'product_id' => $product->id,
-            'quantity' => 1,
+            'quantity'   => 1,
         ]);
 
         return compact('customer', 'token', 'cart', 'product', 'cartItem');
@@ -64,7 +64,7 @@ class CartUpdateTest extends TestCase
         GQL;
 
         return $this->postJson($this->graphqlUrl, [
-            'query' => $mutation,
+            'query'     => $mutation,
             'variables' => compact('token', 'cartItemId', 'quantity'),
         ])->json();
     }
@@ -82,7 +82,7 @@ class CartUpdateTest extends TestCase
         $this->assertEquals(5, $response['data']['updateItemCartToken']['cart']['items'][0]['quantity']);
 
         $this->assertDatabaseHas('cart_items', [
-            'id' => $cartItem->id,
+            'id'       => $cartItem->id,
             'quantity' => 5,
         ]);
     }
@@ -96,9 +96,9 @@ class CartUpdateTest extends TestCase
 
         $product2 = Product::factory()->create();
         $cartItem2 = CartItem::factory()->create([
-            'cart_id' => $cart->id,
+            'cart_id'    => $cart->id,
             'product_id' => $product2->id,
-            'quantity' => 2,
+            'quantity'   => 2,
         ]);
 
         // Update first item

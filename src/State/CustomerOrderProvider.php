@@ -4,7 +4,6 @@ namespace Webkul\BagistoApi\State;
 
 use ApiPlatform\Laravel\Eloquent\Paginator;
 use ApiPlatform\Metadata\GetCollection;
-use ApiPlatform\Metadata\GraphQl\QueryCollection;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\Pagination\Pagination;
 use ApiPlatform\State\ProviderInterface;
@@ -39,7 +38,7 @@ class CustomerOrderProvider implements ProviderInterface
         }
 
         /** Single item — GET /api/shop/customer-orders/{id} */
-        if (! $operation instanceof GetCollection && ! ($operation instanceof QueryCollection)) {
+        if (! $operation instanceof GetCollection && ! ($operation instanceof \ApiPlatform\Metadata\GraphQl\QueryCollection)) {
             return $this->provideItem($customer, $uriVariables);
         }
 
@@ -64,7 +63,6 @@ class CustomerOrderProvider implements ProviderInterface
         $order = $orderQuery->find($id);
 
         if (! $order) {
-
             throw new ResourceNotFoundException(
                 __('bagistoapi::app.graphql.customer-order.not-found', ['id' => $id])
             );

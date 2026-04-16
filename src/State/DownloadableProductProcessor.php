@@ -9,7 +9,6 @@ use Illuminate\Support\Facades\Request;
 use Illuminate\Support\Str;
 use Webkul\BagistoApi\Exception\AuthenticationException;
 use Webkul\BagistoApi\Facades\TokenHeaderFacade;
-use Webkul\BagistoApi\Models\DownloadableProductDownloadLink;
 use Webkul\Customer\Models\Customer;
 use Webkul\Sales\Repositories\DownloadableLinkPurchasedRepository;
 
@@ -67,19 +66,19 @@ class DownloadableProductProcessor implements ProcessorInterface
         $downloadUrl = 'api/downloadable-product/download/'.$token;
         $expiresAt = now()->addHours(24);
 
-        $downloadLink = DownloadableProductDownloadLink::create([
-            'token' => $token,
-            'url' => url($downloadUrl),
+        $downloadLink = \Webkul\BagistoApi\Models\DownloadableProductDownloadLink::create([
+            'token'                          => $token,
+            'url'                            => url($downloadUrl),
             'downloadable_link_purchased_id' => $downloadableLinkPurchased->id,
-            'expires_at' => $expiresAt,
+            'expires_at'                     => $expiresAt,
         ]);
 
         $this->updateDownloadUsage($downloadableLinkPurchased);
 
         return [
-            'id' => (string) $downloadLink->id,
-            'token' => $token,
-            'url' => url($downloadUrl),
+            'id'        => (string) $downloadLink->id,
+            'token'     => $token,
+            'url'       => url($downloadUrl),
             'expiresAt' => $expiresAt->format('Y-m-d H:i:s'),
         ];
     }
@@ -178,7 +177,7 @@ class DownloadableProductProcessor implements ProcessorInterface
 
         $this->downloadableLinkPurchasedRepository->update([
             'download_used' => $downloadableLinkPurchased->download_used + 1,
-            'status' => $remainingDownloads <= 0 ? 'expired' : $downloadableLinkPurchased->status,
+            'status'        => $remainingDownloads <= 0 ? 'expired' : $downloadableLinkPurchased->status,
         ], $downloadableLinkPurchased->id);
     }
 

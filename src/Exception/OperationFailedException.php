@@ -2,8 +2,6 @@
 
 namespace Webkul\BagistoApi\Exception;
 
-use GraphQL\Error\ClientAware;
-
 /**
  * OperationFailedException
  *
@@ -20,7 +18,7 @@ use GraphQL\Error\ClientAware;
  *
  * Status Code: 500 Internal Server Error (but ClientAware for GraphQL)
  */
-class OperationFailedException extends \Exception implements ClientAware
+class OperationFailedException extends \Exception implements \GraphQL\Error\ClientAware
 {
     public function isClientSafe(): bool
     {

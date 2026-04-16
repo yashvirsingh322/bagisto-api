@@ -4,13 +4,8 @@ namespace Webkul\BagistoApi\Models;
 
 use ApiPlatform\Metadata\ApiProperty;
 use ApiPlatform\Metadata\ApiResource;
-use ApiPlatform\Metadata\Delete;
-use ApiPlatform\Metadata\Get;
-use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\GraphQl\Mutation;
 use ApiPlatform\Metadata\GraphQl\Query;
-use ApiPlatform\Metadata\Post;
-use ApiPlatform\Metadata\Put;
 use ApiPlatform\OpenApi\Model;
 use Illuminate\Support\Facades\Storage;
 use Symfony\Component\Serializer\Annotation\Groups;
@@ -21,23 +16,23 @@ use Webkul\BagistoApi\State\CustomerProcessor;
     routePrefix: '/api/shop',
     shortName: 'Customer',
     operations: [
-        new GetCollection(
+        new \ApiPlatform\Metadata\GetCollection(
             normalizationContext: [
                 'skip_null_values' => false,
             ],
         ),
-        new Get(
+        new \ApiPlatform\Metadata\Get(
             normalizationContext: [
                 'skip_null_values' => false,
             ],
         ),
-        new Post(
+        new \ApiPlatform\Metadata\Post(
             input: self::class,
             output: self::class,
             processor: CustomerProcessor::class,
             denormalizationContext: [
                 'allow_extra_attributes' => true,
-                'groups' => ['mutation'],
+                'groups'                 => ['mutation'],
             ],
             normalizationContext: [
                 'skip_null_values' => false,
@@ -50,19 +45,19 @@ use Webkul\BagistoApi\State\CustomerProcessor;
                     content: new \ArrayObject([
                         'application/json' => [
                             'schema' => [
-                                'type' => 'object',
-                                'required' => ['firstName', 'lastName', 'email', 'password', 'confirmPassword'],
+                                'type'       => 'object',
+                                'required'   => ['firstName', 'lastName', 'email', 'password', 'confirmPassword'],
                                 'properties' => [
-                                    'firstName' => ['type' => 'string', 'example' => 'John'],
-                                    'lastName' => ['type' => 'string', 'example' => 'Doe'],
-                                    'email' => ['type' => 'string', 'format' => 'email', 'example' => 'john@example.com'],
-                                    'password' => ['type' => 'string', 'format' => 'password', 'example' => 'Password123!'],
-                                    'confirmPassword' => ['type' => 'string', 'format' => 'password', 'example' => 'Password123!'],
-                                    'phone' => ['type' => 'string', 'example' => '1234567890'],
-                                    'gender' => ['type' => 'string', 'enum' => ['Male', 'Female', 'Other']],
-                                    'dateOfBirth' => ['type' => 'string', 'format' => 'date', 'example' => '1990-01-15'],
+                                    'firstName'              => ['type' => 'string', 'example' => 'John'],
+                                    'lastName'               => ['type' => 'string', 'example' => 'Doe'],
+                                    'email'                  => ['type' => 'string', 'format' => 'email', 'example' => 'john@example.com'],
+                                    'password'               => ['type' => 'string', 'format' => 'password', 'example' => 'Password123!'],
+                                    'confirmPassword'        => ['type' => 'string', 'format' => 'password', 'example' => 'Password123!'],
+                                    'phone'                  => ['type' => 'string', 'example' => '1234567890'],
+                                    'gender'                 => ['type' => 'string', 'enum' => ['Male', 'Female', 'Other']],
+                                    'dateOfBirth'            => ['type' => 'string', 'format' => 'date', 'example' => '1990-01-15'],
                                     'subscribedToNewsLetter' => ['type' => 'boolean', 'example' => true],
-                                    'deviceToken' => ['type' => 'string', 'example' => 'your-fcm-device-token'],
+                                    'deviceToken'            => ['type' => 'string', 'example' => 'your-fcm-device-token'],
                                 ],
                             ],
                         ],
@@ -70,22 +65,22 @@ use Webkul\BagistoApi\State\CustomerProcessor;
                 ),
             ),
         ),
-        new Put(
+        new \ApiPlatform\Metadata\Put(
             input: self::class,
             output: self::class,
             processor: CustomerProcessor::class,
             denormalizationContext: [
                 'allow_extra_attributes' => true,
-                'groups' => ['mutation'],
+                'groups'                 => ['mutation'],
             ],
         ),
-        new Delete(
+        new \ApiPlatform\Metadata\Delete(
             input: self::class,
             output: self::class,
             processor: CustomerProcessor::class,
             denormalizationContext: [
                 'allow_extra_attributes' => true,
-                'groups' => ['mutation'],
+                'groups'                 => ['mutation'],
             ],
         ),
     ],
@@ -96,7 +91,7 @@ use Webkul\BagistoApi\State\CustomerProcessor;
             processor: CustomerProcessor::class,
             denormalizationContext: [
                 'allow_extra_attributes' => true,
-                'groups' => ['mutation'],
+                'groups'                 => ['mutation'],
             ],
         ),
         new Mutation(
@@ -104,7 +99,7 @@ use Webkul\BagistoApi\State\CustomerProcessor;
             processor: CustomerProcessor::class,
             denormalizationContext: [
                 'allow_extra_attributes' => true,
-                'groups' => ['mutation'],
+                'groups'                 => ['mutation'],
             ],
         ),
         new Mutation(
@@ -112,7 +107,7 @@ use Webkul\BagistoApi\State\CustomerProcessor;
             processor: CustomerProcessor::class,
             denormalizationContext: [
                 'allow_extra_attributes' => true,
-                'groups' => ['mutation'],
+                'groups'                 => ['mutation'],
             ],
         ),
     ]

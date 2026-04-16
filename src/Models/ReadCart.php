@@ -5,8 +5,6 @@ namespace Webkul\BagistoApi\Models;
 use ApiPlatform\Metadata\ApiProperty;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\GraphQl\Mutation;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Webkul\BagistoApi\Dto\CartData;
 use Webkul\BagistoApi\Dto\CartInput;
@@ -36,10 +34,10 @@ use Webkul\Checkout\Models\Cart;
             processor: CartTokenProcessor::class,
             denormalizationContext: [
                 'allow_extra_attributes' => true,
-                'groups' => ['mutation'],
+                'groups'                 => ['mutation'],
             ],
             normalizationContext: [
-                'groups' => ['mutation'],
+                'groups'                 => ['mutation'],
             ],
             description: 'Get cart details by cartId or token - pass cartId or token in input',
         ),
@@ -78,7 +76,7 @@ class ReadCart extends Cart
     /**
      * Cart items - array of CartItemData objects
      *
-     * @var CartItemData[]|null
+     * @var \Webkul\BagistoApi\Dto\CartItemData[]|null
      */
     #[ApiProperty(readable: true, writable: false)]
     #[Groups(['mutation'])]
@@ -145,7 +143,7 @@ class ReadCart extends Cart
     public ?string $formattedDiscountAmount = null;
 
     #[ApiProperty(readableLink: true, writable: false, readable: true)]
-    public function customer(): BelongsTo
+    public function customer(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(Customer::class);
     }
@@ -154,7 +152,7 @@ class ReadCart extends Cart
      * Get the channel record associated with the address.
      */
     #[ApiProperty(readableLink: true, writable: false, readable: true)]
-    public function channel(): BelongsTo
+    public function channel(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(Channel::class);
     }
@@ -162,7 +160,7 @@ class ReadCart extends Cart
     /**
      * Get shipping rates relationship
      */
-    public function shipping_rates(): HasMany
+    public function shipping_rates(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(ShippingRates::class, 'cart_id');
     }
