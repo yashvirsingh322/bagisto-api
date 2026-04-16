@@ -9,7 +9,7 @@ function readEnv(name: string, required = false): string | undefined {
 }
 
 export const env = {
-  baseUrl: readEnv('BAGISTO_URL', true)!,
+  baseUrl: readEnv('BAGISTO_URL') ?? 'http://127.0.0.1:8000',
   graphqlEndpoint: '/api/graphql',
   storefrontAccessKey: readEnv('STOREFRONT_ACCESS_KEY', true)!,
   customerEmail: readEnv('BAGISTO_CUSTOMER_EMAIL'),
