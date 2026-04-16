@@ -69,8 +69,8 @@ jobs:
           sed -i "s|DB_PASSWORD=.*|DB_PASSWORD=root|" .env
 
           php artisan key:generate
-          php artisan bagisto:install --skip-env-check --skip-admin-creation --sample-data
-          php artisan migrate --force
+          php artisan bagisto:install --skip-env-check --skip-admin-creation 
+          php artisan db:seed --force
 
       # -------------------------------
       # Copy Bagisto API into packages
