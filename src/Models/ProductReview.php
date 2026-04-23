@@ -20,10 +20,19 @@ use Webkul\BagistoApi\State\ProductReviewUpdateProvider;
     uriTemplate: '/reviews',
     operations: [
         new \ApiPlatform\Metadata\GetCollection(
-            uriTemplate: '/reviews'
+            uriTemplate: '/reviews',
+            openapi: new \ApiPlatform\OpenApi\Model\Operation(
+                tags: ['Product'],
+                summary: 'List product reviews',
+                description: 'Returns all product reviews. Mirrors the GraphQL `productReviews` query.',
+            ),
         ),
         new \ApiPlatform\Metadata\Get(
-            uriTemplate: '/reviews/{id}'
+            uriTemplate: '/reviews/{id}',
+            openapi: new \ApiPlatform\OpenApi\Model\Operation(
+                tags: ['Product'],
+                summary: 'Get a single product review by ID',
+            ),
         ),
         new \ApiPlatform\Metadata\Post(
             uriTemplate: '/reviews',
@@ -31,7 +40,32 @@ use Webkul\BagistoApi\State\ProductReviewUpdateProvider;
             denormalizationContext: [
                 'groups'                 => ['mutation'],
                 'allow_extra_attributes' => true,
-            ]
+            ],
+            openapi: new \ApiPlatform\OpenApi\Model\Operation(
+                tags: ['Customer Review'],
+                summary: 'Create a product review',
+                description: 'Creates a review for a product on behalf of the authenticated customer. Review starts in `pending` status until approved by admin.',
+                requestBody: new \ApiPlatform\OpenApi\Model\RequestBody(
+                    required: true,
+                    content: new \ArrayObject([
+                        'application/json' => [
+                            'schema' => [
+                                'type'     => 'object',
+                                'required' => ['product_id', 'title', 'comment', 'rating', 'name'],
+                                'properties' => [
+                                    'product_id'  => ['type' => 'integer', 'example' => 2, 'description' => 'ID of the product being reviewed'],
+                                    'title'       => ['type' => 'string', 'example' => 'Great product', 'description' => 'Short review title'],
+                                    'comment'     => ['type' => 'string', 'example' => 'Works exactly as described, highly recommended.', 'description' => 'Full review body'],
+                                    'rating'      => ['type' => 'integer', 'minimum' => 1, 'maximum' => 5, 'example' => 5, 'description' => 'Star rating (1-5)'],
+                                    'name'        => ['type' => 'string', 'example' => 'John Doe', 'description' => 'Reviewer display name'],
+                                    'email'       => ['type' => 'string', 'format' => 'email', 'example' => 'john@example.com', 'description' => 'Optional: reviewer email (for guests)'],
+                                    'attachments' => ['type' => 'string', 'description' => 'Optional: JSON-encoded attachment metadata'],
+                                ],
+                            ],
+                        ],
+                    ]),
+                ),
+            ),
         ),
         new \ApiPlatform\Metadata\Patch(
             uriTemplate: '/reviews/{id}',
@@ -39,10 +73,36 @@ use Webkul\BagistoApi\State\ProductReviewUpdateProvider;
             denormalizationContext: [
                 'groups'                 => ['mutation'],
                 'allow_extra_attributes' => true,
-            ]
+            ],
+            openapi: new \ApiPlatform\OpenApi\Model\Operation(
+                tags: ['Customer Review'],
+                summary: 'Update an existing product review',
+                description: 'Updates a customer-owned product review. Only the author (matched via Bearer token) can modify their review.',
+                requestBody: new \ApiPlatform\OpenApi\Model\RequestBody(
+                    required: true,
+                    content: new \ArrayObject([
+                        'application/merge-patch+json' => [
+                            'schema' => [
+                                'type'       => 'object',
+                                'properties' => [
+                                    'title'   => ['type' => 'string', 'example' => 'Updated title'],
+                                    'comment' => ['type' => 'string', 'example' => 'Updated review body.'],
+                                    'rating'  => ['type' => 'integer', 'minimum' => 1, 'maximum' => 5, 'example' => 4],
+                                    'name'    => ['type' => 'string', 'example' => 'John Doe'],
+                                ],
+                            ],
+                        ],
+                    ]),
+                ),
+            ),
         ),
         new \ApiPlatform\Metadata\Delete(
-            uriTemplate: '/reviews/{id}'
+            uriTemplate: '/reviews/{id}',
+            openapi: new \ApiPlatform\OpenApi\Model\Operation(
+                tags: ['Customer Review'],
+                summary: 'Delete a product review',
+                description: 'Deletes a customer-owned product review.',
+            ),
         ),
     ],
     graphQlOperations: [
