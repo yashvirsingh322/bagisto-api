@@ -1,0 +1,180 @@
+name: Bagisto API – Playwright Tests (Manual Install)
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  bagisto-api-tests:
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1/3, 2/3, 3/3]
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: bagisto
+        ports:
+          - 3306
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    env:
+      BAGISTO_URL: ${{ secrets.BAGISTO_URL }}
+
+    steps:
+      # -------------------------------
+      # Checkout tests repo
+      # -------------------------------
+      - name: Checkout tests
+        uses: actions/checkout@v4
+
+      # -------------------------------
+      # Checkout Bagisto API module
+      # -------------------------------
+      - name: Checkout Bagisto API
+        uses: actions/checkout@v4
+        with:
+          repository: pawan-webkul/bagisto-api
+          path: bagisto-api
+
+      # -------------------------------
+      # Setup PHP
+      # -------------------------------
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: curl, fileinfo, gd, intl, mbstring, openssl, pdo, pdo_mysql, tokenizer, zip
+          tools: composer:v2
+
+      # -------------------------------
+      # Install Bagisto
+      # -------------------------------
+      - name: Install Bagisto
+        run: |
+          composer create-project bagisto/bagisto:2.3.8 bagisto
+          cd bagisto
+
+          cp .env.example .env
+
+          # Only DB config (no BASE URL usage)
+          sed -i "s|DB_HOST=.*|DB_HOST=127.0.0.1|" .env
+          sed -i "s|DB_PORT=.*|DB_PORT=${{ job.services.mysql.ports['3306'] }}|" .env
+          sed -i "s|DB_DATABASE=.*|DB_DATABASE=bagisto|" .env
+          sed -i "s|DB_USERNAME=.*|DB_USERNAME=root|" .env
+          sed -i "s|DB_PASSWORD=.*|DB_PASSWORD=root|" .env
+
+          php artisan bagisto:install --skip-env-check --skip-admin-creation --skip-github-star
+          php artisan db:seed --class="Webkul\Installer\Database\Seeders\ProductTableSeeder" 
+         
+      # -------------------------------
+      # Copy Bagisto API into packages
+      # -------------------------------
+      - name: Copy Bagisto API package
+        run: |
+          mkdir -p bagisto/packages/Webkul
+          mv bagisto-api bagisto/packages/Webkul/BagistoApi
+
+      # -------------------------------
+      # Register Service Provider
+      # -------------------------------
+      - name: Register Service Provider
+        working-directory: bagisto
+        run: |
+          sed -i "/return \[/a \    Webkul\\\\BagistoApi\\\\Providers\\\\BagistoApiServiceProvider::class," bootstrap/providers.php
+
+      # -------------------------------
+      # Register PSR-4 Autoload
+      # -------------------------------
+      - name: Register Autoload
+        working-directory: bagisto
+        run: |
+          sed -i '/"psr-4": {/a \    "Webkul\\\\BagistoApi\\\\": "packages/Webkul/BagistoApi/src",' composer.json
+
+      # -------------------------------
+      # Install API dependencies
+      # -------------------------------
+      - name: Install API dependencies
+        working-directory: bagisto
+        run: |
+          composer require api-platform/laravel:v4.1.25
+          composer require api-platform/graphql:v4.2.3
+
+      # -------------------------------
+      # Run API installation
+      # -------------------------------
+      - name: Install Bagisto API
+        working-directory: bagisto
+        run: |
+          composer dump-autoload
+          php artisan optimize:clear
+          php artisan bagisto-api-platform:install
+
+      # -------------------------------
+      # Fetch Storefront API Key
+      # -------------------------------
+      - name: Fetch Storefront API Key
+        run: |
+          KEY=$(grep STOREFRONT_PLAYGROUND_KEY bagisto/.env | cut -d '=' -f2)
+          echo "STOREFRONT_ACCESS_KEY=$KEY" >> $GITHUB_ENV
+
+      # -------------------------------
+      # Start server
+      # -------------------------------
+      - name: Start Bagisto server
+        run: |
+          cd bagisto
+          php artisan serve --host=0.0.0.0 --port=8000 &
+
+      # -------------------------------
+      # Wait for server
+      # -------------------------------
+      - name: Wait for Bagisto
+        run: npx wait-on http://127.0.0.1:8000
+
+      # -------------------------------
+      # Setup Node.js
+      # -------------------------------
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Verify path
+        run: |
+             echo "Checking path..."
+             ls -la bagisto/packages/Webkul/BagistoApi
+             ls -la bagisto/packages/Webkul/BagistoApi/tests || echo "No tests folder"
+             ls -la bagisto/packages/Webkul/BagistoApi/tests/e2e-pw || echo "No e2e-pw folder"
+
+      # -------------------------------
+      # Install Playwright & Run Test
+      # -------------------------------
+      - name: Install Playwright
+        env:
+          BASE_URL: ${{ env.BASE_URL }}
+          STOREFRONT_ACCESS_KEY: ${{ env.STOREFRONT_ACCESS_KEY }}
+        run: |
+             cd bagisto/packages/Webkul/BagistoApi/tests/e2e-pw
+             npm install
+             npx playwright install --with-deps chromium
+             npx playwright test tests --shard=${{ matrix.shard }} --reporter=list,html
+
+      # -------------------------------
+      # Upload report
+      # -------------------------------
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report
