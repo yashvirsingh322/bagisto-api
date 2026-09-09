@@ -65,7 +65,28 @@ use Webkul\BagistoApi\Admin\State\AdminAppearanceThemeItemProvider;
                     new Model\Parameter('code', 'path', 'Theme code', true, schema: ['type' => 'string', 'example' => 'default']),
                 ],
                 responses: [
-                    '200' => new Model\Response(description: 'The theme.'),
+                    '200' => new Model\Response(
+                        description: 'The theme.',
+                        content: new \ArrayObject([
+                            'application/json' => [
+                                'example' => [
+                                    'code' => 'default',
+                                    'name' => 'Default',
+                                    'author' => 'Bagisto',
+                                    'version' => '2.4.10',
+                                    'url' => null,
+                                    'demoUrl' => null,
+                                    'screenshot' => 'http://localhost:8000/themes/admin/default/images/default.png',
+                                    'rating' => null,
+                                    'tags' => [],
+                                    'description' => 'The theme Bagisto ships with.',
+                                    'isInstalled' => true,
+                                    'status' => 'active',
+                                    'activeOn' => [['id' => 1, 'name' => 'Default']],
+                                ],
+                            ],
+                        ]),
+                    ),
                     '404' => new Model\Response(description: 'Theme not found.'),
                 ],
             ),

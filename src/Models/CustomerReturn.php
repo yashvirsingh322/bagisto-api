@@ -126,11 +126,18 @@ use Webkul\BagistoApi\State\CustomerReturnProvider;
         ),
         new Post(
             uriTemplate: '/returns',
+            inputFormats: [
+                'json' => ['application/json'],
+                'multipart' => ['multipart/form-data'],
+            ],
             processor: CustomerReturnProcessor::class,
+            deserialize: false,
+            read: false,
+            validate: false,
             openapi: new Operation(
                 tags: ['Customer Return'],
                 summary: 'Raise a new return (RMA) request',
-                description: 'Creates a return for one item of one of the customer\'s orders. The item must be return-eligible (see /returnable-items/{orderId}); `rmaQty` is capped server-side by the returnable quantity. Send `agreement=true`. Optional image files can be attached via multipart `images[]` (REST only). Returns the created RMA.',
+                description: 'Creates a return for one item of one of the customer\'s orders. The item must be return-eligible (see /returnable-items?order_id=), and `order_item_id` is the **order item** id from that endpoint, not the product id; `rmaQty` is capped server-side by the returnable quantity. Send `agreement=true`. `package_condition` must be `open` or `packed`. Answer the return form\'s custom fields with `custom_attributes`, keyed by the field id from /return-custom-fields — required fields are enforced. Send as `multipart/form-data` to attach evidence images as `images[]` (REST only; the mime types allowed by the RMA configuration). Returns the created RMA.',
                 requestBody: new RequestBody(
                     required: true,
                     content: new \ArrayObject([
@@ -145,8 +152,30 @@ use Webkul\BagistoApi\State\CustomerReturnProvider;
                                     'resolution_type' => ['type' => 'string', 'enum' => ['return', 'cancel_items'], 'example' => 'return'],
                                     'rma_reason_id' => ['type' => 'integer', 'example' => 2],
                                     'information' => ['type' => 'string', 'example' => 'Item arrived damaged.'],
-                                    'package_condition' => ['type' => 'string', 'example' => 'opened'],
+                                    'package_condition' => ['type' => 'string', 'enum' => ['open', 'packed'], 'example' => 'open'],
+                                    'custom_attributes' => ['type' => 'object', 'example' => ['1' => 'INV-9921', '2' => ['morning', 'evening']]],
                                     'agreement' => ['type' => 'boolean', 'example' => true],
+                                ],
+                            ],
+                        ],
+                        'multipart/form-data' => [
+                            'schema' => [
+                                'type' => 'object',
+                                'required' => ['order_id', 'order_item_id', 'rma_qty', 'resolution_type', 'rma_reason_id', 'agreement'],
+                                'properties' => [
+                                    'order_id' => ['type' => 'integer', 'example' => 12],
+                                    'order_item_id' => ['type' => 'integer', 'example' => 45],
+                                    'rma_qty' => ['type' => 'integer', 'example' => 1],
+                                    'resolution_type' => ['type' => 'string', 'enum' => ['return', 'cancel_items'], 'example' => 'return'],
+                                    'rma_reason_id' => ['type' => 'integer', 'example' => 2],
+                                    'information' => ['type' => 'string', 'example' => 'Item arrived damaged.'],
+                                    'package_condition' => ['type' => 'string', 'enum' => ['open', 'packed'], 'example' => 'open'],
+                                    'custom_attributes' => ['type' => 'object', 'example' => ['1' => 'INV-9921']],
+                                    'agreement' => ['type' => 'boolean', 'example' => true],
+                                    'images' => [
+                                        'type' => 'array',
+                                        'items' => ['type' => 'string', 'format' => 'binary'],
+                                    ],
                                 ],
                             ],
                         ],
@@ -380,6 +409,10 @@ class CustomerReturn implements SnakeCaseFieldsResource
     /** @var array<int,array<string,mixed>>|null */
     #[ApiProperty(openapiContext: ['type' => 'array'])]
     public ?array $images = null;
+
+    /** @var array<int,array<string,mixed>>|null */
+    #[ApiProperty(openapiContext: ['type' => 'array'])]
+    public ?array $custom_attributes = null;
 
     public ?int $messages_count = null;
 

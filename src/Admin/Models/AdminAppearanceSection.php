@@ -82,7 +82,24 @@ use Webkul\Theme\Models\Section;
                     new Model\Parameter('id', 'path', 'Section ID', true, schema: ['type' => 'integer']),
                 ],
                 responses: [
-                    '200' => new Model\Response(description: 'The section.'),
+                    '200' => new Model\Response(
+                        description: 'The section.',
+                        content: new \ArrayObject([
+                            'application/json' => [
+                                'example' => [
+                                    'id' => 3, 'name' => 'Categories Collections', 'type' => 'category_carousel',
+                                    'themeCode' => 'default', 'channelId' => 1, 'sortOrder' => 3,
+                                    'status' => 1, 'draftStatus' => null, 'draftSortOrder' => null,
+                                    'hasDraft' => false, 'isPinned' => false,
+                                    'createdAt' => '2024-04-16T21:44:15+05:30', 'updatedAt' => '2026-08-21T18:05:39+05:30',
+                                    'translations' => [
+                                        ['locale' => 'en', 'options' => ['filters' => ['sort' => 'asc', 'limit' => '10']], 'draftOptions' => null],
+                                    ],
+                                    'message' => null,
+                                ],
+                            ],
+                        ]),
+                    ),
                     '404' => new Model\Response(description: 'Section not found.'),
                 ],
             ),
@@ -116,7 +133,24 @@ use Webkul\Theme\Models\Section;
                     ]),
                 ),
                 responses: [
-                    '201' => new Model\Response(description: 'Section created.'),
+                    '201' => new Model\Response(
+                        description: 'Section created.',
+                        content: new \ArrayObject([
+                            'application/json' => [
+                                'example' => [
+                                    'id' => 12, 'name' => 'Summer Banner', 'type' => 'image_carousel',
+                                    'themeCode' => 'default', 'channelId' => 1, 'sortOrder' => 4,
+                                    'status' => 0, 'draftStatus' => true, 'draftSortOrder' => null,
+                                    'hasDraft' => true, 'isPinned' => false,
+                                    'createdAt' => '2026-08-21T18:05:39+05:30', 'updatedAt' => '2026-08-21T18:05:39+05:30',
+                                    'translations' => [
+                                        ['locale' => 'en', 'options' => ['images' => []], 'draftOptions' => null],
+                                    ],
+                                    'message' => 'Section created successfully.',
+                                ],
+                            ],
+                        ]),
+                    ),
                     '422' => new Model\Response(description: 'Invalid type, or the channel already has a footer links section.'),
                 ],
             ),
@@ -157,7 +191,24 @@ use Webkul\Theme\Models\Section;
                     ]),
                 ),
                 responses: [
-                    '200' => new Model\Response(description: 'Section updated.'),
+                    '200' => new Model\Response(
+                        description: 'Section updated.',
+                        content: new \ArrayObject([
+                            'application/json' => [
+                                'example' => [
+                                    'id' => 12, 'name' => 'Summer Banner', 'type' => 'image_carousel',
+                                    'themeCode' => 'default', 'channelId' => 1, 'sortOrder' => 2,
+                                    'status' => 1, 'draftStatus' => true, 'draftSortOrder' => null,
+                                    'hasDraft' => false, 'isPinned' => false,
+                                    'createdAt' => '2026-08-21T18:05:39+05:30', 'updatedAt' => '2026-08-21T18:05:39+05:30',
+                                    'translations' => [
+                                        ['locale' => 'en', 'options' => ['images' => []], 'draftOptions' => null],
+                                    ],
+                                    'message' => 'Section updated successfully.',
+                                ],
+                            ],
+                        ]),
+                    ),
                     '404' => new Model\Response(description: 'Section not found.'),
                     '422' => new Model\Response(description: 'Invalid payload, or a second footer links section.'),
                 ],

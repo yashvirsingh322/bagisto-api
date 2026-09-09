@@ -716,6 +716,11 @@
         "tag": "Customer Return",
         "resource": "Webkul\\BagistoApi\\Models\\CustomerReturn"
     },
+    "returnCustomFields": {
+        "kind": "query",
+        "tag": "Customer Return",
+        "resource": "Webkul\\BagistoApi\\Models\\ReturnCustomField"
+    },
     "returnReasons": {
         "kind": "query",
         "tag": "Customer Return",

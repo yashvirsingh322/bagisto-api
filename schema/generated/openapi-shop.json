@@ -9550,6 +9550,116 @@
                 }
             }
         },
+        "/return-custom-fields": {
+            "get": {
+                "operationId": "api_apishopreturn-custom-fields_get_collection",
+                "tags": [
+                    "Customer Return"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Active custom fields, in the order the storefront renders them.",
+                        "content": {
+                            "application/json": {
+                                "example": [
+                                    {
+                                        "id": 1,
+                                        "code": "invoice_number",
+                                        "label": "Invoice number",
+                                        "type": "text",
+                                        "isRequired": true,
+                                        "position": 1,
+                                        "inputValidation": "numeric",
+                                        "options": []
+                                    },
+                                    {
+                                        "id": 2,
+                                        "code": "preferred_pickup_slot",
+                                        "label": "Preferred pickup slot",
+                                        "type": "select",
+                                        "isRequired": false,
+                                        "position": 2,
+                                        "inputValidation": null,
+                                        "options": [
+                                            {
+                                                "id": 3,
+                                                "name": "Morning",
+                                                "value": "morning"
+                                            },
+                                            {
+                                                "id": 4,
+                                                "name": "Evening",
+                                                "value": "evening"
+                                            }
+                                        ]
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                },
+                "summary": "List the active custom fields of the return form",
+                "description": "The additional fields the storefront return form renders. Answer them with `customAttributes` when creating a return, keyed by the field `id`. Fields with `isRequired: true` must be answered; `select`/`radio` answers must be one of the option `value`s, `multiselect`/`checkbox` answers a list of them.",
+                "parameters": [
+                    {
+                        "name": "X-STOREFRONT-KEY",
+                        "in": "header",
+                        "description": "Storefront API Key for authentication. Required for all shop/storefront API requests.",
+                        "required": true,
+                        "deprecated": false,
+                        "allowEmptyValue": false,
+                        "schema": {
+                            "type": "string",
+                            "example": ""
+                        },
+                        "style": "simple",
+                        "explode": false
+                    },
+                    {
+                        "name": "X-Locale",
+                        "in": "header",
+                        "description": "Locale code for localized data (e.g. \"en\", \"fr\", \"ar\"). Defaults to channel's default locale.",
+                        "required": false,
+                        "deprecated": false,
+                        "allowEmptyValue": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "en"
+                        },
+                        "style": "simple",
+                        "explode": false
+                    },
+                    {
+                        "name": "X-Channel",
+                        "in": "header",
+                        "description": "Channel code (e.g. \"default\"). Defaults to the current channel.",
+                        "required": false,
+                        "deprecated": false,
+                        "allowEmptyValue": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "default"
+                        },
+                        "style": "simple",
+                        "explode": false
+                    },
+                    {
+                        "name": "X-Currency",
+                        "in": "header",
+                        "description": "Currency code (e.g. \"USD\", \"EUR\", \"INR\"). Defaults to channel's base currency.",
+                        "required": false,
+                        "deprecated": false,
+                        "allowEmptyValue": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "USD"
+                        },
+                        "style": "simple",
+                        "explode": false
+                    }
+                ]
+            }
+        },
         "/return-messages": {
             "get": {
                 "operationId": "api_apishopreturn-messages_get_collection",
@@ -10180,7 +10290,7 @@
                     }
                 },
                 "summary": "Raise a new return (RMA) request",
-                "description": "Creates a return for one item of one of the customer's orders. The item must be return-eligible (see /returnable-items/{orderId}); `rmaQty` is capped server-side by the returnable quantity. Send `agreement=true`. Optional image files can be attached via multipart `images[]` (REST only). Returns the created RMA.",
+                "description": "Creates a return for one item of one of the customer's orders. The item must be return-eligible (see /returnable-items?order_id=), and `order_item_id` is the **order item** id from that endpoint, not the product id; `rmaQty` is capped server-side by the returnable quantity. Send `agreement=true`. `package_condition` must be `open` or `packed`. Answer the return form's custom fields with `custom_attributes`, keyed by the field id from /return-custom-fields — required fields are enforced. Send as `multipart/form-data` to attach evidence images as `images[]` (REST only; the mime types allowed by the RMA configuration). Returns the created RMA.",
                 "parameters": [
                     {
                         "name": "X-STOREFRONT-KEY",
@@ -10284,11 +10394,93 @@
                                     },
                                     "package_condition": {
                                         "type": "string",
-                                        "example": "opened"
+                                        "enum": [
+                                            "open",
+                                            "packed"
+                                        ],
+                                        "example": "open"
+                                    },
+                                    "custom_attributes": {
+                                        "type": "object",
+                                        "example": {
+                                            "1": "INV-9921",
+                                            "2": [
+                                                "morning",
+                                                "evening"
+                                            ]
+                                        }
                                     },
                                     "agreement": {
                                         "type": "boolean",
                                         "example": true
+                                    }
+                                }
+                            }
+                        },
+                        "multipart/form-data": {
+                            "schema": {
+                                "type": "object",
+                                "required": [
+                                    "order_id",
+                                    "order_item_id",
+                                    "rma_qty",
+                                    "resolution_type",
+                                    "rma_reason_id",
+                                    "agreement"
+                                ],
+                                "properties": {
+                                    "order_id": {
+                                        "type": "integer",
+                                        "example": 12
+                                    },
+                                    "order_item_id": {
+                                        "type": "integer",
+                                        "example": 45
+                                    },
+                                    "rma_qty": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "resolution_type": {
+                                        "type": "string",
+                                        "enum": [
+                                            "return",
+                                            "cancel_items"
+                                        ],
+                                        "example": "return"
+                                    },
+                                    "rma_reason_id": {
+                                        "type": "integer",
+                                        "example": 2
+                                    },
+                                    "information": {
+                                        "type": "string",
+                                        "example": "Item arrived damaged."
+                                    },
+                                    "package_condition": {
+                                        "type": "string",
+                                        "enum": [
+                                            "open",
+                                            "packed"
+                                        ],
+                                        "example": "open"
+                                    },
+                                    "custom_attributes": {
+                                        "type": "object",
+                                        "example": {
+                                            "1": "INV-9921"
+                                        }
+                                    },
+                                    "agreement": {
+                                        "type": "boolean",
+                                        "example": true
+                                    },
+                                    "images": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string",
+                                            "format": "binary"
+                                        }
                                     }
                                 }
                             }
@@ -22612,6 +22804,9 @@
                     "images": {
                         "type": "array"
                     },
+                    "customAttributes": {
+                        "type": "array"
+                    },
                     "messagesCount": {
                         "type": [
                             "integer",
@@ -22705,6 +22900,9 @@
                         "type": "object"
                     },
                     "images": {
+                        "type": "array"
+                    },
+                    "customAttributes": {
                         "type": "array"
                     },
                     "messagesCount": {

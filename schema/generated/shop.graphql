@@ -704,6 +704,7 @@ type Query {
     "Filter by product ID"
     product_id: Int
   ): ProductVideosCursorConnection
+  returnCustomFields: [ReturnCustomField]
   returnReasons(
     "return | cancel_items"
     resolutionType: String!
@@ -3416,6 +3417,7 @@ type CustomerReturn implements Node {
   isExpired: Boolean
   item: Iterable
   images: Iterable
+  customAttributes: Iterable
   messagesCount: Int
   createdAt: String
   updatedAt: String
@@ -3867,6 +3869,18 @@ type PaymentMethods implements Node {
   icon: String
   additionalData: Iterable
   isAllowed: Boolean
+}
+
+type ReturnCustomField implements Node {
+  id: ID!
+  _id: Int
+  code: String
+  label: String
+  type: String
+  isRequired: Boolean
+  position: Int
+  inputValidation: String
+  options: Iterable
 }
 
 type ReturnReason implements Node {
@@ -5708,8 +5722,11 @@ input createCustomerReturnInput {
   "Free-text detail about the return"
   information: String
 
-  "Condition of the package"
+  "Condition of the package: open | packed"
   packageCondition: String
+
+  "Custom field answers keyed by field id (see /return-custom-fields)"
+  customAttributes: Iterable
 
   "Variant product id for configurable products"
   variant: Int

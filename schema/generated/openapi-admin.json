@@ -128,13 +128,33 @@
                         "description": "The section.",
                         "content": {
                             "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/AdminAppearanceSection.AdminAppearanceSectionRestDto"
-                                }
-                            },
-                            "text/html": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/AdminAppearanceSection.AdminAppearanceSectionRestDto.html"
+                                "example": {
+                                    "id": 3,
+                                    "name": "Categories Collections",
+                                    "type": "category_carousel",
+                                    "themeCode": "default",
+                                    "channelId": 1,
+                                    "sortOrder": 3,
+                                    "status": 1,
+                                    "draftStatus": null,
+                                    "draftSortOrder": null,
+                                    "hasDraft": false,
+                                    "isPinned": false,
+                                    "createdAt": "2024-04-16T21:44:15+05:30",
+                                    "updatedAt": "2026-08-21T18:05:39+05:30",
+                                    "translations": [
+                                        {
+                                            "locale": "en",
+                                            "options": {
+                                                "filters": {
+                                                    "sort": "asc",
+                                                    "limit": "10"
+                                                }
+                                            },
+                                            "draftOptions": null
+                                        }
+                                    ],
+                                    "message": null
                                 }
                             }
                         }
@@ -170,13 +190,30 @@
                         "description": "Section updated.",
                         "content": {
                             "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/AdminAppearanceSection.AdminAppearanceSectionRestDto"
-                                }
-                            },
-                            "text/html": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/AdminAppearanceSection.AdminAppearanceSectionRestDto.html"
+                                "example": {
+                                    "id": 12,
+                                    "name": "Summer Banner",
+                                    "type": "image_carousel",
+                                    "themeCode": "default",
+                                    "channelId": 1,
+                                    "sortOrder": 2,
+                                    "status": 1,
+                                    "draftStatus": true,
+                                    "draftSortOrder": null,
+                                    "hasDraft": false,
+                                    "isPinned": false,
+                                    "createdAt": "2026-08-21T18:05:39+05:30",
+                                    "updatedAt": "2026-08-21T18:05:39+05:30",
+                                    "translations": [
+                                        {
+                                            "locale": "en",
+                                            "options": {
+                                                "images": []
+                                            },
+                                            "draftOptions": null
+                                        }
+                                    ],
+                                    "message": "Section updated successfully."
                                 }
                             }
                         },
@@ -817,13 +854,30 @@
                         "description": "Section created.",
                         "content": {
                             "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/AdminAppearanceSection.AdminAppearanceSectionRestDto"
-                                }
-                            },
-                            "text/html": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/AdminAppearanceSection.AdminAppearanceSectionRestDto.html"
+                                "example": {
+                                    "id": 12,
+                                    "name": "Summer Banner",
+                                    "type": "image_carousel",
+                                    "themeCode": "default",
+                                    "channelId": 1,
+                                    "sortOrder": 4,
+                                    "status": 0,
+                                    "draftStatus": true,
+                                    "draftSortOrder": null,
+                                    "hasDraft": true,
+                                    "isPinned": false,
+                                    "createdAt": "2026-08-21T18:05:39+05:30",
+                                    "updatedAt": "2026-08-21T18:05:39+05:30",
+                                    "translations": [
+                                        {
+                                            "locale": "en",
+                                            "options": {
+                                                "images": []
+                                            },
+                                            "draftOptions": null
+                                        }
+                                    ],
+                                    "message": "Section created successfully."
                                 }
                             }
                         },
@@ -1243,13 +1297,25 @@
                         "description": "The theme.",
                         "content": {
                             "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/AdminAppearanceTheme"
-                                }
-                            },
-                            "text/html": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/AdminAppearanceTheme.html"
+                                "example": {
+                                    "code": "default",
+                                    "name": "Default",
+                                    "author": "Bagisto",
+                                    "version": "2.4.10",
+                                    "url": null,
+                                    "demoUrl": null,
+                                    "screenshot": "http://localhost:8000/themes/admin/default/images/default.png",
+                                    "rating": null,
+                                    "tags": [],
+                                    "description": "The theme Bagisto ships with.",
+                                    "isInstalled": true,
+                                    "status": "active",
+                                    "activeOn": [
+                                        {
+                                            "id": 1,
+                                            "name": "Default"
+                                        }
+                                    ]
                                 }
                             }
                         }
@@ -29923,208 +29989,6 @@
     },
     "components": {
         "schemas": {
-            "AdminAppearanceSection.AdminAppearanceSectionRestDto": {
-                "type": "object",
-                "properties": {
-                    "id": {
-                        "type": [
-                            "integer",
-                            "null"
-                        ]
-                    },
-                    "name": {
-                        "type": [
-                            "string",
-                            "null"
-                        ]
-                    },
-                    "type": {
-                        "type": [
-                            "string",
-                            "null"
-                        ]
-                    },
-                    "themeCode": {
-                        "type": [
-                            "string",
-                            "null"
-                        ]
-                    },
-                    "channelId": {
-                        "type": [
-                            "integer",
-                            "null"
-                        ]
-                    },
-                    "sortOrder": {
-                        "type": [
-                            "integer",
-                            "null"
-                        ]
-                    },
-                    "status": {
-                        "type": [
-                            "integer",
-                            "null"
-                        ]
-                    },
-                    "draftStatus": {
-                        "type": [
-                            "boolean",
-                            "null"
-                        ]
-                    },
-                    "draftSortOrder": {
-                        "type": [
-                            "integer",
-                            "null"
-                        ]
-                    },
-                    "hasDraft": {
-                        "type": [
-                            "boolean",
-                            "null"
-                        ]
-                    },
-                    "isPinned": {
-                        "type": [
-                            "boolean",
-                            "null"
-                        ]
-                    },
-                    "createdAt": {
-                        "type": [
-                            "string",
-                            "null"
-                        ]
-                    },
-                    "updatedAt": {
-                        "type": [
-                            "string",
-                            "null"
-                        ]
-                    },
-                    "translations": {
-                        "type": "array",
-                        "items": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": [
-                                    "string",
-                                    "null"
-                                ]
-                            }
-                        }
-                    },
-                    "message": {
-                        "type": [
-                            "string",
-                            "null"
-                        ]
-                    }
-                }
-            },
-            "AdminAppearanceSection.AdminAppearanceSectionRestDto.html": {
-                "type": "object",
-                "properties": {
-                    "id": {
-                        "type": [
-                            "integer",
-                            "null"
-                        ]
-                    },
-                    "name": {
-                        "type": [
-                            "string",
-                            "null"
-                        ]
-                    },
-                    "type": {
-                        "type": [
-                            "string",
-                            "null"
-                        ]
-                    },
-                    "themeCode": {
-                        "type": [
-                            "string",
-                            "null"
-                        ]
-                    },
-                    "channelId": {
-                        "type": [
-                            "integer",
-                            "null"
-                        ]
-                    },
-                    "sortOrder": {
-                        "type": [
-                            "integer",
-                            "null"
-                        ]
-                    },
-                    "status": {
-                        "type": [
-                            "integer",
-                            "null"
-                        ]
-                    },
-                    "draftStatus": {
-                        "type": [
-                            "boolean",
-                            "null"
-                        ]
-                    },
-                    "draftSortOrder": {
-                        "type": [
-                            "integer",
-                            "null"
-                        ]
-                    },
-                    "hasDraft": {
-                        "type": [
-                            "boolean",
-                            "null"
-                        ]
-                    },
-                    "isPinned": {
-                        "type": [
-                            "boolean",
-                            "null"
-                        ]
-                    },
-                    "createdAt": {
-                        "type": [
-                            "string",
-                            "null"
-                        ]
-                    },
-                    "updatedAt": {
-                        "type": [
-                            "string",
-                            "null"
-                        ]
-                    },
-                    "translations": {
-                        "type": "array",
-                        "items": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": [
-                                    "string",
-                                    "null"
-                                ]
-                            }
-                        }
-                    },
-                    "message": {
-                        "type": [
-                            "string",
-                            "null"
-                        ]
-                    }
-                }
-            },
             "AdminAppearanceSectionDiscard": {
                 "type": "object",
                 "description": "Throws away every staged edit of a theme and channel, leaving the published content.",
@@ -30498,198 +30362,6 @@
                             "boolean",
                             "null"
                         ]
-                    },
-                    "message": {
-                        "type": [
-                            "string",
-                            "null"
-                        ]
-                    }
-                }
-            },
-            "AdminAppearanceTheme": {
-                "type": "object",
-                "properties": {
-                    "code": {
-                        "readOnly": true,
-                        "type": [
-                            "string",
-                            "null"
-                        ]
-                    },
-                    "name": {
-                        "type": [
-                            "string",
-                            "null"
-                        ]
-                    },
-                    "author": {
-                        "type": [
-                            "string",
-                            "null"
-                        ]
-                    },
-                    "version": {
-                        "type": [
-                            "string",
-                            "null"
-                        ]
-                    },
-                    "url": {
-                        "type": [
-                            "string",
-                            "null"
-                        ]
-                    },
-                    "demoUrl": {
-                        "type": [
-                            "string",
-                            "null"
-                        ]
-                    },
-                    "screenshot": {
-                        "type": [
-                            "string",
-                            "null"
-                        ]
-                    },
-                    "rating": {
-                        "type": [
-                            "string",
-                            "null"
-                        ]
-                    },
-                    "tags": {
-                        "type": "array",
-                        "items": {
-                            "type": "string"
-                        }
-                    },
-                    "description": {
-                        "type": [
-                            "string",
-                            "null"
-                        ]
-                    },
-                    "isInstalled": {
-                        "type": [
-                            "boolean",
-                            "null"
-                        ]
-                    },
-                    "status": {
-                        "type": [
-                            "string",
-                            "null"
-                        ]
-                    },
-                    "activeOn": {
-                        "type": "array",
-                        "items": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": [
-                                    "string",
-                                    "null"
-                                ]
-                            }
-                        }
-                    },
-                    "message": {
-                        "type": [
-                            "string",
-                            "null"
-                        ]
-                    }
-                }
-            },
-            "AdminAppearanceTheme.html": {
-                "type": "object",
-                "properties": {
-                    "code": {
-                        "readOnly": true,
-                        "type": [
-                            "string",
-                            "null"
-                        ]
-                    },
-                    "name": {
-                        "type": [
-                            "string",
-                            "null"
-                        ]
-                    },
-                    "author": {
-                        "type": [
-                            "string",
-                            "null"
-                        ]
-                    },
-                    "version": {
-                        "type": [
-                            "string",
-                            "null"
-                        ]
-                    },
-                    "url": {
-                        "type": [
-                            "string",
-                            "null"
-                        ]
-                    },
-                    "demoUrl": {
-                        "type": [
-                            "string",
-                            "null"
-                        ]
-                    },
-                    "screenshot": {
-                        "type": [
-                            "string",
-                            "null"
-                        ]
-                    },
-                    "rating": {
-                        "type": [
-                            "string",
-                            "null"
-                        ]
-                    },
-                    "tags": {
-                        "type": "array",
-                        "items": {
-                            "type": "string"
-                        }
-                    },
-                    "description": {
-                        "type": [
-                            "string",
-                            "null"
-                        ]
-                    },
-                    "isInstalled": {
-                        "type": [
-                            "boolean",
-                            "null"
-                        ]
-                    },
-                    "status": {
-                        "type": [
-                            "string",
-                            "null"
-                        ]
-                    },
-                    "activeOn": {
-                        "type": "array",
-                        "items": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": [
-                                    "string",
-                                    "null"
-                                ]
-                            }
-                        }
                     },
                     "message": {
                         "type": [

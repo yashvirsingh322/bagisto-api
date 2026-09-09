@@ -372,6 +372,7 @@ use Webkul\BagistoApi\State\ProductReviewProcessor;
 use Webkul\BagistoApi\State\ProductReviewProvider;
 use Webkul\BagistoApi\State\ReorderProcessor;
 use Webkul\BagistoApi\State\ReturnableItemProvider;
+use Webkul\BagistoApi\State\ReturnCustomFieldProvider;
 use Webkul\BagistoApi\State\ReturnReasonProvider;
 use Webkul\BagistoApi\State\ShippingRatesProvider;
 use Webkul\BagistoApi\State\SocialLoginProcessor;
@@ -398,6 +399,7 @@ class ApiStateBindingsServiceProvider extends ServiceProvider
         $this->app->tag(CustomerReturnProvider::class, ProviderInterface::class);
         $this->app->tag(EuWithdrawalProvider::class, ProviderInterface::class);
         $this->app->tag(ReturnableItemProvider::class, ProviderInterface::class);
+        $this->app->tag(ReturnCustomFieldProvider::class, ProviderInterface::class);
         $this->app->tag(ReturnReasonProvider::class, ProviderInterface::class);
         $this->app->tag(CustomerReturnMessageProvider::class, ProviderInterface::class);
         $this->app->tag(AdminReturnCollectionProvider::class, ProviderInterface::class);

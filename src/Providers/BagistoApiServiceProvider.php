@@ -520,6 +520,8 @@ class BagistoApiServiceProvider extends ServiceProvider
                 $app->make(RMAMessageRepository::class),
                 $app->make(Helper::class),
                 $app->make(OrderRepository::class),
+                $app->make(RMACustomFieldRepository::class),
+                $app->make(RMAAdditionalFieldRepository::class),
             );
         });
 
