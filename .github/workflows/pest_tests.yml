@@ -49,8 +49,8 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php-versions }}
-          extensions: curl, fileinfo, gd, intl, mbstring, openssl, pdo, pdo_mysql, tokenizer, zip, opcache
-          ini-values: error_reporting=E_ALL, opcache.enable=1, opcache.enable_cli=1, opcache.validate_timestamps=0, opcache.max_accelerated_files=20000, opcache.memory_consumption=256
+          extensions: curl, fileinfo, gd, intl, mbstring, openssl, pdo, pdo_mysql, tokenizer, zip
+          ini-values: error_reporting=E_ALL, memory_limit=-1
           coverage: none
           tools: composer:v2
 
@@ -61,7 +61,10 @@ jobs:
       - name: Wire plugin into Bagisto via composer path repository
         working-directory: bagisto
         run: |
-          composer config repositories.bagisto-api path ../plugin
+          # Install the package as a real directory rather than a symlink, which is how it is
+          # installed everywhere else: a symlinked path repository leaves the autoloader and
+          # Laravel's package discovery resolving the same classes through two paths.
+          composer config repositories.bagisto-api '{"type": "path", "url": "../plugin", "options": {"symlink": false}}' --json
           composer require bagisto/bagisto-api:@dev --no-interaction --no-progress
 
       - name: Configure environment
@@ -115,48 +118,11 @@ jobs:
         working-directory: bagisto
         run: php artisan bagisto-api-platform:warm-cache
 
-      - name: Report the serializer stack
-        working-directory: bagisto
-        continue-on-error: true
-        run: |
-          for pkg in symfony/serializer api-platform/graphql api-platform/serializer api-platform/metadata; do
-            composer show "$pkg" 2>/dev/null | grep -E "^(name|versions)" || true
-          done
-          php -r '
-            require "vendor/autoload.php";
-            foreach ([
-              "ApiPlatform\\GraphQl\\Serializer\\ItemNormalizer",
-              "ApiPlatform\\Serializer\\ItemNormalizer",
-              "Symfony\\Component\\Serializer\\Normalizer\\AbstractNormalizer",
-            ] as $c) {
-              printf("%s\n  exists=%d setSerializer=%d\n  file=%s\n  parents=%s\n", $c, class_exists($c), method_exists($c, "setSerializer"), (new ReflectionClass($c))->getFileName(), implode(" < ", array_values(class_parents($c))));
-            }
-            printf("trait file=%s\n", (new ReflectionClass("Symfony\\Component\\Serializer\\SerializerAwareTrait"))->getFileName());
-            printf("memory_limit=%s opcache=%d\n", ini_get("memory_limit"), (int) function_exists("opcache_get_status"));
-          '
-          free -m
-          nproc
-          # The class is fine at rest, so resolve it the way a booted app does and report
-          # which file the instance actually came from.
-          php -r '
-            require "vendor/autoload.php";
-            $app = require "bootstrap/app.php";
-            $app->make(Illuminate\Contracts\Console\Kernel::class)->bootstrap();
-            $n = $app->make("ApiPlatform\\GraphQl\\Serializer\\ItemNormalizer");
-            printf("resolved=%s setSerializer=%d file=%s\n", get_class($n), method_exists($n, "setSerializer"), (new ReflectionClass($n))->getFileName());
-            foreach (get_included_files() as $f) {
-              if (str_contains($f, "Serializer/ItemNormalizer.php") || str_contains($f, "SerializerAwareTrait.php")) {
-                printf("included=%s\n", $f);
-              }
-            }
-            printf("autoloaders=%d\n", count(spl_autoload_functions()));
-          '
-
       - name: Run GraphQL APIs Pest (plugin suite)
         id: graphql_tests
         working-directory: bagisto
         continue-on-error: true
-        run: vendor/bin/pest --parallel --processes=2 --colors=always vendor/bagisto/bagisto-api/tests/Feature/GraphQL
+        run: vendor/bin/pest --parallel --processes=4 --colors=always vendor/bagisto/bagisto-api/tests/Feature/GraphQL
 
       - name: Run REST APIs Pest (plugin suite)
         id: rest_tests
@@ -170,7 +136,7 @@ jobs:
         if: always()
         working-directory: bagisto
         continue-on-error: true
-        run: vendor/bin/pest --parallel --processes=2 --colors=always vendor/bagisto/bagisto-api/tests/Feature/Admin/GraphQL
+        run: vendor/bin/pest --parallel --processes=4 --colors=always vendor/bagisto/bagisto-api/tests/Feature/Admin/GraphQL
 
       - name: Run Admin REST APIs Pest (plugin suite)
         id: admin_rest_tests
@@ -179,8 +145,6 @@ jobs:
         continue-on-error: true
         run: vendor/bin/pest --parallel --processes=4 --colors=always vendor/bagisto/bagisto-api/tests/Feature/Admin/RestApi
         
-      # Every suite runs even when an earlier one is red (continue-on-error above),
-      # then this step fails the job if any of them did not pass.
       - name: Suite results
         if: always()
         run: |

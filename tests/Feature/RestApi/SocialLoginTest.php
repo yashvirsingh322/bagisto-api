@@ -2,7 +2,6 @@
 
 namespace Webkul\BagistoApi\Tests\Feature\RestApi;
 
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Webkul\BagistoApi\Tests\RestApiTestCase;
@@ -16,8 +15,7 @@ class SocialLoginTest extends RestApiTestCase
     {
         parent::setUp();
 
-        config(['cache.default' => 'array']);
-        Cache::flush();
+        $this->forgetCoreConfigCache();
     }
 
     private function enableGoogle(): void
